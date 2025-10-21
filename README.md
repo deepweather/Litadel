@@ -49,6 +49,16 @@ Litadel is a multi-agent trading framework that mirrors the dynamics of real-wor
 
 > Litadel framework is designed for research purposes. Trading performance may vary based on many factors, including the chosen backbone language models, model temperature, trading periods, the quality of data, and other non-deterministic factors. [It is not intended as financial, investment, or trading advice.](https://tauric.ai/disclaimer/)
 
+### Additional Functionality in Litadel
+
+Litadel extends the original TradingAgents framework with enhanced capabilities:
+
+- ✅ **Commodities Support** - Full analysis and trading support for commodity markets
+- ✅ **Cryptocurrency Support** - Native support for crypto asset analysis and trading
+- 🚧 **Web Frontend** - Interactive web interface (in progress)
+- 🚧 **Automated Trading Mode** - Continuous automated trading execution (in progress)
+- 🚧 **Portfolio Management** - Multi-asset portfolio tracking and optimization (in progress)
+
 Our framework decomposes complex trading tasks into specialized roles. This ensures the system achieves a robust, scalable approach to market analysis and decision-making.
 
 ### Analyst Team
