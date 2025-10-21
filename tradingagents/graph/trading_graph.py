@@ -22,21 +22,19 @@ from tradingagents.agents.utils.agent_states import (
 )
 from tradingagents.dataflows.config import set_config
 
-# Import the new abstract tool methods from agent_utils
+# Import unified tools from agent_utils
 from tradingagents.agents.utils.agent_utils import (
-    get_stock_data,
+    get_market_data,
     get_indicators,
+    get_asset_news,
+    get_global_news_unified as get_global_news,
     get_fundamentals,
     get_balance_sheet,
     get_cashflow,
     get_income_statement,
-    get_news,
-    get_commodity_news,
     get_insider_sentiment,
     get_insider_transactions,
-    get_global_news
 )
-from tradingagents.agents.utils.commodity_data_tools import get_commodity_data
 
 from .conditional_logic import ConditionalLogic
 from .setup import GraphSetup
@@ -123,16 +121,21 @@ class TradingAgentsGraph:
         self.graph = self.graph_setup.setup_graph(selected_analysts)
 
     def _create_tool_nodes(self) -> Dict[str, ToolNode]:
-        """Create tool nodes for different data sources using centralized config."""
-        from tradingagents.agents.config import get_analyst_config
-        
-        analyst_config = get_analyst_config(self.config.get("asset_class", "equity"))
-        
+        """Create tool nodes using unified tools that work across all asset classes."""
+        # Unified tools automatically route based on asset_class context
+        # No more conditional logic needed here!
         return {
-            "market": ToolNode(analyst_config.get_tools_for_analyst("market")),
-            "social": ToolNode(analyst_config.get_tools_for_analyst("social")),
-            "news": ToolNode(analyst_config.get_tools_for_analyst("news")),
-            "fundamentals": ToolNode(analyst_config.get_tools_for_analyst("fundamentals")),
+            "market": ToolNode([get_market_data, get_indicators]),
+            "social": ToolNode([get_asset_news, get_global_news]),
+            "news": ToolNode([get_asset_news, get_global_news]),
+            "fundamentals": ToolNode([
+                get_fundamentals,
+                get_balance_sheet,
+                get_cashflow,
+                get_income_statement,
+                get_insider_sentiment,
+                get_insider_transactions,
+            ]),
         }
 
     def propagate(self, company_name, trade_date):

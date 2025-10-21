@@ -1,8 +1,10 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 import time
 import json
-from tradingagents.agents.utils.agent_utils import get_stock_data, get_indicators
-from tradingagents.agents.utils.commodity_data_tools import get_commodity_data
+from tradingagents.agents.utils.agent_utils import (
+    get_market_data,
+    get_indicators,
+)
 from tradingagents.dataflows.config import get_config
 
 
@@ -12,17 +14,14 @@ def create_market_analyst(llm):
         current_date = state["trade_date"]
         ticker = state["company_of_interest"]
         company_name = state["company_of_interest"]
-
         asset_class = state.get("asset_class", "equity")
-        if asset_class == "commodity":
-            tools = [
-                get_commodity_data,
-            ]
+
+        # Use unified tools for all asset classes
+        if asset_class == "equity":
+            tools = [get_market_data, get_indicators]
         else:
-            tools = [
-                get_stock_data,
-                get_indicators,
-            ]
+            # Commodities and crypto just use market data (no indicators yet)
+            tools = [get_market_data]
 
         system_message = (
             """You are a trading assistant tasked with analyzing financial markets. Your role is to select the **most relevant indicators** for a given market condition or trading strategy from the following list. The goal is to choose up to **8 indicators** that provide complementary insights without redundancy. Categories and each category's indicators are:
@@ -54,9 +53,11 @@ Volume-Based Indicators:
         )
 
         if asset_class == "equity":
-            system_message += " ""Please make sure to call get_stock_data first to retrieve the CSV that is needed to generate indicators. Then use get_indicators with the specific indicator names."""
-        else:
-            system_message += " ""For commodities, call get_commodity_data to retrieve the price series (value column). You may analyze trends directly on the series or proceed without additional indicators."""
+            system_message += f""" IMPORTANT: When calling get_market_data, always pass asset_class="{asset_class}". First call get_market_data with asset_class="{asset_class}" to retrieve the CSV data, then use get_indicators with the specific indicator names."""
+        elif asset_class == "commodity":
+            system_message += f""" IMPORTANT: When calling get_market_data, always pass asset_class="{asset_class}". Call get_market_data with asset_class="{asset_class}" to retrieve the commodity price series (value column). You may analyze trends directly on the series."""
+        else:  # crypto
+            system_message += f""" IMPORTANT: When calling get_market_data, always pass asset_class="{asset_class}". Call get_market_data with asset_class="{asset_class}" to retrieve OHLCV data. You may analyze price trends and patterns directly."""
 
         prompt = ChatPromptTemplate.from_messages(
             [

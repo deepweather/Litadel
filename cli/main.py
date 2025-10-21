@@ -50,6 +50,9 @@ message_buffer = MessageBuffer()
 
 def get_user_selections():
     """Get all user selections before starting the analysis display."""
+    # Load config to check for pre-configured values
+    from tradingagents.default_config import DEFAULT_CONFIG
+    
     # Display ASCII art welcome message
     with open("./cli/static/welcome.txt", "r") as f:
         welcome_ascii = f.read()
@@ -107,41 +110,80 @@ def get_user_selections():
     )
     analysis_date = get_analysis_date()
 
-    # Step 3: Select analysts
-    console.print(
-        create_question_box(
-            "Step 3: Analysts Team", "Select your LLM analyst agents for the analysis"
+    # Step 3: Select analysts (use config default if available)
+    if "default_analysts" in DEFAULT_CONFIG and DEFAULT_CONFIG["default_analysts"]:
+        # Convert analyst names to AnalystType
+        analyst_map = {
+            "market": AnalystType.MARKET,
+            "news": AnalystType.NEWS,
+            "social": AnalystType.SOCIAL,
+            "fundamentals": AnalystType.FUNDAMENTALS,
+        }
+        selected_analysts = [analyst_map[a] for a in DEFAULT_CONFIG["default_analysts"] if a in analyst_map]
+        # Filter out fundamentals for commodities
+        if asset_class == "commodity":
+            selected_analysts = [a for a in selected_analysts if a != AnalystType.FUNDAMENTALS]
+        console.print(
+            f"[dim]→ Using configured analysts: [bold]{', '.join(a.value for a in selected_analysts)}[/bold][/dim]\n"
         )
-    )
-    selected_analysts = select_analysts(asset_class)
-    console.print(
-        f"[green]Selected analysts:[/green] {', '.join(analyst.value for analyst in selected_analysts)}"
-    )
+    else:
+        console.print(
+            create_question_box(
+                "Step 3: Analysts Team", "Select your LLM analyst agents for the analysis"
+            )
+        )
+        selected_analysts = select_analysts(asset_class)
+        console.print(
+            f"[green]Selected analysts:[/green] {', '.join(analyst.value for analyst in selected_analysts)}"
+        )
 
-    # Step 4: Research depth
-    console.print(
-        create_question_box(
-            "Step 4: Research Depth", "Select your research depth level"
+    # Step 4: Research depth (use config default if available)
+    if "max_debate_rounds" in DEFAULT_CONFIG:
+        selected_research_depth = DEFAULT_CONFIG["max_debate_rounds"]
+        depth_labels = {1: "Shallow", 2: "Medium", 3: "Deep"}
+        console.print(
+            f"[dim]→ Using configured research depth: [bold]{depth_labels.get(selected_research_depth, selected_research_depth)}[/bold][/dim]\n"
         )
-    )
-    selected_research_depth = select_research_depth()
+    else:
+        console.print(
+            create_question_box(
+                "Step 4: Research Depth", "Select your research depth level"
+            )
+        )
+        selected_research_depth = select_research_depth()
 
-    # Step 5: LLM backend
-    console.print(
-        create_question_box(
-            "Step 5: LLM Backend", "Select which service to talk to"
+    # Step 5: LLM backend (use config default if available)
+    if "llm_provider" in DEFAULT_CONFIG and "backend_url" in DEFAULT_CONFIG:
+        selected_llm_provider = DEFAULT_CONFIG["llm_provider"]
+        backend_url = DEFAULT_CONFIG["backend_url"]
+        console.print(
+            f"[dim]→ Using configured LLM provider: [bold]{selected_llm_provider.upper()}[/bold] ({backend_url})[/dim]\n"
         )
-    )
-    selected_llm_provider, backend_url = select_llm_provider()
+    else:
+        console.print(
+            create_question_box(
+                "Step 5: LLM Backend", "Select which service to talk to"
+            )
+        )
+        selected_llm_provider, backend_url = select_llm_provider()
     
-    # Step 6: Thinking agents
-    console.print(
-        create_question_box(
-            "Step 6: Thinking Agents", "Select your thinking agents for analysis"
+    # Step 6: Thinking agents (use config defaults if available)
+    if "quick_think_llm" in DEFAULT_CONFIG and "deep_think_llm" in DEFAULT_CONFIG:
+        selected_shallow_thinker = DEFAULT_CONFIG["quick_think_llm"]
+        selected_deep_thinker = DEFAULT_CONFIG["deep_think_llm"]
+        console.print(
+            f"[dim]→ Using configured models:[/dim]\n"
+            f"[dim]  Quick thinking: [bold]{selected_shallow_thinker}[/bold][/dim]\n"
+            f"[dim]  Deep thinking: [bold]{selected_deep_thinker}[/bold][/dim]\n"
         )
-    )
-    selected_shallow_thinker = select_shallow_thinking_agent(selected_llm_provider)
-    selected_deep_thinker = select_deep_thinking_agent(selected_llm_provider)
+    else:
+        console.print(
+            create_question_box(
+                "Step 6: Thinking Agents", "Select your thinking agents for analysis"
+            )
+        )
+        selected_shallow_thinker = select_shallow_thinking_agent(selected_llm_provider)
+        selected_deep_thinker = select_deep_thinking_agent(selected_llm_provider)
 
     return {
         "ticker": selected_ticker,

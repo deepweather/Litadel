@@ -24,18 +24,25 @@ def get_news(
 def get_global_news(
     curr_date: Annotated[str, "Current date in yyyy-mm-dd format"],
     look_back_days: Annotated[int, "Number of days to look back"] = 7,
-    limit: Annotated[int, "Maximum number of articles to return"] = 5,
+    limit: Annotated[int, "Number of articles (leave unset to use configured default, typically 15-20)"] = None,
 ) -> str:
     """
     Retrieve global news data.
-    Uses the configured news_data vendor.
+    DO NOT specify limit parameter - it will use the system-configured optimal value.
+    Only override if you have a specific reason to fetch more/fewer articles.
+    
     Args:
         curr_date (str): Current date in yyyy-mm-dd format
         look_back_days (int): Number of days to look back (default 7)
-        limit (int): Maximum number of articles to return (default 5)
+        limit (int): OPTIONAL - Number of articles (omit to use configured default)
     Returns:
         str: A formatted string containing global news data
     """
+    # Use config default if not specified
+    if limit is None:
+        from tradingagents.dataflows.config import get_config
+        limit = get_config().get("global_news_limit", 15)
+    
     return route_to_vendor("get_global_news", curr_date, look_back_days, limit)
 
 @tool
@@ -57,6 +64,26 @@ def get_commodity_news(
         str: A formatted string containing commodity-related news data
     """
     return route_to_vendor("get_commodity_news", commodity, start_date, end_date)
+
+@tool
+def get_crypto_news(
+    crypto: Annotated[str, "Crypto symbol like BTC, ETH, SOL"],
+    start_date: Annotated[str, "Start date in yyyy-mm-dd format"],
+    end_date: Annotated[str, "End date in yyyy-mm-dd format"],
+) -> str:
+    """
+    Retrieve news data for a cryptocurrency (Bitcoin, Ethereum, etc.).
+    Uses topic-based search since crypto doesn't have traditional stock tickers.
+    Searches news by blockchain/technology topics and filters for the specific cryptocurrency.
+    
+    Args:
+        crypto (str): Cryptocurrency symbol (e.g., "BTC", "ETH", "SOL")
+        start_date (str): Start date in yyyy-mm-dd format
+        end_date (str): End date in yyyy-mm-dd format
+    Returns:
+        str: A formatted string containing crypto-related news data
+    """
+    return route_to_vendor("get_crypto_news", crypto, start_date, end_date)
 
 @tool
 def get_insider_sentiment(

@@ -67,10 +67,10 @@ def get_analysis_date() -> str:
 def select_analysts(asset_class: str | None = None) -> List[AnalystType]:
     """Select analysts using an interactive checkbox.
 
-    If asset_class is 'commodity', hide Fundamentals Analyst.
+    If asset_class is 'commodity' or 'crypto', hide Fundamentals Analyst.
     """
     order = ANALYST_ORDER
-    if asset_class and asset_class.lower() == "commodity":
+    if asset_class and asset_class.lower() in ["commodity", "crypto"]:
         order = [(d, v) for (d, v) in ANALYST_ORDER if v != AnalystType.FUNDAMENTALS]
 
     choices = questionary.checkbox(
@@ -139,6 +139,7 @@ def select_shallow_thinking_agent(provider) -> str:
             ("GPT-4.1-nano - Ultra-lightweight model for basic operations", "gpt-4.1-nano"),
             ("GPT-4.1-mini - Compact model with good performance", "gpt-4.1-mini"),
             ("GPT-4o - Standard model with solid capabilities", "gpt-4o"),
+            ("GPT-5 - Next generation model with enhanced capabilities", "gpt-5"),
         ],
         "anthropic": [
             ("Claude Haiku 3.5 - Fast inference and standard capabilities", "claude-3-5-haiku-latest"),
@@ -196,6 +197,7 @@ def select_deep_thinking_agent(provider) -> str:
             ("GPT-4.1-nano - Ultra-lightweight model for basic operations", "gpt-4.1-nano"),
             ("GPT-4.1-mini - Compact model with good performance", "gpt-4.1-mini"),
             ("GPT-4o - Standard model with solid capabilities", "gpt-4o"),
+            ("GPT-5 - Next generation model with enhanced capabilities", "gpt-5"),
             ("o4-mini - Specialized reasoning model (compact)", "o4-mini"),
             ("o3-mini - Advanced reasoning model (lightweight)", "o3-mini"),
             ("o3 - Full advanced reasoning model", "o3"),

@@ -15,7 +15,10 @@ from .alpha_vantage import (
     get_insider_transactions as get_alpha_vantage_insider_transactions,
     get_news as get_alpha_vantage_news,
     get_commodity_news as get_alpha_vantage_commodity_news,
-    get_commodity as get_alpha_vantage_commodity
+    get_crypto_news as get_alpha_vantage_crypto_news,
+    get_global_news_alpha_vantage,
+    get_commodity as get_alpha_vantage_commodity,
+    get_crypto as get_alpha_vantage_crypto
 )
 from .alpha_vantage_common import AlphaVantageRateLimitError
 
@@ -34,6 +37,12 @@ TOOLS_CATEGORIES = {
         "description": "Commodity price data",
         "tools": [
             "get_commodity_data"
+        ]
+    },
+    "crypto_data": {
+        "description": "Cryptocurrency price data",
+        "tools": [
+            "get_crypto_data"
         ]
     },
     "technical_indicators": {
@@ -55,6 +64,8 @@ TOOLS_CATEGORIES = {
         "description": "News (public/insiders, original/processed)",
         "tools": [
             "get_news",
+            "get_commodity_news",
+            "get_crypto_news",
             "get_global_news",
             "get_insider_sentiment",
             "get_insider_transactions",
@@ -80,6 +91,10 @@ VENDOR_METHODS = {
     # commodity_data
     "get_commodity_data": {
         "alpha_vantage": get_alpha_vantage_commodity,
+    },
+    # crypto_data
+    "get_crypto_data": {
+        "alpha_vantage": get_alpha_vantage_crypto,
     },
     # technical_indicators
     "get_indicators": {
@@ -118,7 +133,12 @@ VENDOR_METHODS = {
         "alpha_vantage": get_alpha_vantage_commodity_news,
         "openai": get_stock_news_openai,  # Fallback to OpenAI web search
     },
+    "get_crypto_news": {
+        "alpha_vantage": get_alpha_vantage_crypto_news,
+        "openai": get_stock_news_openai,  # Fallback to OpenAI web search
+    },
     "get_global_news": {
+        "alpha_vantage": get_global_news_alpha_vantage,
         "openai": get_global_news_openai,
         "local": get_reddit_global_news
     },

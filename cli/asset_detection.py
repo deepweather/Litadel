@@ -14,18 +14,48 @@ KNOWN_COMMODITIES = {
     "COFFEE",
 }
 
+# Known cryptocurrencies supported by Alpha Vantage
+KNOWN_CRYPTOS = {
+    "BTC",
+    "ETH",
+    "BNB",
+    "XRP",
+    "ADA",
+    "SOL",
+    "DOGE",
+    "DOT",
+    "MATIC",
+    "AVAX",
+    "LINK",
+    "UNI",
+    "ATOM",
+    "LTC",
+    "BCH",
+    "XLM",
+    "ALGO",
+    "VET",
+    "ICP",
+    "FIL",
+}
+
 
 def detect_asset_class(symbol: str) -> str:
     """
-    Automatically detect if a symbol is a commodity or equity.
+    Automatically detect if a symbol is a commodity, crypto, or equity.
     
     Args:
-        symbol: The ticker symbol (e.g., "BRENT", "AAPL")
+        symbol: The ticker symbol (e.g., "BRENT", "BTC", "AAPL")
     
     Returns:
-        "commodity" if the symbol matches a known commodity, "equity" otherwise
+        "commodity", "crypto", or "equity" based on the symbol
     """
-    return "commodity" if symbol.upper() in KNOWN_COMMODITIES else "equity"
+    symbol_upper = symbol.upper()
+    if symbol_upper in KNOWN_COMMODITIES:
+        return "commodity"
+    elif symbol_upper in KNOWN_CRYPTOS:
+        return "crypto"
+    else:
+        return "equity"
 
 
 def get_asset_class_display_name(asset_class: str) -> str:
