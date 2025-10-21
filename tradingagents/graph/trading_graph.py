@@ -31,6 +31,7 @@ from tradingagents.agents.utils.agent_utils import (
     get_cashflow,
     get_income_statement,
     get_news,
+    get_commodity_news,
     get_insider_sentiment,
     get_insider_transactions,
     get_global_news
@@ -122,47 +123,16 @@ class TradingAgentsGraph:
         self.graph = self.graph_setup.setup_graph(selected_analysts)
 
     def _create_tool_nodes(self) -> Dict[str, ToolNode]:
-        """Create tool nodes for different data sources using abstract methods."""
-        is_commodity = self.config.get("asset_class", "equity").lower() == "commodity"
-
-        market_tools = []
-        if is_commodity:
-            # Only expose commodity tool to prevent LLM from selecting stock data
-            market_tools = [
-                get_commodity_data,
-            ]
-        else:
-            market_tools = [
-                get_stock_data,
-                get_indicators,
-            ]
-
+        """Create tool nodes for different data sources using centralized config."""
+        from tradingagents.agents.config import get_analyst_config
+        
+        analyst_config = get_analyst_config(self.config.get("asset_class", "equity"))
+        
         return {
-            "market": ToolNode(market_tools),
-            "social": ToolNode(
-                [
-                    # News tools for social media analysis
-                    get_news,
-                ]
-            ),
-            "news": ToolNode(
-                [
-                    # News and insider information
-                    get_news,
-                    get_global_news,
-                    get_insider_sentiment,
-                    get_insider_transactions,
-                ]
-            ),
-            "fundamentals": ToolNode(
-                [
-                    # Fundamental analysis tools
-                    get_fundamentals,
-                    get_balance_sheet,
-                    get_cashflow,
-                    get_income_statement,
-                ]
-            ),
+            "market": ToolNode(analyst_config.get_tools_for_analyst("market")),
+            "social": ToolNode(analyst_config.get_tools_for_analyst("social")),
+            "news": ToolNode(analyst_config.get_tools_for_analyst("news")),
+            "fundamentals": ToolNode(analyst_config.get_tools_for_analyst("fundamentals")),
         }
 
     def propagate(self, company_name, trade_date):
