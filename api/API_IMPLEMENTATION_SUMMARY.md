@@ -274,13 +274,13 @@ Future improvements could include:
 The FastAPI Trading Agents API is fully implemented and ready for use. It provides a robust, scalable foundation for frontend applications to interact with the TradingAgents multi-agent system.
 
 ### Getting Started
-1. Read `API_QUICKSTART.md` for setup instructions
-2. Check `api/README.md` for full documentation
-3. Run `api/example_client.py` to see it in action
+1. Read `START_API.md` or `API_QUICKSTART.md` for setup instructions
+2. Check `README.md` for full documentation
+3. Run `example_client.py` to see it in action
 4. Start building your frontend!
 
 ### Support
-- API Documentation: http://localhost:8000/docs
-- Project README: `api/README.md`
-- Quick Start: `API_QUICKSTART.md`
+- API Documentation: http://localhost:8001/docs
+- Project README: `README.md`
+- Quick Start: `START_API.md` or `API_QUICKSTART.md`
 

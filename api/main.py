@@ -30,11 +30,53 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events."""
+    import os
+    from pathlib import Path
+    
     # Startup
     logger.info("Initializing Trading Agents API...")
+    
+    # Check if this is first run (database doesn't exist)
+    db_path = Path(os.getenv("API_DATABASE_URL", "sqlite:///./api_database.db").replace("sqlite:///", ""))
+    is_first_run = not db_path.exists()
+    
+    # Initialize database
     init_db()
+    
+    # If first run, create a default API key
+    if is_first_run:
+        from api.auth import create_api_key
+        from api.database import SessionLocal
+        
+        logger.info("=" * 70)
+        logger.info("FIRST RUN DETECTED - Setting up Trading Agents API")
+        logger.info("=" * 70)
+        
+        db = SessionLocal()
+        try:
+            plain_key, db_key = create_api_key(db, "Default API Key")
+            logger.info("")
+            logger.info("✓ Database initialized successfully!")
+            logger.info("✓ Default API key created!")
+            logger.info("")
+            logger.info("=" * 70)
+            logger.info("YOUR API KEY (save this, it won't be shown again):")
+            logger.info("")
+            logger.info(f"  {plain_key}")
+            logger.info("")
+            logger.info("=" * 70)
+            logger.info("Use this key in the X-API-Key header for all API requests.")
+            logger.info("Manage keys with: python -m api.cli_admin")
+            logger.info("=" * 70)
+            logger.info("")
+        except Exception as e:
+            logger.error(f"Failed to create default API key: {e}")
+        finally:
+            db.close()
+    
     get_executor()
     logger.info("Trading Agents API started successfully")
+    logger.info(f"API Documentation: http://localhost:{os.getenv('API_PORT', '8001')}/docs")
     
     yield
     
@@ -92,7 +134,7 @@ if __name__ == "__main__":
     import uvicorn
     import os
     
-    port = int(os.getenv("API_PORT", "8002"))  # Default to 8001 instead of 8000
+    port = int(os.getenv("API_PORT", "8002"))
     
     uvicorn.run(
         "api.main:app",

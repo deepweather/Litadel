@@ -1,83 +1,96 @@
-# Quick Start - Trading Agents API
+# Trading Agents API - Quick Start
 
-## 1. Install Dependencies (if not already done)
+Get your API running in **2 simple steps**!
+
+## Prerequisites
+
+- Python 3.10+
+- Environment variables set (OPENAI_API_KEY, ALPHA_VANTAGE_API_KEY)
+
+## Setup
+
+### Step 1: Install Dependencies
 
 ```bash
 cd TradingAgents
 pip install -r requirements.txt
 ```
 
-## 2. Initialize Database & Create API Key
-
-```bash
-# Initialize the database
-python -m api.cli_admin init-database
-
-# Create your first API key
-python -m api.cli_admin create-key "My Development Key"
-```
-
-**IMPORTANT**: Save the API key that's displayed! You'll need it for all requests.
-
-## 3. Start the API
+### Step 2: Start the API
 
 ```bash
 python -m api.main
 ```
 
-Or use the startup script:
-```bash
-./run_api.sh
+**That's it!** 🎉
+
+### First Run Auto-Setup
+
+On first run, the API automatically:
+- ✅ Creates the database
+- ✅ Generates a default API key
+- ✅ Displays the key in console logs
+
+**SAVE THE API KEY!** You'll see output like this:
+
+```
+======================================================================
+FIRST RUN DETECTED - Setting up Trading Agents API
+======================================================================
+
+✓ Database initialized successfully!
+✓ Default API key created!
+
+======================================================================
+YOUR API KEY (save this, it won't be shown again):
+
+  BgA2YyMlxYus2aIGJ5KGCPQO-q8k05WxTirayVZgPrM
+
+======================================================================
+Use this key in the X-API-Key header for all API requests.
+Manage keys with: python -m api.cli_admin
+======================================================================
 ```
 
-The API will start at: **http://localhost:8001**
+## Test Your API
 
-## 4. Test It
+Open your browser:
+- **Interactive Docs**: http://localhost:8001/docs
+- **Alternative Docs**: http://localhost:8001/redoc
 
-Open your browser to see the interactive API documentation:
-- **Swagger UI**: http://localhost:8001/docs
-- **ReDoc**: http://localhost:8001/redoc
-
-## 5. Create Your First Analysis
-
-Using curl (replace `YOUR_API_KEY` with the key from step 2):
+Or test with curl:
 
 ```bash
 curl -X POST "http://localhost:8001/api/v1/analyses" \
-  -H "X-API-Key: YOUR_API_KEY" \
+  -H "X-API-Key: YOUR_API_KEY_HERE" \
   -H "Content-Type: application/json" \
   -d '{
     "ticker": "AAPL",
     "analysis_date": "2025-10-21",
-    "selected_analysts": ["market", "news"],
+    "selected_analysts": ["market"],
     "research_depth": 1
   }'
 ```
 
-You'll get back an `analysis_id`. Use it to check status:
+## Alternative Startup Methods
 
 ```bash
-curl "http://localhost:8001/api/v1/analyses/YOUR_ANALYSIS_ID/status" \
-  -H "X-API-Key: YOUR_API_KEY"
-```
-
-## Configuration (Optional)
-
-Set environment variables before starting:
-
-```bash
-# Maximum concurrent analyses (default: 4)
-export MAX_CONCURRENT_ANALYSES=8
-
-# Your LLM API keys (if not already set)
-export OPENAI_API_KEY="your-key"
-export ALPHA_VANTAGE_API_KEY="your-key"
-
-# Then start the API
+# Option 1: Direct Python (default port 8001)
 python -m api.main
+
+# Option 2: Startup script
+./run_api.sh
+
+# Option 3: Custom port
+API_PORT=8002 python -m api.main
+
+# Option 4: Using uvicorn directly
+uvicorn api.main:app --host 0.0.0.0 --port 8001
 ```
 
-## Common Commands
+## Managing API Keys
+
+After initial setup, manage keys with the admin CLI:
 
 ```bash
 # List all API keys
@@ -86,29 +99,57 @@ python -m api.cli_admin list-keys
 # Create a new API key
 python -m api.cli_admin create-key "Frontend App"
 
-# Revoke an API key (use ID from list-keys)
+# Revoke an API key
 python -m api.cli_admin revoke-key 1
+
+# Activate a revoked key
+python -m api.cli_admin activate-key 1
 ```
 
-## Full Documentation
+## Configuration (Optional)
 
-- Quick Start: `API_QUICKSTART.md`
-- Full API Docs: `api/README.md`
-- Implementation Details: `API_IMPLEMENTATION_SUMMARY.md`
+Set these environment variables before starting:
+
+```bash
+# Maximum concurrent analyses (default: 4)
+export MAX_CONCURRENT_ANALYSES=8
+
+# Custom database location
+export API_DATABASE_URL="sqlite:///./my_custom.db"
+
+# Custom port
+export API_PORT=8002
+```
 
 ## Troubleshooting
 
 **"Invalid or inactive API key"**
-- Make sure you're using the exact key from step 2
-- Check: `python -m api.cli_admin list-keys`
+- Use the exact key from the first-run console output
+- Check active keys: `python -m api.cli_admin list-keys`
+
+**Port already in use**
+- Change port: `API_PORT=8002 python -m api.main`
+
+**Database already exists but no API key**
+- Create one: `python -m api.cli_admin create-key "My Key"`
 
 **Import errors**
-- Make sure you're in the TradingAgents directory
+- Ensure you're in the TradingAgents directory
 - Use: `python -m api.main` (not `python api/main.py`)
 
-**Port 8001 already in use**
-- Change port: `API_PORT=8002 python -m api.main`
-- Or: `python -m uvicorn api.main:app --port 8002`
+## Full Documentation
 
-That's it! Your API is ready to use. 🚀
+- Quick Start: `QUICKSTART.md` (one-command setup)
+- This Guide: `START_API.md` (you are here)
+- Detailed Guide: `API_QUICKSTART.md`
+- Full API Docs: `README.md`
+- Implementation: `API_IMPLEMENTATION_SUMMARY.md`
 
+## What's Next?
+
+1. Check out the interactive docs at http://localhost:8001/docs
+2. Try creating an analysis via the API
+3. Build your frontend integration
+4. Read the full documentation in `README.md`
+
+Your Trading Agents API is ready! 🚀

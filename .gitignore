@@ -9,3 +9,10 @@ eval_results/
 eval_data/
 *.egg-info/
 .env
+
+# API Database
+api_database.db
+api_database.db-*
+*.db
+*.db-shm
+*.db-wal
