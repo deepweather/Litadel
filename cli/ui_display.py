@@ -30,8 +30,7 @@ def update_display(layout, message_buffer, spinner_text=None):
     # Header with welcome message
     layout["header"].update(
         Panel(
-            "[bold green]Welcome to Litadel CLI[/bold green]\n"
-            "[dim]© [Tauric Research](https://github.com/TauricResearch)[/dim]",
+            "[bold green]Welcome to Litadel CLI[/bold green]",
             title="Welcome to Litadel",
             border_style="green",
             padding=(1, 2),
