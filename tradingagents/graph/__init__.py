@@ -1,4 +1,6 @@
-# TradingAgents/graph/__init__.py
+# Litadel/graph/__init__.py
+# Copyright Notice: Litadel is a successor of TradingAgents by TaurusResearch.
+# This project builds upon and extends the original TradingAgents framework.
 
 from .trading_graph import TradingAgentsGraph
 from .conditional_logic import ConditionalLogic

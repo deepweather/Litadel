@@ -1,5 +1,19 @@
-"""Helper functions for the TradingAgents CLI."""
+"""Helper utilities and models for the TradingAgents CLI."""
 
+from enum import Enum
+
+
+# ===== Models =====
+
+class AnalystType(str, Enum):
+    """Enumeration of available analyst types."""
+    MARKET = "market"
+    SOCIAL = "social"
+    NEWS = "news"
+    FUNDAMENTALS = "fundamentals"
+
+
+# ===== Helper Functions =====
 
 def update_research_team_status(message_buffer, status):
     """Update status for all research team members and trader."""
@@ -26,3 +40,4 @@ def extract_content_string(content):
         return ' '.join(text_parts)
     else:
         return str(content)
+

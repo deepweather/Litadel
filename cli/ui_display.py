@@ -1,4 +1,4 @@
-"""UI display functions for the TradingAgents CLI using Rich library."""
+"""UI display functions for the Litadel CLI using Rich library."""
 
 from rich.panel import Panel
 from rich.spinner import Spinner
@@ -30,9 +30,8 @@ def update_display(layout, message_buffer, spinner_text=None):
     # Header with welcome message
     layout["header"].update(
         Panel(
-            "[bold green]Welcome to TradingAgents CLI[/bold green]\n"
-            "[dim]© [Tauric Research](https://github.com/TauricResearch)[/dim]",
-            title="Welcome to TradingAgents",
+            "[bold green]Welcome to Litadel CLI[/bold green]",
+            title="Welcome to Litadel",
             border_style="green",
             padding=(1, 2),
             expand=True,

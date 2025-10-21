@@ -1,4 +1,6 @@
-# TradingAgents/graph/propagation.py
+# Litadel/graph/propagation.py
+# Copyright Notice: Litadel is a successor of TradingAgents by TaurusResearch.
+# This project builds upon and extends the original TradingAgents framework.
 
 from typing import Dict, Any
 from tradingagents.agents.utils.agent_states import (
