@@ -67,11 +67,23 @@ def _normalize_ohlcv_rows_from_csv(csv_text: str) -> List[Dict[str, str]]:
         volume_val = get_field(r, "Volume", "volume")
 
         if not date_val:
-            # Skip rows without date
             continue
 
+        # Fallbacks for single-value series (e.g., commodities time,value)
+        if close_val is None:
+            close_val = get_field(r, "value", "price")
+
+        # If only a close-like value exists, mirror it to O/H/L so charts render
+        if close_val is not None:
+            if open_val is None:
+                open_val = close_val
+            if high_val is None:
+                high_val = close_val
+            if low_val is None:
+                low_val = close_val
+
         rows.append({
-            "Date": str(date_val)[:10],  # ensure YYYY-MM-DD
+            "Date": str(date_val)[:10],
             "Close": close_val if close_val is not None else "",
             "High": high_val if high_val is not None else "",
             "Low": low_val if low_val is not None else "",
@@ -198,26 +210,51 @@ async def get_cached_data(
     
     # Read CSV data
     data = []
-    try:
-        with open(csv_file, "r") as f:
+    def _read_csv_to_rows(file_path: Path) -> List[Dict[str, str]]:
+        rows: List[Dict[str, str]] = []
+        with open(file_path, "r") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                # Filter by date if specified
                 row_date = row.get("Date", "")
                 if start_date and row_date < start_date:
                     continue
                 if end_date and row_date > end_date:
                     continue
-                
-                # Convert numeric fields
                 for field in ["Close", "High", "Low", "Open", "Volume"]:
                     if field in row and row[field]:
                         try:
                             row[field] = float(row[field])
                         except:
                             pass
-                
-                data.append(row)
+                rows.append(row)
+        return rows
+
+    try:
+        data = _read_csv_to_rows(csv_file)
+        # Self-heal: if all numeric fields are empty, regenerate cache once
+        has_any_price = any(
+            isinstance(r.get("Close"), (int, float)) or str(r.get("Close", "")) not in ("",)
+            for r in data
+        )
+        if not has_any_price:
+            # Delete and regenerate cache
+            try:
+                os.remove(csv_file)
+            except Exception:
+                pass
+            # Recreate
+            _ensure_cached_data(ticker, start_date, end_date)
+            # Re-discover and re-read
+            matching_files = list(DATA_CACHE_DIR.glob(pattern))
+            if not matching_files:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"No cached data found for ticker {ticker}",
+                )
+            csv_file = matching_files[0]
+            data = _read_csv_to_rows(csv_file)
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
