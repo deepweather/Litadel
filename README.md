@@ -4,9 +4,11 @@
 
 ---
 
-# Litadel: Multi-Agents LLM Financial Trading Framework 
+# Litadel: Multi-Agents LLM Financial Trading Framework
 
-> **Copyright Notice:** Litadel is a successor of TradingAgents. This project builds upon and extends the original TradingAgents framework.
+> *Citadel was built by quants. Litadel was built by vibes.* 🚀 
+
+> **About Litadel:** Built on the foundation of TradingAgents, Litadel extends the original framework with production-ready features needed for a fully functional trading platform. While TradingAgents provided an excellent proof-of-concept for multi-agent trading analysis, it lacked critical infrastructure for real-world deployment: multi-asset support (crypto & commodities), a modern web interface, parallel execution capabilities, persistent storage, REST API, and foundations for portfolio management and backtesting. Litadel addresses these gaps while maintaining the powerful multi-agent architecture that made the original framework compelling.
 
 <div align="center">
 
