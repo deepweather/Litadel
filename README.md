@@ -10,79 +10,39 @@
 
 <div align="center">
 
-🚀 [Overview](#overview) | 💻 [Web Interface](#web-interface) | ⚡ [Getting Started](#getting-started) | 🎯 [Usage](#usage) | 🤝 [Contributing](#contributing) | 📄 [Citation](#citation)
+🚀 [Overview](#overview) | 💻 [Dashboard](#dashboard) | ⚡ [Getting Started](#getting-started) | 🎯 [Usage](#usage) | 🤖 [How It Works](#how-it-works) | 🤝 [Contributing](#contributing) | 📄 [Citation](#citation)
 
 </div>
 
 ## Overview
 
-Litadel is a comprehensive multi-agent trading platform that brings the dynamics of professional trading firms to your fingertips. Powered by specialized LLM agents—from fundamental analysts and sentiment experts to traders and risk managers—the system collaboratively evaluates market conditions across **equities, commodities, and cryptocurrencies** to deliver actionable trading insights.
+Litadel is a comprehensive AI-powered trading analysis platform that delivers professional-grade market insights across **equities, commodities, and cryptocurrencies**. Get actionable BUY/SELL/HOLD recommendations backed by multi-agent analysis covering fundamentals, technicals, news sentiment, and risk assessment.
 
-<p align="center">
-  <img src="assets/schema.png" style="width: 100%; height: auto;">
-</p>
-
-> Litadel framework is designed for research and educational purposes. Trading performance may vary based on many factors, including the chosen backbone language models, model temperature, trading periods, the quality of data, and other non-deterministic factors. [It is not intended as financial, investment, or trading advice.](https://tauric.ai/disclaimer/)
+> Litadel framework is designed for research and educational purposes. Trading performance may vary based on many factors. [It is not intended as financial, investment, or trading advice.](https://tauric.ai/disclaimer/)
 
 ### What You Get
 
-**Three Ways to Analyze Markets:**
-- 🌐 **Web Dashboard** - Modern, real-time interface with live analysis tracking, interactive charts, and comprehensive reports
+**Three Ways to Analyze:**
+- 🌐 **Web Dashboard** - Modern, real-time interface with live tracking, interactive charts, and comprehensive reports
 - 💻 **Interactive CLI** - Rich terminal experience with live agent progress and automatic report generation
-- 📦 **Python Package** - Integrate Litadel's multi-agent analysis directly into your own applications
+- 📦 **Python Package** - Integrate multi-agent analysis directly into your own applications
 
 **Multi-Asset Coverage:**
 - 📈 **Equities** - Full fundamental, technical, and sentiment analysis for stocks
 - 🛢️ **Commodities** - Specialized analysis for oil, metals, agricultural products, and more
 - ₿ **Cryptocurrencies** - Real-time crypto market analysis with sentiment tracking
 
-**Professional-Grade Analysis:**
-- Real-time market data integration with automatic caching
-- Multi-agent collaboration with structured debates between bull and bear perspectives
-- Comprehensive reports covering technical indicators, fundamentals, news sentiment, and risk assessment
-- Trading recommendations with confidence scores and detailed rationale
+**Professional Analysis:**
+- Real-time market data with automatic caching
+- Multi-perspective analysis with bull vs. bear debates
+- Comprehensive reports covering all aspects of market conditions
+- Clear trading recommendations with confidence scores
 
-Our framework decomposes complex trading tasks into specialized roles, ensuring robust and scalable market analysis.
+## Dashboard
 
-### Analyst Team
-- Fundamentals Analyst: Evaluates company financials and performance metrics, identifying intrinsic values and potential red flags.
-- Sentiment Analyst: Analyzes social media and public sentiment using sentiment scoring algorithms to gauge short-term market mood.
-- News Analyst: Monitors global news and macroeconomic indicators, interpreting the impact of events on market conditions.
-- Technical Analyst: Utilizes technical indicators (like MACD and RSI) to detect trading patterns and forecast price movements.
+### Your Trading Command Center
 
-<p align="center">
-  <img src="assets/analyst.png" width="100%" style="display: inline-block; margin: 0 2%;">
-</p>
-
-### Researcher Team
-- Comprises both bullish and bearish researchers who critically assess the insights provided by the Analyst Team. Through structured debates, they balance potential gains against inherent risks.
-
-<p align="center">
-  <img src="assets/researcher.png" width="70%" style="display: inline-block; margin: 0 2%;">
-</p>
-
-### Trader Agent
-- Composes reports from the analysts and researchers to make informed trading decisions. It determines the timing and magnitude of trades based on comprehensive market insights.
-
-<p align="center">
-  <img src="assets/trader.png" width="70%" style="display: inline-block; margin: 0 2%;">
-</p>
-
-### Risk Management and Portfolio Manager
-- Continuously evaluates portfolio risk by assessing market volatility, liquidity, and other risk factors. The risk management team evaluates and adjusts trading strategies, providing assessment reports to the Portfolio Manager for final decision.
-- The Portfolio Manager approves/rejects the transaction proposal. If approved, the order will be sent to the simulated exchange and executed.
-
-<p align="center">
-  <img src="assets/risk.png" width="70%" style="display: inline-block; margin: 0 2%;">
-</p>
-
-## Web Interface
-
-Litadel includes a modern web dashboard that provides a complete command center for managing your trading analyses. The interface offers real-time monitoring, interactive visualizations, and comprehensive reporting—all in a sleek, terminal-inspired design.
-
-### Dashboard - Your Control Center
-
-The main dashboard gives you an at-a-glance view of your trading operations with system metrics, recent activity, and quick access to create new analyses.
+The web dashboard provides a complete control center for managing your trading analyses with real-time monitoring, interactive visualizations, and comprehensive reporting.
 
 <p align="center">
   <img src="assets/dashboard.png" width="100%" style="display: inline-block;">
@@ -98,7 +58,7 @@ Browse all your analyses with smart filtering and grouping. Track active analyse
 
 ### Real-Time Analysis Tracking
 
-Watch your analysis unfold in real-time as agents collaborate to evaluate market conditions. See live progress updates, agent pipeline status, and streaming reports as they're generated.
+Watch your analysis unfold in real-time as AI agents collaborate to evaluate market conditions. See live progress updates, agent pipeline status, and streaming reports as they're generated.
 
 <p align="center">
   <img src="assets/btc_single_analysis.png" width="100%" style="display: inline-block;">
@@ -110,7 +70,7 @@ Each completed analysis provides detailed insights with:
 - **Trading Decision** - Clear BUY/SELL/HOLD recommendation with confidence score
 - **Interactive Price Charts** - Candlestick charts with analysis date markers and 60-day history
 - **Market Metrics** - Current price, daily change, volume, and 52-week ranges
-- **Agent Reports** - Detailed analysis from each specialist (market, news, sentiment, fundamentals)
+- **Specialist Reports** - Detailed analysis from market, news, sentiment, and fundamental perspectives
 - **Research Debate** - Bull vs. bear perspectives with investment recommendations
 - **Risk Assessment** - Comprehensive risk evaluation and portfolio impact analysis
 
@@ -137,7 +97,7 @@ Each completed analysis provides detailed insights with:
 
 Clone Litadel:
 ```bash
-git clone https://github.com/TauricResearch/Litadel.git
+git clone https://github.com/deepweather/Litadel.git
 cd Litadel
 ```
 
@@ -272,6 +232,51 @@ For testing and development, we recommend using `gpt-4o-mini` and `o1-mini` to m
 **Data Sources:**
 
 The default configuration uses YFinance for price/technical data and Alpha Vantage for fundamentals/news. You can switch to OpenAI for web-based data fetching or use local cached data for offline experimentation. See `tradingagents/default_config.py` for all available options.
+
+## How It Works
+
+Litadel uses a multi-agent architecture that mirrors the structure of professional trading firms. Specialized AI agents collaborate to provide comprehensive market analysis.
+
+<p align="center">
+  <img src="assets/schema.png" style="width: 100%; height: auto;">
+</p>
+
+### Analyst Team
+
+Four specialized analysts evaluate different aspects of market conditions:
+
+- **Technical Analyst** - Analyzes price patterns, trends, and technical indicators (MACD, RSI, moving averages)
+- **Fundamentals Analyst** - Evaluates company financials, earnings, balance sheets, and intrinsic value
+- **News Analyst** - Monitors global news, macroeconomic indicators, and their market impact
+- **Sentiment Analyst** - Analyzes social media and public sentiment to gauge market mood
+
+<p align="center">
+  <img src="assets/analyst.png" width="100%" style="display: inline-block; margin: 0 2%;">
+</p>
+
+### Researcher Team
+
+Bull and bear researchers critically assess analyst insights through structured debates, balancing potential gains against risks.
+
+<p align="center">
+  <img src="assets/researcher.png" width="70%" style="display: inline-block; margin: 0 2%;">
+</p>
+
+### Trader Agent
+
+Synthesizes all reports and research to make informed trading decisions with clear timing and position sizing recommendations.
+
+<p align="center">
+  <img src="assets/trader.png" width="70%" style="display: inline-block; margin: 0 2%;">
+</p>
+
+### Risk Management and Portfolio Manager
+
+Evaluates portfolio risk by assessing market volatility, liquidity, and other risk factors. The risk team provides final assessment and approval for trading decisions.
+
+<p align="center">
+  <img src="assets/risk.png" width="70%" style="display: inline-block; margin: 0 2%;">
+</p>
 
 ## What's New in Litadel
 
