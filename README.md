@@ -2,64 +2,47 @@
   <img src="assets/litadel.png" style="width: 60%; height: auto;">
 </p>
 
-<div align="center" style="line-height: 1;">
-  <a href="https://arxiv.org/abs/2412.20138" target="_blank"><img alt="arXiv" src="https://img.shields.io/badge/arXiv-2412.20138-B31B1B?logo=arxiv"/></a>
-  <a href="https://discord.com/invite/hk9PGKShPK" target="_blank"><img alt="Discord" src="https://img.shields.io/badge/Discord-TradingResearch-7289da?logo=discord&logoColor=white&color=7289da"/></a>
-  <a href="./assets/wechat.png" target="_blank"><img alt="WeChat" src="https://img.shields.io/badge/WeChat-TauricResearch-brightgreen?logo=wechat&logoColor=white"/></a>
-  <a href="https://x.com/TauricResearch" target="_blank"><img alt="X Follow" src="https://img.shields.io/badge/X-TauricResearch-white?logo=x&logoColor=white"/></a>
-  <br>
-  <a href="https://github.com/TauricResearch/" target="_blank"><img alt="Community" src="https://img.shields.io/badge/Join_GitHub_Community-TauricResearch-14C290?logo=discourse"/></a>
-</div>
-
-<div align="center">
-  <!-- Keep these links. Translations will automatically update with the README. -->
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=de">Deutsch</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=es">Español</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=fr">français</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=ja">日本語</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=ko">한국어</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=pt">Português</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=ru">Русский</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=zh">中文</a>
-</div>
-
 ---
 
 # Litadel: Multi-Agents LLM Financial Trading Framework 
 
-> **Copyright Notice:** Litadel is a successor of TradingAgents by TaurusResearch. This project builds upon and extends the original TradingAgents framework.
->
-> 🎉 **Litadel** officially released! We have received numerous inquiries about the work, and we would like to express our thanks for the enthusiasm in our community.
->
-> So we decided to fully open-source the framework. Looking forward to building impactful projects with you!
+> **Copyright Notice:** Litadel is a successor of TradingAgents. This project builds upon and extends the original TradingAgents framework.
 
 <div align="center">
 
-🚀 [Litadel](#litadel-framework) | ⚡ [Installation & CLI](#installation-and-cli) | 🎬 [Demo](https://www.youtube.com/watch?v=90gr5lwjIho) | 📦 [Package Usage](#litadel-package) | 🤝 [Contributing](#contributing) | 📄 [Citation](#citation)
+🚀 [Overview](#overview) | 💻 [Web Interface](#web-interface) | ⚡ [Getting Started](#getting-started) | 🎯 [Usage](#usage) | 🤝 [Contributing](#contributing) | 📄 [Citation](#citation)
 
 </div>
 
-## Litadel Framework
+## Overview
 
-Litadel is a multi-agent trading framework that mirrors the dynamics of real-world trading firms. By deploying specialized LLM-powered agents: from fundamental analysts, sentiment experts, and technical analysts, to trader, risk management team, the platform collaboratively evaluates market conditions and informs trading decisions. Moreover, these agents engage in dynamic discussions to pinpoint the optimal strategy.
+Litadel is a comprehensive multi-agent trading platform that brings the dynamics of professional trading firms to your fingertips. Powered by specialized LLM agents—from fundamental analysts and sentiment experts to traders and risk managers—the system collaboratively evaluates market conditions across **equities, commodities, and cryptocurrencies** to deliver actionable trading insights.
 
 <p align="center">
   <img src="assets/schema.png" style="width: 100%; height: auto;">
 </p>
 
-> Litadel framework is designed for research purposes. Trading performance may vary based on many factors, including the chosen backbone language models, model temperature, trading periods, the quality of data, and other non-deterministic factors. [It is not intended as financial, investment, or trading advice.](https://tauric.ai/disclaimer/)
+> Litadel framework is designed for research and educational purposes. Trading performance may vary based on many factors, including the chosen backbone language models, model temperature, trading periods, the quality of data, and other non-deterministic factors. [It is not intended as financial, investment, or trading advice.](https://tauric.ai/disclaimer/)
 
-### Additional Functionality in Litadel
+### What You Get
 
-Litadel extends the original TradingAgents framework with enhanced capabilities:
+**Three Ways to Analyze Markets:**
+- 🌐 **Web Dashboard** - Modern, real-time interface with live analysis tracking, interactive charts, and comprehensive reports
+- 💻 **Interactive CLI** - Rich terminal experience with live agent progress and automatic report generation
+- 📦 **Python Package** - Integrate Litadel's multi-agent analysis directly into your own applications
 
-- ✅ **Commodities Support** - Full analysis and trading support for commodity markets
-- ✅ **Cryptocurrency Support** - Native support for crypto asset analysis and trading
-- 🚧 **Web Frontend** - Interactive web interface (in progress)
-- 🚧 **Automated Trading Mode** - Continuous automated trading execution (in progress)
-- 🚧 **Portfolio Management** - Multi-asset portfolio tracking and optimization (in progress)
+**Multi-Asset Coverage:**
+- 📈 **Equities** - Full fundamental, technical, and sentiment analysis for stocks
+- 🛢️ **Commodities** - Specialized analysis for oil, metals, agricultural products, and more
+- ₿ **Cryptocurrencies** - Real-time crypto market analysis with sentiment tracking
 
-Our framework decomposes complex trading tasks into specialized roles. This ensures the system achieves a robust, scalable approach to market analysis and decision-making.
+**Professional-Grade Analysis:**
+- Real-time market data integration with automatic caching
+- Multi-agent collaboration with structured debates between bull and bear perspectives
+- Comprehensive reports covering technical indicators, fundamentals, news sentiment, and risk assessment
+- Trading recommendations with confidence scores and detailed rationale
+
+Our framework decomposes complex trading tasks into specialized roles, ensuring robust and scalable market analysis.
 
 ### Analyst Team
 - Fundamentals Analyst: Evaluates company financials and performance metrics, identifying intrinsic values and potential red flags.
@@ -93,7 +76,62 @@ Our framework decomposes complex trading tasks into specialized roles. This ensu
   <img src="assets/risk.png" width="70%" style="display: inline-block; margin: 0 2%;">
 </p>
 
-## Installation and CLI
+## Web Interface
+
+Litadel includes a modern web dashboard that provides a complete command center for managing your trading analyses. The interface offers real-time monitoring, interactive visualizations, and comprehensive reporting—all in a sleek, terminal-inspired design.
+
+### Dashboard - Your Control Center
+
+The main dashboard gives you an at-a-glance view of your trading operations with system metrics, recent activity, and quick access to create new analyses.
+
+<p align="center">
+  <img src="assets/dashboard.png" width="100%" style="display: inline-block;">
+</p>
+
+### Analysis Management
+
+Browse all your analyses with smart filtering and grouping. Track active analyses in real-time and review historical decisions with detailed statistics.
+
+<p align="center">
+  <img src="assets/analyses.png" width="100%" style="display: inline-block;">
+</p>
+
+### Real-Time Analysis Tracking
+
+Watch your analysis unfold in real-time as agents collaborate to evaluate market conditions. See live progress updates, agent pipeline status, and streaming reports as they're generated.
+
+<p align="center">
+  <img src="assets/btc_single_analysis.png" width="100%" style="display: inline-block;">
+</p>
+
+### Comprehensive Analysis Reports
+
+Each completed analysis provides detailed insights with:
+- **Trading Decision** - Clear BUY/SELL/HOLD recommendation with confidence score
+- **Interactive Price Charts** - Candlestick charts with analysis date markers and 60-day history
+- **Market Metrics** - Current price, daily change, volume, and 52-week ranges
+- **Agent Reports** - Detailed analysis from each specialist (market, news, sentiment, fundamentals)
+- **Research Debate** - Bull vs. bear perspectives with investment recommendations
+- **Risk Assessment** - Comprehensive risk evaluation and portfolio impact analysis
+
+<p align="center">
+  <img src="assets/aapl_analysis.png" width="100%" style="display: inline-block;">
+</p>
+
+<p align="center">
+  <img src="assets/anlaysis_report_example.png" width="100%" style="display: inline-block;">
+</p>
+
+### Key Features
+
+- **Real-Time WebSocket Updates** - Live progress tracking without page refreshes
+- **Interactive Charts** - Visualize price action with candlestick or line charts
+- **Export Capabilities** - Download complete analysis data as JSON
+- **Analysis History** - Browse and compare past analyses by ticker and date
+- **Secure API Access** - API key authentication with configurable endpoints
+- **Responsive Design** - Works seamlessly on desktop and tablet devices
+
+## Getting Started
 
 ### Installation
 
@@ -103,7 +141,7 @@ git clone https://github.com/TauricResearch/Litadel.git
 cd Litadel
 ```
 
-Create a virtual environment in any of your favorite environment managers:
+Create a virtual environment:
 ```bash
 conda create -n litadel python=3.13
 conda activate litadel
@@ -114,36 +152,63 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-### Required APIs
+### API Keys Setup
 
-You will need the OpenAI API for all the agents, and [Alpha Vantage API](https://www.alphavantage.co/support/#api-key) for fundamental and news data (default configuration).
+You will need API keys for LLM providers and market data. The default configuration uses OpenAI for agents and [Alpha Vantage](https://www.alphavantage.co/support/#api-key) for market data.
 
-```bash
-export OPENAI_API_KEY=$YOUR_OPENAI_API_KEY
-export ALPHA_VANTAGE_API_KEY=$YOUR_ALPHA_VANTAGE_API_KEY
-```
-
-Alternatively, you can create a `.env` file in the project root with your API keys (see `.env.example` for reference):
+Create a `.env` file in the project root:
 ```bash
 cp .env.example .env
 # Edit .env with your actual API keys
 ```
 
-**Note:** We are happy to partner with Alpha Vantage to provide robust API support for Litadel. You can get a free AlphaVantage API [here](https://www.alphavantage.co/support/#api-key), Litadel-sourced requests also have increased rate limits to 60 requests per minute with no daily limits. Typically the quota is sufficient for performing complex tasks with Litadel thanks to Alpha Vantage's open-source support program. If you prefer to use OpenAI for these data sources instead, you can modify the data vendor settings in `tradingagents/default_config.py`.
+Or export them directly:
+```bash
+export OPENAI_API_KEY=$YOUR_OPENAI_API_KEY
+export ALPHA_VANTAGE_API_KEY=$YOUR_ALPHA_VANTAGE_API_KEY
+```
 
-### CLI Usage
+**Note:** Litadel partners with Alpha Vantage to provide robust API support. Get a free API key [here](https://www.alphavantage.co/support/#api-key)—Litadel users receive increased rate limits (60 requests/minute, no daily limits) through Alpha Vantage's open-source support program.
 
-You can also try out the CLI directly by running:
+## Usage
+
+### Web Dashboard (Recommended)
+
+The web interface provides the most comprehensive experience with real-time tracking, interactive charts, and complete analysis history.
+
+**1. Start the API Server:**
+```bash
+python -m api.main
+```
+
+On first run, the system will automatically create a database and generate an API key. **Save this key—you'll need it for the web interface.**
+
+**2. Start the Frontend:**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+**3. Access the Dashboard:**
+
+Open your browser to `http://localhost:5173` and enter your API key in Settings. You're ready to create your first analysis!
+
+### Interactive CLI
+
+For a terminal-based experience with live agent progress tracking:
+
 ```bash
 python -m cli.main
 ```
-You will see a screen where you can select your desired tickers, date, LLMs, research depth, etc.
+
+Select your ticker, analysis date, analyst team, LLM models, and research depth through the interactive prompts.
 
 <p align="center">
   <img src="assets/cli/cli_init.png" width="100%" style="display: inline-block; margin: 0 2%;">
 </p>
 
-An interface will appear showing results as they load, letting you track the agent's progress as it runs.
+Watch as agents collaborate in real-time, with live updates showing their reasoning and tool usage:
 
 <p align="center">
   <img src="assets/cli/cli_news.png" width="100%" style="display: inline-block; margin: 0 2%;">
@@ -153,71 +218,96 @@ An interface will appear showing results as they load, letting you track the age
   <img src="assets/cli/cli_transaction.png" width="100%" style="display: inline-block; margin: 0 2%;">
 </p>
 
-## Litadel Package
+Results are automatically saved to `results/<TICKER>/<DATE>/` with detailed logs and markdown reports.
 
-### Implementation Details
+### Python Package
 
-We built Litadel with LangGraph to ensure flexibility and modularity. We utilize `o1-preview` and `gpt-4o` as our deep thinking and fast thinking LLMs for our experiments. However, for testing purposes, we recommend you use `o4-mini` and `gpt-4.1-mini` to save on costs as our framework makes **lots of** API calls.
+Integrate Litadel's multi-agent analysis directly into your own applications, trading bots, or research pipelines.
 
-### Python Usage
-
-To use Litadel inside your code, you can import the `tradingagents` module and initialize a `TradingAgentsGraph()` object. The `.propagate()` function will return a decision. You can run `main.py`, here's also a quick example:
+**Basic Usage:**
 
 ```python
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
 
+# Initialize the trading agents
 ta = TradingAgentsGraph(debug=True, config=DEFAULT_CONFIG.copy())
 
-# forward propagate
+# Run analysis and get trading decision
 _, decision = ta.propagate("NVDA", "2024-05-10")
 print(decision)
 ```
 
-You can also adjust the default configuration to set your own choice of LLMs, debate rounds, etc.
+**Custom Configuration:**
+
+Customize LLM models, debate rounds, and data sources to match your needs:
 
 ```python
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
 
-# Create a custom config
+# Create custom configuration
 config = DEFAULT_CONFIG.copy()
-config["deep_think_llm"] = "gpt-4.1-nano"  # Use a different model
-config["quick_think_llm"] = "gpt-4.1-nano"  # Use a different model
-config["max_debate_rounds"] = 1  # Increase debate rounds
+config["deep_think_llm"] = "o1-mini"           # Deep reasoning model
+config["quick_think_llm"] = "gpt-4o-mini"      # Fast operations model
+config["max_debate_rounds"] = 3                # More thorough research debates
 
-# Configure data vendors (default uses yfinance and Alpha Vantage)
+# Configure data sources
 config["data_vendors"] = {
-    "core_stock_apis": "yfinance",           # Options: yfinance, alpha_vantage, local
-    "technical_indicators": "yfinance",      # Options: yfinance, alpha_vantage, local
-    "fundamental_data": "alpha_vantage",     # Options: openai, alpha_vantage, local
-    "news_data": "alpha_vantage",            # Options: openai, alpha_vantage, google, local
+    "core_stock_apis": "yfinance",             # Price data
+    "technical_indicators": "yfinance",        # Technical analysis
+    "fundamental_data": "alpha_vantage",       # Company fundamentals
+    "news_data": "alpha_vantage",              # News and sentiment
 }
 
-# Initialize with custom config
+# Run with custom config
 ta = TradingAgentsGraph(debug=True, config=config)
-
-# forward propagate
-_, decision = ta.propagate("NVDA", "2024-05-10")
-print(decision)
+_, decision = ta.propagate("AAPL", "2024-05-10")
 ```
 
-> The default configuration uses yfinance for stock price and technical data, and Alpha Vantage for fundamental and news data. For production use or if you encounter rate limits, consider upgrading to [Alpha Vantage Premium](https://www.alphavantage.co/premium/) for more stable and reliable data access. For offline experimentation, there's a local data vendor option that uses our **Tauric TradingDB**, a curated dataset for backtesting, though this is still in development. We're currently refining this dataset and plan to release it soon alongside our upcoming projects. Stay tuned!
+**Cost Optimization:**
 
-You can view the full list of configurations in `tradingagents/default_config.py`.
+For testing and development, we recommend using `gpt-4o-mini` and `o1-mini` to minimize costs, as the multi-agent framework makes numerous API calls during analysis. For production use with higher accuracy requirements, consider `gpt-4o` and `o1-preview`.
 
-## Roadmap
+**Data Sources:**
 
-### Upcoming Improvements
-- [ ] **Switch from LangChain/LangGraph to OpenAI Agents SDK** - For better maintainability and parallelization
+The default configuration uses YFinance for price/technical data and Alpha Vantage for fundamentals/news. You can switch to OpenAI for web-based data fetching or use local cached data for offline experimentation. See `tradingagents/default_config.py` for all available options.
+
+## What's New in Litadel
+
+### Completed Features
+- ✅ **Web Dashboard** - Full-featured web interface with real-time analysis tracking
+- ✅ **REST API** - Complete API for programmatic access with WebSocket support
+- ✅ **Multi-Asset Support** - Equities, commodities, and cryptocurrencies
+- ✅ **Interactive Charts** - Real-time candlestick and line charts with market data
+- ✅ **Analysis History** - Persistent storage and browsing of all analyses
+- ✅ **Export Capabilities** - Download complete analysis data as JSON
+
+### Roadmap
+- 🚧 **Automated Trading Mode** - Continuous automated trading execution
+- 🚧 **Portfolio Management** - Multi-asset portfolio tracking and optimization
+- 🚧 **Backtesting Engine** - Historical performance analysis with TauricDB
+- 🚧 **OpenAI Agents SDK Migration** - Enhanced parallelization and maintainability
 
 ## Contributing
 
-We welcome contributions from the community! Whether it's fixing a bug, improving documentation, or suggesting a new feature, your input helps make this project better. If you are interested in this line of research, please consider joining our open-source financial AI research community [Tauric Research](https://tauric.ai/).
+We welcome contributions from the community! Whether it's fixing a bug, improving documentation, or suggesting a new feature, your input helps make this project better.
 
 ## Citation
 
 Please reference our work if you find *Litadel* provides you with some help :)
+
+Litadel citation:
+
+```
+@software{gabler2025litadel,
+      title={Litadel: Multi-Agents LLM Financial Trading Framework}, 
+      author={Marvin Gabler},
+      year={2025},
+      url={https://github.com/deepweather/Litadel},
+      note={Extended framework based on TradingAgents}
+}
+```
 
 Original TradingAgents citation:
 

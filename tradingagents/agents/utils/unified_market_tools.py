@@ -67,8 +67,32 @@ def get_indicators(
     Returns:
         CSV-formatted data with requested technical indicators
     """
-    # Indicators are equity-specific for now
-    return route_to_vendor("get_indicators", symbol, start_date, end_date, indicators)
+    # Adapter: Translate new unified signature to old vendor signature
+    # Old signature: (symbol, indicator, curr_date, look_back_days)
+    # New signature: (symbol, start_date, end_date, indicators)
+    
+    from datetime import datetime
+    
+    # Calculate look_back_days from date range
+    start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+    end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+    look_back_days = (end_dt - start_dt).days
+    
+    # Parse comma-separated indicators
+    indicator_list = [ind.strip() for ind in indicators.split(',')]
+    
+    # Call vendor for each indicator and combine results
+    results = []
+    for indicator in indicator_list:
+        if indicator:  # Skip empty strings
+            result = route_to_vendor("get_indicators", symbol, indicator, end_date, look_back_days)
+            results.append(result)
+    
+    # Combine results with separators
+    if len(results) == 1:
+        return results[0]
+    else:
+        return "\n\n" + "="*80 + "\n\n".join(results)
 
 
 @tool
