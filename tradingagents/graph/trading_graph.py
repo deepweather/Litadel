@@ -22,18 +22,18 @@ from tradingagents.agents.utils.agent_states import (
 )
 from tradingagents.dataflows.config import set_config
 
-# Import the new abstract tool methods from agent_utils
+# Import unified tools from agent_utils
 from tradingagents.agents.utils.agent_utils import (
-    get_stock_data,
+    get_market_data,
     get_indicators,
+    get_asset_news,
+    get_global_news_unified as get_global_news,
     get_fundamentals,
     get_balance_sheet,
     get_cashflow,
     get_income_statement,
-    get_news,
     get_insider_sentiment,
     get_insider_transactions,
-    get_global_news
 )
 
 from .conditional_logic import ConditionalLogic
@@ -121,40 +121,21 @@ class TradingAgentsGraph:
         self.graph = self.graph_setup.setup_graph(selected_analysts)
 
     def _create_tool_nodes(self) -> Dict[str, ToolNode]:
-        """Create tool nodes for different data sources using abstract methods."""
+        """Create tool nodes using unified tools that work across all asset classes."""
+        # Unified tools automatically route based on asset_class context
+        # No more conditional logic needed here!
         return {
-            "market": ToolNode(
-                [
-                    # Core stock data tools
-                    get_stock_data,
-                    # Technical indicators
-                    get_indicators,
-                ]
-            ),
-            "social": ToolNode(
-                [
-                    # News tools for social media analysis
-                    get_news,
-                ]
-            ),
-            "news": ToolNode(
-                [
-                    # News and insider information
-                    get_news,
-                    get_global_news,
-                    get_insider_sentiment,
-                    get_insider_transactions,
-                ]
-            ),
-            "fundamentals": ToolNode(
-                [
-                    # Fundamental analysis tools
-                    get_fundamentals,
-                    get_balance_sheet,
-                    get_cashflow,
-                    get_income_statement,
-                ]
-            ),
+            "market": ToolNode([get_market_data, get_indicators]),
+            "social": ToolNode([get_asset_news, get_global_news]),
+            "news": ToolNode([get_asset_news, get_global_news]),
+            "fundamentals": ToolNode([
+                get_fundamentals,
+                get_balance_sheet,
+                get_cashflow,
+                get_income_statement,
+                get_insider_sentiment,
+                get_insider_transactions,
+            ]),
         }
 
     def propagate(self, company_name, trade_date):
@@ -166,6 +147,8 @@ class TradingAgentsGraph:
         init_agent_state = self.propagator.create_initial_state(
             company_name, trade_date
         )
+        # Pass asset class into state for downstream branching
+        init_agent_state["asset_class"] = self.config.get("asset_class", "equity")
         args = self.propagator.get_graph_args()
 
         if self.debug:
