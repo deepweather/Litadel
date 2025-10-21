@@ -13,7 +13,9 @@ from .alpha_vantage import (
     get_cashflow as get_alpha_vantage_cashflow,
     get_income_statement as get_alpha_vantage_income_statement,
     get_insider_transactions as get_alpha_vantage_insider_transactions,
-    get_news as get_alpha_vantage_news
+    get_news as get_alpha_vantage_news,
+    get_commodity_news as get_alpha_vantage_commodity_news,
+    get_commodity as get_alpha_vantage_commodity
 )
 from .alpha_vantage_common import AlphaVantageRateLimitError
 
@@ -26,6 +28,12 @@ TOOLS_CATEGORIES = {
         "description": "OHLCV stock price data",
         "tools": [
             "get_stock_data"
+        ]
+    },
+    "commodity_data": {
+        "description": "Commodity price data",
+        "tools": [
+            "get_commodity_data"
         ]
     },
     "technical_indicators": {
@@ -69,6 +77,10 @@ VENDOR_METHODS = {
         "yfinance": get_YFin_data_online,
         "local": get_YFin_data,
     },
+    # commodity_data
+    "get_commodity_data": {
+        "alpha_vantage": get_alpha_vantage_commodity,
+    },
     # technical_indicators
     "get_indicators": {
         "alpha_vantage": get_alpha_vantage_indicator,
@@ -101,6 +113,10 @@ VENDOR_METHODS = {
         "openai": get_stock_news_openai,
         "google": get_google_news,
         "local": [get_finnhub_news, get_reddit_company_news, get_google_news],
+    },
+    "get_commodity_news": {
+        "alpha_vantage": get_alpha_vantage_commodity_news,
+        "openai": get_stock_news_openai,  # Fallback to OpenAI web search
     },
     "get_global_news": {
         "openai": get_global_news_openai,

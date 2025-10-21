@@ -35,6 +35,7 @@ from tradingagents.agents.utils.agent_utils import (
     get_insider_transactions,
     get_global_news
 )
+from tradingagents.agents.utils.commodity_data_tools import get_commodity_data
 
 from .conditional_logic import ConditionalLogic
 from .setup import GraphSetup
@@ -122,15 +123,22 @@ class TradingAgentsGraph:
 
     def _create_tool_nodes(self) -> Dict[str, ToolNode]:
         """Create tool nodes for different data sources using abstract methods."""
+        is_commodity = self.config.get("asset_class", "equity").lower() == "commodity"
+
+        market_tools = []
+        if is_commodity:
+            # Only expose commodity tool to prevent LLM from selecting stock data
+            market_tools = [
+                get_commodity_data,
+            ]
+        else:
+            market_tools = [
+                get_stock_data,
+                get_indicators,
+            ]
+
         return {
-            "market": ToolNode(
-                [
-                    # Core stock data tools
-                    get_stock_data,
-                    # Technical indicators
-                    get_indicators,
-                ]
-            ),
+            "market": ToolNode(market_tools),
             "social": ToolNode(
                 [
                     # News tools for social media analysis
@@ -166,6 +174,8 @@ class TradingAgentsGraph:
         init_agent_state = self.propagator.create_initial_state(
             company_name, trade_date
         )
+        # Pass asset class into state for downstream branching
+        init_agent_state["asset_class"] = self.config.get("asset_class", "equity")
         args = self.propagator.get_graph_args()
 
         if self.debug:

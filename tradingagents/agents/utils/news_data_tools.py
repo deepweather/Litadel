@@ -39,6 +39,26 @@ def get_global_news(
     return route_to_vendor("get_global_news", curr_date, look_back_days, limit)
 
 @tool
+def get_commodity_news(
+    commodity: Annotated[str, "Commodity symbol like BRENT, WTI, COPPER"],
+    start_date: Annotated[str, "Start date in yyyy-mm-dd format"],
+    end_date: Annotated[str, "End date in yyyy-mm-dd format"],
+) -> str:
+    """
+    Retrieve news data for a commodity (oil, metals, agriculture).
+    Uses topic-based search since commodities don't have stock tickers.
+    Searches news by relevant topics (energy, economy, etc.) and filters for the commodity.
+    
+    Args:
+        commodity (str): Commodity symbol (e.g., "BRENT", "WTI", "COPPER")
+        start_date (str): Start date in yyyy-mm-dd format
+        end_date (str): End date in yyyy-mm-dd format
+    Returns:
+        str: A formatted string containing commodity-related news data
+    """
+    return route_to_vendor("get_commodity_news", commodity, start_date, end_date)
+
+@tool
 def get_insider_sentiment(
     ticker: Annotated[str, "ticker symbol for the company"],
     curr_date: Annotated[str, "current date you are trading at, yyyy-mm-dd"],

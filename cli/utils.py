@@ -64,12 +64,19 @@ def get_analysis_date() -> str:
     return date.strip()
 
 
-def select_analysts() -> List[AnalystType]:
-    """Select analysts using an interactive checkbox."""
+def select_analysts(asset_class: str | None = None) -> List[AnalystType]:
+    """Select analysts using an interactive checkbox.
+
+    If asset_class is 'commodity', hide Fundamentals Analyst.
+    """
+    order = ANALYST_ORDER
+    if asset_class and asset_class.lower() == "commodity":
+        order = [(d, v) for (d, v) in ANALYST_ORDER if v != AnalystType.FUNDAMENTALS]
+
     choices = questionary.checkbox(
         "Select Your [Analysts Team]:",
         choices=[
-            questionary.Choice(display, value=value) for display, value in ANALYST_ORDER
+            questionary.Choice(display, value=value) for display, value in order
         ],
         instruction="\n- Press Space to select/unselect analysts\n- Press 'a' to select/unselect all\n- Press Enter when done",
         validate=lambda x: len(x) > 0 or "You must select at least one analyst.",
