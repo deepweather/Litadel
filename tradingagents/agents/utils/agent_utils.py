@@ -4,9 +4,8 @@ from langchain_core.messages import HumanMessage, RemoveMessage
 from tradingagents.agents.utils.core_stock_tools import (
     get_stock_data
 )
-from tradingagents.agents.utils.technical_indicators_tools import (
-    get_indicators
-)
+# Note: get_indicators is imported from unified_market_tools (see below)
+# The old technical_indicators_tools version is deprecated
 from tradingagents.agents.utils.fundamental_data_tools import (
     get_fundamentals,
     get_balance_sheet,
@@ -24,10 +23,11 @@ from tradingagents.agents.utils.news_data_tools import (
 from tradingagents.agents.utils.crypto_data_tools import (
     get_crypto_data
 )
+# Unified tools provide a consistent interface across asset classes
 from tradingagents.agents.utils.unified_market_tools import (
     get_market_data,
     get_asset_news,
-    get_indicators,
+    get_indicators,  # Uses new unified signature with adapter for old vendor implementations
     get_global_news as get_global_news_unified,
 )
 

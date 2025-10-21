@@ -20,6 +20,7 @@ from api.models import (
     ReportResponse,
 )
 from api.state_manager import get_executor
+from api.utils import extract_trading_decision
 from tradingagents.default_config import DEFAULT_CONFIG
 
 router = APIRouter(prefix="/api/v1/analyses", tags=["analyses"])
@@ -140,19 +141,30 @@ async def list_analyses(
     
     # Apply pagination
     analyses = query.offset(offset).limit(limit).all()
-    
-    return [
-        AnalysisSummary(
-            id=a.id,
-            ticker=a.ticker,
-            analysis_date=a.analysis_date,
-            status=a.status,
-            created_at=a.created_at,
-            completed_at=a.completed_at,
-            error_message=a.error_message,
+
+    results = []
+    for a in analyses:
+        # Get trading decision for completed analyses
+        trading_decision = None
+        if a.status == "completed":
+            reports = db.query(AnalysisReport).filter(AnalysisReport.analysis_id == a.id).all()
+            if reports:
+                trading_decision = extract_trading_decision(reports)
+        
+        results.append(
+            AnalysisSummary(
+                id=a.id,
+                ticker=a.ticker,
+                analysis_date=a.analysis_date,
+                status=a.status,
+                created_at=a.created_at,
+                completed_at=a.completed_at,
+                error_message=a.error_message,
+                trading_decision=trading_decision,
+            )
         )
-        for a in analyses
-    ]
+    
+    return results
 
 
 @router.get("/{analysis_id}", response_model=AnalysisResponse)
@@ -177,6 +189,11 @@ async def get_analysis(
         .all()
     )
     
+    # Extract trading decision if analysis is completed
+    trading_decision = None
+    if analysis.status == "completed" and reports:
+        trading_decision = extract_trading_decision(reports)
+    
     return AnalysisResponse(
         id=analysis.id,
         ticker=analysis.ticker,
@@ -197,6 +214,7 @@ async def get_analysis(
         updated_at=analysis.updated_at,
         completed_at=analysis.completed_at,
         error_message=analysis.error_message,
+        trading_decision=trading_decision,
     )
 
 

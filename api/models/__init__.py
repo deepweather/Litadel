@@ -9,6 +9,7 @@ from api.models.responses import (
     LogEntry,
     ReportResponse,
     TickerInfo,
+    TradingDecision,
     CachedDataResponse,
 )
 
@@ -22,6 +23,7 @@ __all__ = [
     "LogEntry",
     "ReportResponse",
     "TickerInfo",
+    "TradingDecision",
     "CachedDataResponse",
 ]
 

@@ -39,6 +39,14 @@ class AnalysisStatusResponse(BaseModel):
     updated_at: datetime = Field(..., description="Last update timestamp")
 
 
+class TradingDecision(BaseModel):
+    """Trading decision extracted from analysis reports."""
+    
+    decision: str = Field(..., description="Trading decision (BUY/SELL/HOLD)")
+    confidence: Optional[int] = Field(None, description="Confidence percentage")
+    rationale: Optional[str] = Field(None, description="Brief rationale for the decision")
+
+
 class AnalysisSummary(BaseModel):
     """Summary view of an analysis."""
 
@@ -49,6 +57,7 @@ class AnalysisSummary(BaseModel):
     created_at: datetime = Field(..., description="Creation timestamp")
     completed_at: Optional[datetime] = Field(None, description="Completion timestamp")
     error_message: Optional[str] = Field(None, description="Error message if failed")
+    trading_decision: Optional[TradingDecision] = Field(None, description="Extracted trading decision")
 
 
 class AnalysisResponse(BaseModel):
@@ -68,6 +77,7 @@ class AnalysisResponse(BaseModel):
     updated_at: datetime = Field(..., description="Last update timestamp")
     completed_at: Optional[datetime] = Field(None, description="Completion timestamp")
     error_message: Optional[str] = Field(None, description="Error message if failed")
+    trading_decision: Optional[TradingDecision] = Field(None, description="Extracted trading decision")
 
 
 class TickerInfo(BaseModel):
