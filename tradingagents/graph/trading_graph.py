@@ -53,6 +53,7 @@ class TradingAgentsGraph:
         selected_analysts=["market", "social", "news", "fundamentals"],
         debug=False,
         config: Dict[str, Any] = None,
+        analysis_id: Optional[str] = None,
     ):
         """Initialize the trading agents graph and components.
 
@@ -60,9 +61,11 @@ class TradingAgentsGraph:
             selected_analysts: List of analyst types to include
             debug: Whether to run in debug mode
             config: Configuration dictionary. If None, uses default config
+            analysis_id: Optional unique identifier for this analysis (makes memory collections unique)
         """
         self.debug = debug
         self.config = config or DEFAULT_CONFIG
+        self.analysis_id = analysis_id
 
         # Update the interface's config
         set_config(self.config)
@@ -86,12 +89,14 @@ class TradingAgentsGraph:
         else:
             raise ValueError(f"Unsupported LLM provider: {self.config['llm_provider']}")
         
-        # Initialize memories
-        self.bull_memory = FinancialSituationMemory("bull_memory", self.config)
-        self.bear_memory = FinancialSituationMemory("bear_memory", self.config)
-        self.trader_memory = FinancialSituationMemory("trader_memory", self.config)
-        self.invest_judge_memory = FinancialSituationMemory("invest_judge_memory", self.config)
-        self.risk_manager_memory = FinancialSituationMemory("risk_manager_memory", self.config)
+        # Initialize memories with unique names per analysis
+        # This prevents "Collection already exists" errors when running multiple analyses
+        memory_suffix = f"_{analysis_id}" if analysis_id else ""
+        self.bull_memory = FinancialSituationMemory(f"bull_memory{memory_suffix}", self.config)
+        self.bear_memory = FinancialSituationMemory(f"bear_memory{memory_suffix}", self.config)
+        self.trader_memory = FinancialSituationMemory(f"trader_memory{memory_suffix}", self.config)
+        self.invest_judge_memory = FinancialSituationMemory(f"invest_judge_memory{memory_suffix}", self.config)
+        self.risk_manager_memory = FinancialSituationMemory(f"risk_manager_memory{memory_suffix}", self.config)
 
         # Create tool nodes
         self.tool_nodes = self._create_tool_nodes()
@@ -240,3 +245,31 @@ class TradingAgentsGraph:
     def process_signal(self, full_signal):
         """Process a signal to extract the core decision."""
         return self.signal_processor.process_signal(full_signal)
+
+    def cleanup_memories(self):
+        """Clean up ChromaDB collections for this analysis to prevent memory leaks."""
+        if not self.analysis_id:
+            return  # Only cleanup if we have a specific analysis_id
+        
+        try:
+            memory_suffix = f"_{self.analysis_id}"
+            collections_to_delete = [
+                f"bull_memory{memory_suffix}",
+                f"bear_memory{memory_suffix}",
+                f"trader_memory{memory_suffix}",
+                f"invest_judge_memory{memory_suffix}",
+                f"risk_manager_memory{memory_suffix}",
+            ]
+            
+            # Get the chroma client from one of the memories
+            chroma_client = self.bull_memory.chroma_client
+            
+            for collection_name in collections_to_delete:
+                try:
+                    chroma_client.delete_collection(name=collection_name)
+                except Exception as e:
+                    # Ignore errors if collection doesn't exist
+                    pass
+        except Exception as e:
+            # Don't fail the analysis if cleanup fails
+            print(f"Warning: Failed to cleanup memory collections: {e}")

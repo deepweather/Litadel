@@ -258,11 +258,12 @@ class AnalysisExecutor:
             self._update_status(analysis_id, status="running", progress=0)
             logger.info(f"Analysis {analysis_id}: Initializing trading graph...")
             
-            # Initialize the graph
+            # Initialize the graph with unique analysis_id for memory isolation
             graph = TradingAgentsGraph(
                 selected_analysts=selected_analysts,
                 config=config,
                 debug=False,
+                analysis_id=analysis_id,
             )
             
             # Create initial state
@@ -380,6 +381,14 @@ class AnalysisExecutor:
                 analysis_id, status="failed", error_message=error_msg
             )
             self._store_log(analysis_id, "System", f"Error: {error_msg}\n\nTraceback:\n{error_trace}")
+        finally:
+            # Clean up ChromaDB collections to prevent memory leaks
+            try:
+                if 'graph' in locals():
+                    graph.cleanup_memories()
+                    logger.info(f"Analysis {analysis_id}: Cleaned up memory collections")
+            except Exception as cleanup_error:
+                logger.warning(f"Analysis {analysis_id}: Failed to cleanup memories: {cleanup_error}")
 
     def _get_agent_order(self, selected_analysts: List[str]) -> List[str]:
         """Get the order of agents for progress tracking."""
