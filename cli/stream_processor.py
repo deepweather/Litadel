@@ -1,4 +1,4 @@
-"""Stream processing logic for handling agent analysis chunks in the TradingAgents CLI."""
+"""Stream processing logic for handling agent analysis chunks in the Litadel CLI."""
 
 from cli.helpers import extract_content_string, update_research_team_status
 

@@ -1,7 +1,7 @@
 [project]
-name = "tradingagents"
+name = "litadel"
 version = "0.1.0"
-description = "Add your description here"
+description = "Multi-Agents LLM Financial Trading Framework (successor of TradingAgents by TaurusResearch)"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

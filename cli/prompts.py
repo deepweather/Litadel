@@ -1,4 +1,4 @@
-"""Interactive user prompts for the TradingAgents CLI."""
+"""Interactive user prompts for the Litadel CLI."""
 
 import questionary
 from typing import List, Optional, Tuple, Dict

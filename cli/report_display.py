@@ -1,4 +1,4 @@
-"""Report display functions for the TradingAgents CLI."""
+"""Report display functions for the Litadel CLI."""
 
 from rich.console import Console
 from rich.panel import Panel

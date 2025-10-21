@@ -1,14 +1,17 @@
 """
-Setup script for the TradingAgents package.
+Setup script for the Litadel package.
+
+Copyright Notice: Litadel is a successor of TradingAgents by TaurusResearch.
+This project builds upon and extends the original TradingAgents framework.
 """
 
 from setuptools import setup, find_packages
 
 setup(
-    name="tradingagents",
+    name="litadel",
     version="0.1.0",
-    description="Multi-Agents LLM Financial Trading Framework",
-    author="TradingAgents Team",
+    description="Multi-Agents LLM Financial Trading Framework (successor of TradingAgents)",
+    author="Litadel Team",
     author_email="yijia.xiao@cs.ucla.edu",
     url="https://github.com/TauricResearch",
     packages=find_packages(),
@@ -29,7 +32,7 @@ setup(
     python_requires=">=3.10",
     entry_points={
         "console_scripts": [
-            "tradingagents=cli.main:app",
+            "litadel=cli.main:app",
         ],
     },
     classifiers=[

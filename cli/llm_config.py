@@ -1,4 +1,4 @@
-"""LLM provider and model configuration data for the TradingAgents CLI."""
+"""LLM provider and model configuration data for the Litadel CLI."""
 
 # LLM provider base URLs
 LLM_PROVIDERS = [

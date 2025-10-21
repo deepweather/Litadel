@@ -1,6 +1,8 @@
 # Configuration Guide
 
-TradingAgents supports configuration through multiple methods with the following priority:
+**Copyright Notice:** Litadel is a successor of TradingAgents by TaurusResearch.
+
+Litadel supports configuration through multiple methods with the following priority:
 
 **Priority (highest to lowest):**
 1. Environment variables
@@ -200,7 +202,7 @@ The `→` lines show values being used from your config, skipping the prompts!
 ## Troubleshooting
 
 **CLI still prompts for everything:**
-- Check that `config.ini` exists in the TradingAgents directory
+- Check that `config.ini` exists in the Litadel directory
 - Verify the file has the correct structure (see `config.example.ini`)
 - Check for typos in section names and keys
 

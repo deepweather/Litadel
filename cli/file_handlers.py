@@ -1,4 +1,4 @@
-"""File handling and logging decorators for the TradingAgents CLI."""
+"""File handling and logging decorators for the Litadel CLI."""
 
 from functools import wraps
 from pathlib import Path
