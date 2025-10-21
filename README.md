@@ -162,20 +162,10 @@ For a terminal-based experience with live agent progress tracking:
 python -m cli.main
 ```
 
-Select your ticker, analysis date, analyst team, LLM models, and research depth through the interactive prompts.
+The Litadel CLI provides a rich, interactive terminal interface where you can select your ticker, analysis date, analyst team, LLM models, and research depth. Watch as agents collaborate in real-time with live updates showing their reasoning and tool usage.
 
 <p align="center">
-  <img src="assets/cli/cli_init.png" width="100%" style="display: inline-block; margin: 0 2%;">
-</p>
-
-Watch as agents collaborate in real-time, with live updates showing their reasoning and tool usage:
-
-<p align="center">
-  <img src="assets/cli/cli_news.png" width="100%" style="display: inline-block; margin: 0 2%;">
-</p>
-
-<p align="center">
-  <img src="assets/cli/cli_transaction.png" width="100%" style="display: inline-block; margin: 0 2%;">
+  <img src="assets/litadel_cli.png" width="100%" style="display: inline-block;">
 </p>
 
 Results are automatically saved to `results/<TICKER>/<DATE>/` with detailed logs and markdown reports.
@@ -187,14 +177,14 @@ Integrate Litadel's multi-agent analysis directly into your own applications, tr
 **Basic Usage:**
 
 ```python
-from tradingagents.graph.trading_graph import TradingAgentsGraph
-from tradingagents.default_config import DEFAULT_CONFIG
+from litadel.graph.trading_graph import TradingAgentsGraph
+from litadel.default_config import DEFAULT_CONFIG
 
 # Initialize the trading agents
-ta = TradingAgentsGraph(debug=True, config=DEFAULT_CONFIG.copy())
+litadel = TradingAgentsGraph(debug=True, config=DEFAULT_CONFIG.copy())
 
 # Run analysis and get trading decision
-_, decision = ta.propagate("NVDA", "2024-05-10")
+_, decision = litadel.propagate("NVDA", "2024-05-10")
 print(decision)
 ```
 
@@ -203,8 +193,8 @@ print(decision)
 Customize LLM models, debate rounds, and data sources to match your needs:
 
 ```python
-from tradingagents.graph.trading_graph import TradingAgentsGraph
-from tradingagents.default_config import DEFAULT_CONFIG
+from litadel.graph.trading_graph import TradingAgentsGraph
+from litadel.default_config import DEFAULT_CONFIG
 
 # Create custom configuration
 config = DEFAULT_CONFIG.copy()
@@ -221,8 +211,8 @@ config["data_vendors"] = {
 }
 
 # Run with custom config
-ta = TradingAgentsGraph(debug=True, config=config)
-_, decision = ta.propagate("AAPL", "2024-05-10")
+litadel = TradingAgentsGraph(debug=True, config=config)
+_, decision = litadel.propagate("AAPL", "2024-05-10")
 ```
 
 **Cost Optimization:**
@@ -231,7 +221,7 @@ For testing and development, we recommend using `gpt-4o-mini` and `o1-mini` to m
 
 **Data Sources:**
 
-The default configuration uses YFinance for price/technical data and Alpha Vantage for fundamentals/news. You can switch to OpenAI for web-based data fetching or use local cached data for offline experimentation. See `tradingagents/default_config.py` for all available options.
+The default configuration uses YFinance for price/technical data and Alpha Vantage for fundamentals/news. You can switch to OpenAI for web-based data fetching or use local cached data for offline experimentation. See `litadel/default_config.py` for all available options.
 
 ## How It Works
 
