@@ -12,7 +12,7 @@
 
 <div align="center">
 
-🚀 [Overview](#overview) | 💻 [Dashboard](#dashboard) | ⚡ [Getting Started](#getting-started) | 🎯 [Usage](#usage) | 🤖 [How It Works](#how-it-works) | 🤝 [Contributing](#contributing) | 📄 [Citation](#citation)
+🚀 [Overview](#overview) | 💻 [Dashboard](#dashboard) | ⚡ [Getting Started](#getting-started) | 🎯 [Usage](#usage) | 🤖 [How It Works](#how-it-works) | 📄 [Citation](#citation)
 
 </div>
 
@@ -285,10 +285,6 @@ Evaluates portfolio risk by assessing market volatility, liquidity, and other ri
 - 🚧 **Portfolio Management** - Multi-asset portfolio tracking and optimization
 - 🚧 **Backtesting Engine** - Historical performance analysis with TauricDB
 - 🚧 **OpenAI Agents SDK Migration** - Enhanced parallelization and maintainability
-
-## Contributing
-
-We welcome contributions from the community! Whether it's fixing a bug, improving documentation, or suggesting a new feature, your input helps make this project better.
 
 ## Citation
 
