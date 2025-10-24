@@ -21,7 +21,7 @@ from api.models import (
 )
 from api.state_manager import get_executor
 from api.utils import extract_trading_decision
-from tradingagents.default_config import DEFAULT_CONFIG
+from litadel.default_config import DEFAULT_CONFIG
 
 router = APIRouter(prefix="/api/v1/analyses", tags=["analyses"])
 logger = logging.getLogger(__name__)

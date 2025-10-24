@@ -13,8 +13,8 @@ from typing import Any, Callable, Dict, List, Optional
 from sqlalchemy.orm import Session
 
 from api.database import Analysis, AnalysisLog, AnalysisReport, SessionLocal
-from tradingagents.default_config import DEFAULT_CONFIG
-from tradingagents.graph.trading_graph import TradingAgentsGraph
+from litadel.default_config import DEFAULT_CONFIG
+from litadel.graph.trading_graph import TradingAgentsGraph
 
 logger = logging.getLogger(__name__)
 
@@ -310,6 +310,7 @@ class AnalysisExecutor:
                 
                 # Check for completed reports
                 for report_type in [
+                    "macro_report",
                     "market_report",
                     "sentiment_report",
                     "news_report",
@@ -399,6 +400,7 @@ class AnalysisExecutor:
     def _get_agent_name(self, report_type: str) -> str:
         """Get human-readable agent name from report type."""
         mapping = {
+            "macro_report": "Macro Analyst",
             "market_report": "Market Analyst",
             "sentiment_report": "Social Analyst",
             "news_report": "News Analyst",

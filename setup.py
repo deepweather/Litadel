@@ -32,7 +32,8 @@ setup(
     python_requires=">=3.10",
     entry_points={
         "console_scripts": [
-            "litadel=cli.main:app",
+            "litadel-cli=cli.main:app",
+            "litadel-api=api.main:run_api",
         ],
     },
     classifiers=[

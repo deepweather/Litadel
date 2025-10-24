@@ -9,7 +9,7 @@ from typing import Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from cli.asset_detection import detect_asset_class
-from tradingagents.dataflows.interface import route_to_vendor
+from litadel.dataflows.interface import route_to_vendor
 
 from api.auth import APIKey, get_current_api_key
 from api.models.responses import CachedDataResponse, CachedTickerInfo

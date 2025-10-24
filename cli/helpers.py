@@ -7,6 +7,7 @@ from enum import Enum
 
 class AnalystType(str, Enum):
     """Enumeration of available analyst types."""
+    MACRO = "macro"
     MARKET = "market"
     SOCIAL = "social"
     NEWS = "news"

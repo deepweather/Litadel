@@ -130,7 +130,8 @@ async def health_check():
     return {"status": "healthy"}
 
 
-if __name__ == "__main__":
+def run_api():
+    """Entry point for running the API via CLI command."""
     import uvicorn
     import os
     
@@ -143,4 +144,8 @@ if __name__ == "__main__":
         reload=True,
         log_level="info",
     )
+
+
+if __name__ == "__main__":
+    run_api()
 

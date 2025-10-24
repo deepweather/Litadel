@@ -7,6 +7,7 @@ from cli.helpers import AnalystType
 from cli.llm_config import SHALLOW_AGENT_OPTIONS, DEEP_AGENT_OPTIONS, LLM_PROVIDERS
 
 ANALYST_ORDER = [
+    ("Macro Economic Analyst", AnalystType.MACRO),
     ("Market Analyst", AnalystType.MARKET),
     ("Social Media Analyst", AnalystType.SOCIAL),
     ("News Analyst", AnalystType.NEWS),

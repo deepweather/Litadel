@@ -23,8 +23,8 @@ from rich import box
 from rich.align import Align
 from rich.rule import Rule
 
-from tradingagents.graph.trading_graph import TradingAgentsGraph
-from tradingagents.default_config import DEFAULT_CONFIG
+from litadel.graph.trading_graph import TradingAgentsGraph
+from litadel.default_config import DEFAULT_CONFIG
 from cli.helpers import AnalystType, update_research_team_status, extract_content_string
 from cli.prompts import *
 from cli.message_buffer import MessageBuffer
@@ -51,7 +51,7 @@ message_buffer = MessageBuffer()
 def get_user_selections():
     """Get all user selections before starting the analysis display."""
     # Load config to check for pre-configured values
-    from tradingagents.default_config import DEFAULT_CONFIG
+    from litadel.default_config import DEFAULT_CONFIG
     
     # Display ASCII art welcome message
     with open("./cli/static/welcome.txt", "r") as f:

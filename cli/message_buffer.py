@@ -14,7 +14,7 @@ class MessageBuffer:
         self.final_report = None  # Store the complete final report
         # Initialize all agents as pending
         all_agents = [
-            "Market Analyst", "Social Analyst", "News Analyst", "Fundamentals Analyst",
+            "Macro Analyst", "Market Analyst", "Social Analyst", "News Analyst", "Fundamentals Analyst",
             "Bull Researcher", "Bear Researcher", "Research Manager",
             "Trader",
             "Risky Analyst", "Neutral Analyst", "Safe Analyst",
@@ -23,6 +23,7 @@ class MessageBuffer:
         self.agent_status = {agent: "pending" for agent in all_agents}
         self.current_agent = None
         self.report_sections = {
+            "macro_report": None,
             "market_report": None,
             "sentiment_report": None,
             "news_report": None,
@@ -64,6 +65,7 @@ class MessageBuffer:
         if latest_section and latest_content:
             # Format the current section for display
             section_titles = {
+                "macro_report": "Macroeconomic Context",
                 "market_report": "Market Analysis",
                 "sentiment_report": "Social Sentiment",
                 "news_report": "News Analysis",
@@ -86,6 +88,7 @@ class MessageBuffer:
         if any(
             self.report_sections[section]
             for section in [
+                "macro_report",
                 "market_report",
                 "sentiment_report",
                 "news_report",
@@ -93,6 +96,10 @@ class MessageBuffer:
             ]
         ):
             report_parts.append("## Analyst Team Reports")
+            if self.report_sections["macro_report"]:
+                report_parts.append(
+                    f"### Macroeconomic Context\n{self.report_sections['macro_report']}"
+                )
             if self.report_sections["market_report"]:
                 report_parts.append(
                     f"### Market Analysis\n{self.report_sections['market_report']}"

@@ -1,3 +1,10 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["litadel", "cli", "api"]
+
 [project]
 name = "litadel"
 version = "0.1.0"
@@ -33,3 +40,7 @@ dependencies = [
     "typing-extensions>=4.14.0",
     "yfinance>=0.2.63",
 ]
+
+[project.scripts]
+litadel-cli = "cli.main:app"
+litadel-api = "api.main:run_api"
