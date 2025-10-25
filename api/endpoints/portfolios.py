@@ -45,7 +45,11 @@ def _verify_portfolio_ownership(portfolio_id: int, user_id: int, db: Session) ->
 
 
 def _get_current_price(ticker: str, db: Session) -> float | None:
-    """Get current price for a ticker from cached data."""
+    """Get current price for a ticker from cached data.
+
+    This function ensures the cache is up to date (within 1 day) before reading,
+    so it returns the most recent market price available.
+    """
     try:
         # Import here to avoid circular dependency
         import csv
@@ -53,9 +57,9 @@ def _get_current_price(ticker: str, db: Session) -> float | None:
 
         from api.endpoints.data import _ensure_cached_data
 
-        # Ensure data is cached
+        # Ensure data is cached and up to date (updates if stale)
         DATA_CACHE_DIR = Path(__file__).parent.parent.parent / "litadel" / "dataflows" / "data_cache"
-        _ensure_cached_data(ticker, None, None)
+        _ensure_cached_data(ticker, None, None, update_stale=True)
 
         # Find cache file
         pattern = f"{ticker.upper()}-YFin-data-*.csv"
@@ -73,6 +77,9 @@ def _get_current_price(ticker: str, db: Session) -> float | None:
                 last_row = rows[-1]
                 close_price = last_row.get("Close", "")
                 if close_price:
+                    logger.debug(
+                        f"Current price for {ticker}: ${close_price} (date: {last_row.get('Date', 'unknown')})"
+                    )
                     return float(close_price)
     except Exception as e:
         logger.warning(f"Failed to get current price for {ticker}: {e}")
@@ -430,11 +437,11 @@ async def get_historical_price(
         # Import here to avoid circular dependency
         from pathlib import Path
 
-        # Ensure data is cached
+        # Ensure data is cached and up to date
         from api.endpoints.data import _ensure_cached_data
 
         DATA_CACHE_DIR = Path(__file__).parent.parent.parent / "litadel" / "dataflows" / "data_cache"
-        _ensure_cached_data(ticker, None, None)
+        _ensure_cached_data(ticker, None, None, update_stale=True)
 
         # Find cache file
         pattern = f"{ticker.upper()}-YFin-data-*.csv"
