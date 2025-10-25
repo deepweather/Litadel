@@ -29,6 +29,7 @@ export const CreateAnalysisForm: React.FC = () => {
   const [ticker, setTicker] = useState('')
   const [analysisDate, setAnalysisDate] = useState(new Date().toISOString().split('T')[0])
   const [selectedAnalysts, setSelectedAnalysts] = useState<AnalystType[]>([
+    'macro',
     'market',
     'news',
     'social',
@@ -68,7 +69,7 @@ export const CreateAnalysisForm: React.FC = () => {
         setResearchDepth(1)
         break
       case 'standard':
-        setSelectedAnalysts(['market', 'news', 'social'])
+        setSelectedAnalysts(['macro', 'market', 'news', 'social'])
         setResearchDepth(1)
         break
       case 'deep':
@@ -256,7 +257,7 @@ export const CreateAnalysisForm: React.FC = () => {
             <Clock size={16} />
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontWeight: 'bold' }}>Standard</div>
-              <div style={{ fontSize: '0.7rem', color: '#5a6e7a' }}>3 analysts • ~5 min</div>
+              <div style={{ fontSize: '0.7rem', color: '#5a6e7a' }}>4 analysts • ~6 min</div>
             </div>
           </button>
 
@@ -288,7 +289,7 @@ export const CreateAnalysisForm: React.FC = () => {
             <Search size={16} />
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontWeight: 'bold' }}>Deep Research</div>
-              <div style={{ fontSize: '0.7rem', color: '#5a6e7a' }}>All analysts • ~15 min</div>
+              <div style={{ fontSize: '0.7rem', color: '#5a6e7a' }}>5 analysts • ~15 min</div>
             </div>
           </button>
         </div>

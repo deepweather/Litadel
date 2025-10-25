@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Annotated
 
 import pandas as pd
@@ -11,13 +11,13 @@ from .config import DATA_DIR
 from .reddit_utils import fetch_top_from_category
 
 
-def get_YFin_data_window(
+def get_YFin_data_window(  # noqa: N802
     symbol: Annotated[str, "ticker symbol of the company"],
     curr_date: Annotated[str, "Start date in yyyy-mm-dd format"],
     look_back_days: Annotated[int, "how many days to look back"],
 ) -> str:
     # calculate past days
-    date_obj = datetime.strptime(curr_date, "%Y-%m-%d")
+    date_obj = datetime.strptime(curr_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
     before = date_obj - relativedelta(days=look_back_days)
     start_date = before.strftime("%Y-%m-%d")
 
@@ -45,7 +45,11 @@ def get_YFin_data_window(
     return f"## Raw Market Data for {symbol} from {start_date} to {curr_date}:\n\n" + df_string
 
 
-def get_YFin_data(
+class DataRangeError(ValueError):
+    """Exception raised when requested date is outside available data range."""
+
+
+def get_YFin_data(  # noqa: N802
     symbol: Annotated[str, "ticker symbol of the company"],
     start_date: Annotated[str, "Start date in yyyy-mm-dd format"],
     end_date: Annotated[str, "End date in yyyy-mm-dd format"],
@@ -60,7 +64,7 @@ def get_YFin_data(
 
     if end_date > "2025-03-25":
         msg = f"Get_YFin_Data: {end_date} is outside of the data range of 2015-01-01 to 2025-03-25"
-        raise Exception(msg)
+        raise DataRangeError(msg)
 
     # Extract just the date part for comparison
     data["DateOnly"] = data["Date"].str[:10]
@@ -121,7 +125,7 @@ def get_finnhub_company_insider_sentiment(
         str: a report of the sentiment in the past 15 days starting at curr_date
     """
 
-    date_obj = datetime.strptime(curr_date, "%Y-%m-%d")
+    date_obj = datetime.strptime(curr_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
     before = date_obj - relativedelta(days=15)  # Default 15 days lookback
     before = before.strftime("%Y-%m-%d")
 
@@ -158,7 +162,7 @@ def get_finnhub_company_insider_transactions(
         str: a report of the company's insider transaction/trading informtaion in the past 15 days
     """
 
-    date_obj = datetime.strptime(curr_date, "%Y-%m-%d")
+    date_obj = datetime.strptime(curr_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
     before = date_obj - relativedelta(days=15)  # Default 15 days lookback
     before = before.strftime("%Y-%m-%d")
 
@@ -204,8 +208,8 @@ def get_data_in_range(ticker, start_date, end_date, data_type, data_dir, period=
     else:
         data_path = os.path.join(data_dir, "finnhub_data", data_type, f"{ticker}_data_formatted.json")
 
-    data = open(data_path)
-    data = json.load(data)
+    with open(data_path) as f:
+        data = json.load(f)
 
     # filter keys (date, str in format YYYY-MM-DD) by the date range (str, str in format YYYY-MM-DD)
     filtered_data = {}
@@ -371,13 +375,13 @@ def get_reddit_global_news(
         str: A formatted string containing the latest news articles posts on reddit
     """
 
-    curr_date_dt = datetime.strptime(curr_date, "%Y-%m-%d")
+    curr_date_dt = datetime.strptime(curr_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
     before = curr_date_dt - relativedelta(days=look_back_days)
     before = before.strftime("%Y-%m-%d")
 
     posts = []
     # iterate from before to curr_date
-    curr_iter_date = datetime.strptime(before, "%Y-%m-%d")
+    curr_iter_date = datetime.strptime(before, "%Y-%m-%d").replace(tzinfo=timezone.utc)
 
     total_iterations = (curr_date_dt - curr_iter_date).days + 1
     pbar = tqdm(desc=f"Getting Global News on {curr_date}", total=total_iterations)
@@ -424,8 +428,8 @@ def get_reddit_company_news(
         str: A formatted string containing news articles posts on reddit
     """
 
-    start_date_dt = datetime.strptime(start_date, "%Y-%m-%d")
-    end_date_dt = datetime.strptime(end_date, "%Y-%m-%d")
+    start_date_dt = datetime.strptime(start_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    end_date_dt = datetime.strptime(end_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
 
     posts = []
     # iterate from start_date to end_date

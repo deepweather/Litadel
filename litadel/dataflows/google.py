@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Annotated
 
 from dateutil.relativedelta import relativedelta
@@ -13,7 +13,7 @@ def get_google_news(
 ) -> str:
     query = query.replace(" ", "+")
 
-    start_date = datetime.strptime(curr_date, "%Y-%m-%d")
+    start_date = datetime.strptime(curr_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
     before = start_date - relativedelta(days=look_back_days)
     before = before.strftime("%Y-%m-%d")
 

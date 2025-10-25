@@ -1,7 +1,7 @@
 import json
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Annotated
 
 ticker_to_company = {
@@ -82,7 +82,7 @@ def fetch_top_from_category(
                 parsed_line = json.loads(line)
 
                 # select only lines that are from the date
-                post_date = datetime.utcfromtimestamp(parsed_line["created_utc"]).strftime("%Y-%m-%d")
+                post_date = datetime.fromtimestamp(parsed_line["created_utc"], tz=timezone.utc).strftime("%Y-%m-%d")
                 if post_date != date:
                     continue
 

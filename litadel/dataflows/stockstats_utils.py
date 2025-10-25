@@ -6,6 +6,7 @@ import yfinance as yf
 from stockstats import wrap
 
 from .config import DATA_DIR, get_config
+from .local import DataRangeError
 
 
 class StockstatsUtils:
@@ -31,9 +32,9 @@ class StockstatsUtils:
                     )
                 )
                 df = wrap(data)
-            except FileNotFoundError:
+            except FileNotFoundError as e:
                 msg = "Stockstats fail: Yahoo Finance data not fetched yet!"
-                raise Exception(msg)
+                raise DataRangeError(msg) from e
         else:
             # Get today's date as YYYY-mm-dd to add to cache
             today_date = pd.Timestamp.today()

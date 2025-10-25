@@ -2,7 +2,7 @@
 
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -73,7 +73,12 @@ class SmartCache:
         """
         cache_path = self._get_cache_path(key)
 
-        cache_entry = {"data": data, "timestamp": time.time(), "ttl": ttl, "cached_at": datetime.now().isoformat()}
+        cache_entry = {
+            "data": data,
+            "timestamp": time.time(),
+            "ttl": ttl,
+            "cached_at": datetime.now(tz=timezone.utc).isoformat(),
+        }
 
         try:
             with open(cache_path, "w") as f:

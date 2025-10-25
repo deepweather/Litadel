@@ -7,7 +7,7 @@ DATA_DIR: str | None = None
 
 def initialize_config():
     """Initialize the configuration with default values."""
-    global _config, DATA_DIR
+    global _config, DATA_DIR  # noqa: PLW0603
     if _config is None:
         _config = default_config.DEFAULT_CONFIG.copy()
         DATA_DIR = _config["data_dir"]
@@ -15,7 +15,7 @@ def initialize_config():
 
 def set_config(config: dict):
     """Update the configuration with custom values."""
-    global _config, DATA_DIR
+    global _config, DATA_DIR  # noqa: PLW0603
     if _config is None:
         _config = default_config.DEFAULT_CONFIG.copy()
     _config.update(config)
