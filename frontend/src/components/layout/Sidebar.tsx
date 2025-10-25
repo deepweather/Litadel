@@ -6,6 +6,7 @@ import {
   LineChart,
   Plus,
   Settings,
+  TrendingUp,
 } from 'lucide-react';
 
 interface NavItem {
@@ -34,6 +35,11 @@ const navItems: NavItem[] = [
     name: 'Portfolio',
     path: '/portfolio',
     icon: <Briefcase size={18} />,
+  },
+  {
+    name: 'Backtests',
+    path: '/backtests',
+    icon: <TrendingUp size={18} />,
   },
   {
     name: 'Settings',

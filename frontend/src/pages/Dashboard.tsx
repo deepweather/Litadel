@@ -202,6 +202,52 @@ export const Dashboard: React.FC = () => {
             Create Analysis
           </button>
           <button
+            onClick={() => navigate('/portfolio')}
+            style={{
+              border: '1px solid rgba(77, 166, 255, 0.3)',
+              padding: '0.75rem 1.5rem',
+              backgroundColor: 'transparent',
+              color: '#4da6ff',
+              fontFamily: 'JetBrains Mono, monospace',
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#4da6ff'
+              e.currentTarget.style.backgroundColor = 'rgba(77, 166, 255, 0.1)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'rgba(77, 166, 255, 0.3)'
+              e.currentTarget.style.backgroundColor = 'transparent'
+            }}
+          >
+            View Portfolios
+          </button>
+          <button
+            onClick={() => navigate('/backtests/create')}
+            style={{
+              border: '1px solid rgba(77, 166, 255, 0.3)',
+              padding: '0.75rem 1.5rem',
+              backgroundColor: 'transparent',
+              color: '#00d4ff',
+              fontFamily: 'JetBrains Mono, monospace',
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#00d4ff'
+              e.currentTarget.style.backgroundColor = 'rgba(0, 212, 255, 0.1)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'rgba(77, 166, 255, 0.3)'
+              e.currentTarget.style.backgroundColor = 'transparent'
+            }}
+          >
+            Create Backtest
+          </button>
+          <button
             onClick={() => navigate('/settings')}
             style={{
               border: '1px solid rgba(77, 166, 255, 0.3)',
@@ -223,19 +269,6 @@ export const Dashboard: React.FC = () => {
             }}
           >
             Settings
-          </button>
-          <button
-            style={{
-              border: '1px solid rgba(77, 166, 255, 0.3)',
-              padding: '0.75rem 1.5rem',
-              backgroundColor: 'transparent',
-              color: '#2a3e4a',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '0.875rem',
-              cursor: 'not-allowed',
-            }}
-          >
-            Documentation
           </button>
         </div>
       </div>

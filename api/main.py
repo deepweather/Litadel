@@ -16,7 +16,7 @@ load_dotenv()
 
 from api.auth import create_api_key
 from api.database import SessionLocal, init_db
-from api.endpoints import analyses, auth, data, portfolios, tickers
+from api.endpoints import analyses, auth, backtests, data, portfolios, tickers
 from api.state_manager import get_executor, shutdown_executor
 from api.websockets import status
 
@@ -110,6 +110,7 @@ app.include_router(analyses.router)
 app.include_router(tickers.router)
 app.include_router(data.router)
 app.include_router(portfolios.router)
+app.include_router(backtests.router)
 app.include_router(status.router)
 
 

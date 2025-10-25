@@ -10,6 +10,9 @@ import { CreateAnalysis } from './pages/CreateAnalysis'
 import { PortfolioList } from './pages/PortfolioList'
 import { PortfolioDetail } from './pages/PortfolioDetail'
 import { CreatePortfolio } from './pages/CreatePortfolio'
+import { BacktestList } from './pages/BacktestList'
+import { BacktestDetail } from './pages/BacktestDetail'
+import { CreateBacktest } from './pages/CreateBacktest'
 import { AssetDetail } from './pages/AssetDetail'
 import { Settings } from './pages/Settings'
 import { Login } from './pages/Login'
@@ -92,6 +95,30 @@ function App() {
               element={
                 <RequireAuth>
                   <PortfolioDetail />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/backtests"
+              element={
+                <RequireAuth>
+                  <BacktestList />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/backtests/create"
+              element={
+                <RequireAuth>
+                  <CreateBacktest />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/backtests/:id"
+              element={
+                <RequireAuth>
+                  <BacktestDetail />
                 </RequireAuth>
               }
             />
