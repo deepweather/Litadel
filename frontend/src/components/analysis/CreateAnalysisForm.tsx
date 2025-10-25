@@ -21,12 +21,16 @@ const ANALYST_DESCRIPTIONS: Record<AnalystType, string> = {
 
 const POPULAR_TICKERS = ['BTC', 'ETH', 'AAPL', 'TSLA', 'MSFT', 'NVDA']
 
-export const CreateAnalysisForm: React.FC = () => {
+interface CreateAnalysisFormProps {
+  initialTicker?: string
+}
+
+export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialTicker }) => {
   const navigate = useNavigate()
   const createMutation = useCreateAnalysis()
   const { data: analysesData } = useAnalyses()
 
-  const [ticker, setTicker] = useState('')
+  const [ticker, setTicker] = useState(initialTicker || '')
   const [analysisDate, setAnalysisDate] = useState(new Date().toISOString().split('T')[0])
   const [selectedAnalysts, setSelectedAnalysts] = useState<AnalystType[]>([
     'macro',

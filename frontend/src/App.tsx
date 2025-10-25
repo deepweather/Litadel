@@ -10,6 +10,7 @@ import { CreateAnalysis } from './pages/CreateAnalysis'
 import { PortfolioList } from './pages/PortfolioList'
 import { PortfolioDetail } from './pages/PortfolioDetail'
 import { CreatePortfolio } from './pages/CreatePortfolio'
+import { AssetDetail } from './pages/AssetDetail'
 import { Settings } from './pages/Settings'
 import { Login } from './pages/Login'
 import { useAuthStore } from './stores/authStore'
@@ -91,6 +92,14 @@ function App() {
               element={
                 <RequireAuth>
                   <PortfolioDetail />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/asset/:ticker"
+              element={
+                <RequireAuth>
+                  <AssetDetail />
                 </RequireAuth>
               }
             />

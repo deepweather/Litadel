@@ -76,7 +76,20 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({ analysis }) => {
             style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}
           >
             {/* Ticker */}
-            <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#00d4ff' }}>
+            <span
+              style={{
+                fontSize: '1.25rem',
+                fontWeight: 'bold',
+                color: '#00d4ff',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+              }}
+              onClick={(e) => {
+                e.stopPropagation()
+                navigate(`/asset/${analysis.ticker}`)
+              }}
+              title="View asset details"
+            >
               {analysis.ticker}
             </span>
 

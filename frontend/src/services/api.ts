@@ -243,6 +243,56 @@ class APIService {
     )
     return response.data
   }
+
+  // Ticker/Asset endpoints
+  async getTickerSummary(ticker: string): Promise<{
+    ticker: string
+    asset_class: string
+    current_price: number | null
+    analyses: {
+      total_count: number
+      completed_count: number
+      latest_date: string | null
+      latest_status: string | null
+      decision_counts: { BUY: number; SELL: number; HOLD: number }
+      latest_decision: {
+        decision: string
+        confidence: number | null
+        rationale: string | null
+        analysis_date: string
+      } | null
+    }
+    holdings: {
+      total_positions: number
+      open_positions: number
+      closed_positions: number
+      total_quantity: number
+      avg_entry_price: number | null
+      current_value: number | null
+      total_pnl: number
+      unrealized_pnl: number
+      realized_pnl: number
+    }
+  }> {
+    const response = await this.client.get(`/api/v1/tickers/${ticker}/summary`)
+    return response.data
+  }
+
+  async getTickerPositions(ticker: string): Promise<
+    Array<{
+      position: any
+      portfolio_id: number
+      portfolio_name: string
+    }>
+  > {
+    const response = await this.client.get(`/api/v1/tickers/${ticker}/positions`)
+    return response.data
+  }
+
+  async getTickerAnalyses(ticker: string): Promise<Analysis[]> {
+    const response = await this.client.get(`/api/v1/tickers/${ticker}/analyses`)
+    return response.data
+  }
 }
 
 export const api = new APIService()

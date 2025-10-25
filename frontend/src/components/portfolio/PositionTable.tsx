@@ -1,4 +1,5 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Edit, Trash2, XCircle } from 'lucide-react'
 import type { Position } from '../../types/portfolio'
 
@@ -15,6 +16,8 @@ export const PositionTable: React.FC<PositionTableProps> = ({
   onDelete,
   onClose,
 }) => {
+  const navigate = useNavigate()
+
   const formatCurrency = (value: number | null | undefined) => {
     if (value === null || value === undefined) return 'N/A'
     return new Intl.NumberFormat('en-US', {
@@ -90,7 +93,17 @@ export const PositionTable: React.FC<PositionTableProps> = ({
                 e.currentTarget.style.backgroundColor = 'transparent'
               }}
             >
-              <td style={{ padding: '0.75rem', color: '#4da6ff', fontWeight: 'bold' }}>
+              <td
+                style={{
+                  padding: '0.75rem',
+                  color: '#4da6ff',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                }}
+                onClick={() => navigate(`/asset/${position.ticker}`)}
+                title="View asset details"
+              >
                 {position.ticker}
               </td>
               <td style={{ padding: '0.75rem', color: '#2a3e4a' }}>
