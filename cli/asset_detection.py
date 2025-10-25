@@ -42,23 +42,21 @@ KNOWN_CRYPTOS = {
 def detect_asset_class(symbol: str) -> str:
     """
     Automatically detect if a symbol is a commodity, crypto, or equity.
-    
+
     Args:
         symbol: The ticker symbol (e.g., "BRENT", "BTC", "AAPL")
-    
+
     Returns:
         "commodity", "crypto", or "equity" based on the symbol
     """
     symbol_upper = symbol.upper()
     if symbol_upper in KNOWN_COMMODITIES:
         return "commodity"
-    elif symbol_upper in KNOWN_CRYPTOS:
+    if symbol_upper in KNOWN_CRYPTOS:
         return "crypto"
-    else:
-        return "equity"
+    return "equity"
 
 
 def get_asset_class_display_name(asset_class: str) -> str:
     """Get a human-friendly display name for the asset class."""
     return asset_class.capitalize()
-

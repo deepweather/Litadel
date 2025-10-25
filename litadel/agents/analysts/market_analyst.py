@@ -1,15 +1,12 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-import time
-import json
+
 from litadel.agents.utils.agent_utils import (
-    get_market_data,
     get_indicators,
+    get_market_data,
 )
-from litadel.dataflows.config import get_config
 
 
 def create_market_analyst(llm):
-
     def market_analyst_node(state):
         current_date = state["trade_date"]
         ticker = state["company_of_interest"]
@@ -47,9 +44,9 @@ Volatility Indicators:
 
 Volume-Based Indicators:
         - vwma: VWMA: A moving average weighted by volume. Usage: Confirm trends by integrating price action with volume data. Tips: Watch for skewed results from volume spikes; use in combination with other volume analyses.
-        
+
         - Select indicators that provide diverse and complementary information. Avoid redundancy (e.g., do not select both rsi and stochrsi). Also briefly explain why they are suitable for the given market context. When you tool call, please use the exact name of the indicators provided above as they are defined parameters, otherwise your call will fail. Write a very detailed and nuanced report of the trends you observe. Do not simply state the trends are mixed, provide detailed and finegrained analysis and insights that may help traders make decisions."""
-            + """ Make sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."""
+            """ Make sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."""
         )
 
         if asset_class == "equity":
@@ -89,7 +86,7 @@ Volume-Based Indicators:
 
         if len(result.tool_calls) == 0:
             report = result.content
-       
+
         return {
             "messages": [result],
             "market_report": report,

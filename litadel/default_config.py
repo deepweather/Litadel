@@ -1,5 +1,5 @@
-import os
 import configparser
+import os
 from pathlib import Path
 
 
@@ -8,40 +8,40 @@ def _load_user_config():
     config_path = Path(__file__).parent.parent / "config.ini"
     if not config_path.exists():
         return {}
-    
+
     parser = configparser.ConfigParser()
     parser.read(config_path)
-    
+
     user_config = {}
-    
+
     # LLM settings
     if parser.has_section("llm"):
         user_config["llm_provider"] = parser.get("llm", "provider", fallback=None)
         user_config["backend_url"] = parser.get("llm", "backend_url", fallback=None)
         user_config["deep_think_llm"] = parser.get("llm", "deep_think_llm", fallback=None)
         user_config["quick_think_llm"] = parser.get("llm", "quick_think_llm", fallback=None)
-    
+
     # Analysis settings
     if parser.has_section("analysis"):
         depth = parser.get("analysis", "research_depth", fallback=None)
         if depth:
             user_config["max_debate_rounds"] = int(depth)
             user_config["max_risk_discuss_rounds"] = int(depth)
-        
+
         analysts = parser.get("analysis", "default_analysts", fallback=None)
         if analysts:
             user_config["default_analysts"] = [a.strip() for a in analysts.split(",")]
-    
+
     # Data settings
     if parser.has_section("data"):
         limit = parser.get("data", "global_news_limit", fallback=None)
         if limit:
             user_config["global_news_limit"] = int(limit)
-        
+
         commodity_limit = parser.get("data", "commodity_news_limit", fallback=None)
         if commodity_limit:
             user_config["commodity_news_limit"] = int(commodity_limit)
-    
+
     # Vendor settings
     if parser.has_section("vendors"):
         vendors = {}
@@ -57,16 +57,16 @@ def _load_user_config():
             vendors["commodity_data"] = parser.get("vendors", "commodity")
         if parser.has_option("vendors", "crypto"):
             vendors["crypto_data"] = parser.get("vendors", "crypto")
-        
+
         if vendors:
             user_config["data_vendors"] = vendors
-    
+
     # Storage settings
     if parser.has_section("storage"):
         results = parser.get("storage", "results_dir", fallback=None)
         if results:
             user_config["results_dir"] = results
-    
+
     # Remove None values
     return {k: v for k, v in user_config.items() if v is not None}
 

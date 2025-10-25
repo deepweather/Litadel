@@ -1,20 +1,18 @@
 """Ticker history endpoints."""
 
-from typing import List
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from api.auth import APIKey, get_current_api_key
 from api.database import Analysis, get_db
-from api.models import AnalysisResponse, AnalysisSummary, ReportResponse, TickerInfo
 from api.endpoints.analyses import get_analysis
+from api.models import AnalysisResponse, AnalysisSummary, TickerInfo
 
 router = APIRouter(prefix="/api/v1/tickers", tags=["tickers"])
 
 
-@router.get("", response_model=List[TickerInfo])
+@router.get("", response_model=list[TickerInfo])
 async def list_tickers(
     db: Session = Depends(get_db),
     api_key: APIKey = Depends(get_current_api_key),
@@ -31,7 +29,7 @@ async def list_tickers(
         .order_by(Analysis.ticker)
         .all()
     )
-    
+
     return [
         TickerInfo(
             ticker=r.ticker,
@@ -42,20 +40,15 @@ async def list_tickers(
     ]
 
 
-@router.get("/{ticker}/analyses", response_model=List[AnalysisSummary])
+@router.get("/{ticker}/analyses", response_model=list[AnalysisSummary])
 async def get_ticker_analyses(
     ticker: str,
     db: Session = Depends(get_db),
     api_key: APIKey = Depends(get_current_api_key),
 ):
     """Get all analyses for a ticker."""
-    analyses = (
-        db.query(Analysis)
-        .filter(Analysis.ticker == ticker.upper())
-        .order_by(Analysis.created_at.desc())
-        .all()
-    )
-    
+    analyses = db.query(Analysis).filter(Analysis.ticker == ticker.upper()).order_by(Analysis.created_at.desc()).all()
+
     return [
         AnalysisSummary(
             id=a.id,
@@ -77,19 +70,13 @@ async def get_ticker_latest_analysis(
     api_key: APIKey = Depends(get_current_api_key),
 ):
     """Get the most recent analysis for a ticker."""
-    analysis = (
-        db.query(Analysis)
-        .filter(Analysis.ticker == ticker.upper())
-        .order_by(Analysis.created_at.desc())
-        .first()
-    )
-    
+    analysis = db.query(Analysis).filter(Analysis.ticker == ticker.upper()).order_by(Analysis.created_at.desc()).first()
+
     if not analysis:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No analyses found for ticker {ticker}",
         )
-    
+
     # Use the existing get_analysis function
     return await get_analysis(analysis.id, db, api_key)
-

@@ -1,12 +1,12 @@
 """Message buffer for tracking agent messages and reports in the CLI."""
 
-from collections import deque
 import datetime
+from collections import deque
 
 
 class MessageBuffer:
     """Stores and manages messages, tool calls, and reports for the trading agents UI."""
-    
+
     def __init__(self, max_length=100):
         self.messages = deque(maxlen=max_length)
         self.tool_calls = deque(maxlen=max_length)
@@ -14,13 +14,21 @@ class MessageBuffer:
         self.final_report = None  # Store the complete final report
         # Initialize all agents as pending
         all_agents = [
-            "Macro Analyst", "Market Analyst", "Social Analyst", "News Analyst", "Fundamentals Analyst",
-            "Bull Researcher", "Bear Researcher", "Research Manager",
+            "Macro Analyst",
+            "Market Analyst",
+            "Social Analyst",
+            "News Analyst",
+            "Fundamentals Analyst",
+            "Bull Researcher",
+            "Bear Researcher",
+            "Research Manager",
             "Trader",
-            "Risky Analyst", "Neutral Analyst", "Safe Analyst",
-            "Portfolio Manager"
+            "Risky Analyst",
+            "Neutral Analyst",
+            "Safe Analyst",
+            "Portfolio Manager",
         ]
-        self.agent_status = {agent: "pending" for agent in all_agents}
+        self.agent_status = dict.fromkeys(all_agents, "pending")
         self.current_agent = None
         self.report_sections = {
             "macro_report": None,
@@ -61,7 +69,7 @@ class MessageBuffer:
             if content is not None:
                 latest_section = section
                 latest_content = content
-               
+
         if latest_section and latest_content:
             # Format the current section for display
             section_titles = {
@@ -74,9 +82,7 @@ class MessageBuffer:
                 "trader_investment_plan": "Trading Team Plan",
                 "final_trade_decision": "Portfolio Management Decision",
             }
-            self.current_report = (
-                f"### {section_titles[latest_section]}\n{latest_content}"
-            )
+            self.current_report = f"### {section_titles[latest_section]}\n{latest_content}"
 
         # Update the final complete report
         self._update_final_report()
@@ -97,25 +103,15 @@ class MessageBuffer:
         ):
             report_parts.append("## Analyst Team Reports")
             if self.report_sections["macro_report"]:
-                report_parts.append(
-                    f"### Macroeconomic Context\n{self.report_sections['macro_report']}"
-                )
+                report_parts.append(f"### Macroeconomic Context\n{self.report_sections['macro_report']}")
             if self.report_sections["market_report"]:
-                report_parts.append(
-                    f"### Market Analysis\n{self.report_sections['market_report']}"
-                )
+                report_parts.append(f"### Market Analysis\n{self.report_sections['market_report']}")
             if self.report_sections["sentiment_report"]:
-                report_parts.append(
-                    f"### Social Sentiment\n{self.report_sections['sentiment_report']}"
-                )
+                report_parts.append(f"### Social Sentiment\n{self.report_sections['sentiment_report']}")
             if self.report_sections["news_report"]:
-                report_parts.append(
-                    f"### News Analysis\n{self.report_sections['news_report']}"
-                )
+                report_parts.append(f"### News Analysis\n{self.report_sections['news_report']}")
             if self.report_sections["fundamentals_report"]:
-                report_parts.append(
-                    f"### Fundamentals Analysis\n{self.report_sections['fundamentals_report']}"
-                )
+                report_parts.append(f"### Fundamentals Analysis\n{self.report_sections['fundamentals_report']}")
 
         # Research Team Reports
         if self.report_sections["investment_plan"]:

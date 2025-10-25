@@ -13,4 +13,3 @@ echo ""
 
 cd "$(dirname "$0")"
 python -m api.main
-

@@ -1,5 +1,7 @@
-from langchain_core.tools import tool
 from typing import Annotated
+
+from langchain_core.tools import tool
+
 from litadel.dataflows.interface import route_to_vendor
 
 
@@ -15,5 +17,3 @@ def get_commodity_data(
     Uses the configured commodity_data vendor.
     """
     return route_to_vendor("get_commodity_data", commodity, start_date, end_date, interval)
-
-

@@ -4,7 +4,6 @@ import json
 import logging
 import uuid
 from datetime import datetime
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -36,12 +35,12 @@ async def create_analysis(
     """Create and start a new analysis."""
     # Generate analysis ID
     analysis_id = str(uuid.uuid4())
-    
+
     # Build configuration
     config = DEFAULT_CONFIG.copy()
     config["max_debate_rounds"] = request.research_depth
     config["max_risk_discuss_rounds"] = request.research_depth
-    
+
     if request.llm_provider:
         config["llm_provider"] = request.llm_provider
     if request.backend_url:
@@ -50,17 +49,18 @@ async def create_analysis(
         config["quick_think_llm"] = request.quick_think_llm
     if request.deep_think_llm:
         config["deep_think_llm"] = request.deep_think_llm
-    
+
     # Auto-detect asset class
     from cli.asset_detection import detect_asset_class
+
     asset_class = detect_asset_class(request.ticker)
     config["asset_class"] = asset_class
-    
+
     # Filter out fundamentals for commodities/crypto
     selected_analysts = request.selected_analysts
     if asset_class in ["commodity", "crypto"] and "fundamentals" in selected_analysts:
         selected_analysts = [a for a in selected_analysts if a != "fundamentals"]
-    
+
     # Create database record
     analysis = Analysis(
         id=analysis_id,
@@ -73,7 +73,7 @@ async def create_analysis(
     db.add(analysis)
     db.commit()
     db.refresh(analysis)
-    
+
     # Start analysis in background
     logger.info(f"Creating analysis {analysis_id} for {request.ticker}")
     executor = get_executor()
@@ -87,16 +87,16 @@ async def create_analysis(
         )
         logger.info(f"Analysis {analysis_id} started successfully")
     except Exception as e:
-        logger.error(f"Failed to start analysis {analysis_id}: {str(e)}")
+        logger.error(f"Failed to start analysis {analysis_id}: {e!s}")
         # Update status to failed
         analysis.status = "failed"
         analysis.error_message = str(e)
         db.commit()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to start analysis: {str(e)}",
+            detail=f"Failed to start analysis: {e!s}",
         )
-    
+
     return AnalysisResponse(
         id=analysis.id,
         ticker=analysis.ticker,
@@ -114,12 +114,12 @@ async def create_analysis(
     )
 
 
-@router.get("", response_model=List[AnalysisSummary])
+@router.get("", response_model=list[AnalysisSummary])
 async def list_analyses(
-    ticker: Optional[str] = Query(None, description="Filter by ticker"),
-    status: Optional[str] = Query(None, description="Filter by status"),
-    date_from: Optional[str] = Query(None, description="Filter by date (from)"),
-    date_to: Optional[str] = Query(None, description="Filter by date (to)"),
+    ticker: str | None = Query(None, description="Filter by ticker"),
+    status: str | None = Query(None, description="Filter by status"),
+    date_from: str | None = Query(None, description="Filter by date (from)"),
+    date_to: str | None = Query(None, description="Filter by date (to)"),
     limit: int = Query(100, ge=1, le=1000, description="Max results"),
     offset: int = Query(0, ge=0, description="Offset for pagination"),
     db: Session = Depends(get_db),
@@ -127,7 +127,7 @@ async def list_analyses(
 ):
     """List all analyses with optional filtering."""
     query = db.query(Analysis)
-    
+
     if ticker:
         query = query.filter(Analysis.ticker == ticker.upper())
     if status:
@@ -136,10 +136,10 @@ async def list_analyses(
         query = query.filter(Analysis.analysis_date >= date_from)
     if date_to:
         query = query.filter(Analysis.analysis_date <= date_to)
-    
+
     # Order by created_at descending
     query = query.order_by(Analysis.created_at.desc())
-    
+
     # Apply pagination
     analyses = query.offset(offset).limit(limit).all()
 
@@ -151,7 +151,7 @@ async def list_analyses(
             reports = db.query(AnalysisReport).filter(AnalysisReport.analysis_id == a.id).all()
             if reports:
                 trading_decision = extract_trading_decision(reports)
-        
+
         # Extract selected_analysts from config
         selected_analysts = []
         try:
@@ -160,7 +160,7 @@ async def list_analyses(
             selected_analysts = config.get("selected_analysts", [])
         except:
             pass
-        
+
         results.append(
             AnalysisSummary(
                 id=a.id,
@@ -174,7 +174,7 @@ async def list_analyses(
                 trading_decision=trading_decision,
             )
         )
-    
+
     return results
 
 
@@ -186,29 +186,25 @@ async def get_analysis(
 ):
     """Get full analysis details."""
     analysis = db.query(Analysis).filter(Analysis.id == analysis_id).first()
-    
+
     if not analysis:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Analysis {analysis_id} not found",
         )
-    
+
     # Get reports
-    reports = (
-        db.query(AnalysisReport)
-        .filter(AnalysisReport.analysis_id == analysis_id)
-        .all()
-    )
-    
+    reports = db.query(AnalysisReport).filter(AnalysisReport.analysis_id == analysis_id).all()
+
     # Extract trading decision if analysis is completed
     trading_decision = None
     if analysis.status == "completed" and reports:
         trading_decision = extract_trading_decision(reports)
-    
+
     # Extract selected_analysts from config
     config = json.loads(analysis.config_json)
     selected_analysts = config.get("selected_analysts", [])
-    
+
     return AnalysisResponse(
         id=analysis.id,
         ticker=analysis.ticker,
@@ -242,13 +238,13 @@ async def get_analysis_status(
 ):
     """Get current analysis status."""
     analysis = db.query(Analysis).filter(Analysis.id == analysis_id).first()
-    
+
     if not analysis:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Analysis {analysis_id} not found",
         )
-    
+
     return AnalysisStatusResponse(
         id=analysis.id,
         status=analysis.status,
@@ -258,7 +254,7 @@ async def get_analysis_status(
     )
 
 
-@router.get("/{analysis_id}/reports", response_model=List[ReportResponse])
+@router.get("/{analysis_id}/reports", response_model=list[ReportResponse])
 async def get_analysis_reports(
     analysis_id: str,
     db: Session = Depends(get_db),
@@ -272,14 +268,14 @@ async def get_analysis_reports(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Analysis {analysis_id} not found",
         )
-    
+
     reports = (
         db.query(AnalysisReport)
         .filter(AnalysisReport.analysis_id == analysis_id)
         .order_by(AnalysisReport.created_at)
         .all()
     )
-    
+
     return [
         ReportResponse(
             report_type=r.report_type,
@@ -306,13 +302,13 @@ async def get_analysis_report(
         )
         .first()
     )
-    
+
     if not report:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Report {report_type} not found for analysis {analysis_id}",
         )
-    
+
     return ReportResponse(
         report_type=report.report_type,
         content=report.content,
@@ -320,10 +316,10 @@ async def get_analysis_report(
     )
 
 
-@router.get("/{analysis_id}/logs", response_model=List[LogEntry])
+@router.get("/{analysis_id}/logs", response_model=list[LogEntry])
 async def get_analysis_logs(
     analysis_id: str,
-    log_type: Optional[str] = Query(None, description="Filter by log type"),
+    log_type: str | None = Query(None, description="Filter by log type"),
     limit: int = Query(100, ge=1, le=1000, description="Max results"),
     offset: int = Query(0, ge=0, description="Offset for pagination"),
     db: Session = Depends(get_db),
@@ -337,14 +333,14 @@ async def get_analysis_logs(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Analysis {analysis_id} not found",
         )
-    
+
     query = db.query(AnalysisLog).filter(AnalysisLog.analysis_id == analysis_id)
-    
+
     if log_type:
         query = query.filter(AnalysisLog.log_type == log_type)
-    
+
     logs = query.order_by(AnalysisLog.timestamp).offset(offset).limit(limit).all()
-    
+
     return [
         LogEntry(
             agent_name=log.agent_name,
@@ -365,18 +361,18 @@ async def delete_analysis(
 ):
     """Cancel and/or delete an analysis."""
     analysis = db.query(Analysis).filter(Analysis.id == analysis_id).first()
-    
+
     if not analysis:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Analysis {analysis_id} not found",
         )
-    
+
     # Try to cancel if running
     if analysis.status in ["pending", "running"]:
         executor = get_executor()
         executor.cancel_analysis(analysis_id)
-    
+
     # Delete from database if requested
     if permanent:
         db.delete(analysis)
@@ -386,6 +382,3 @@ async def delete_analysis(
         analysis.status = "cancelled"
         analysis.updated_at = datetime.utcnow()
         db.commit()
-    
-    return None
-

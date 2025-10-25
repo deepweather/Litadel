@@ -1,21 +1,21 @@
 """Database models and connection management."""
 
 import os
+from collections.abc import Generator
 from datetime import datetime
-from typing import Generator
 
 from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
+    ForeignKey,
     Integer,
     String,
     Text,
     create_engine,
-    ForeignKey,
 )
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Session, sessionmaker, relationship
+from sqlalchemy.orm import Session, relationship, sessionmaker
 
 # Database file location
 DATABASE_URL = os.getenv("API_DATABASE_URL", "sqlite:///./api_database.db")
@@ -41,9 +41,7 @@ class Analysis(Base):
     id = Column(String, primary_key=True, index=True)
     ticker = Column(String, index=True, nullable=False)
     analysis_date = Column(String, nullable=False)
-    status = Column(
-        String, nullable=False, default="pending"
-    )  # pending, running, completed, failed, cancelled
+    status = Column(String, nullable=False, default="pending")  # pending, running, completed, failed, cancelled
     config_json = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -112,4 +110,3 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
-

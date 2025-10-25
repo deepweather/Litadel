@@ -1,11 +1,11 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-import time
-import json
+
 from litadel.agents.utils.agent_utils import (
     get_asset_news,
+)
+from litadel.agents.utils.agent_utils import (
     get_global_news_unified as get_global_news,
 )
-from litadel.dataflows.config import get_config
 
 
 def create_news_analyst(llm):
@@ -22,33 +22,33 @@ def create_news_analyst(llm):
             system_message = (
                 f"You are a news researcher tasked with analyzing recent news and trends for the commodity {ticker}. "
                 "Please write a comprehensive report of relevant news over the past week that impacts this commodity's price. "
-                f"Use the available tools: get_asset_news(symbol, start_date, end_date, asset_class=\"{asset_class}\") for commodity-specific news, "
+                f'Use the available tools: get_asset_news(symbol, start_date, end_date, asset_class="{asset_class}") for commodity-specific news, '
                 "and get_global_news(curr_date, look_back_days) for broader macroeconomic context (do NOT specify limit). "
-                f"IMPORTANT: Always pass asset_class=\"{asset_class}\" when calling get_asset_news. If get_asset_news returns limited results, make sure to use get_global_news to provide additional market context. "
+                f'IMPORTANT: Always pass asset_class="{asset_class}" when calling get_asset_news. If get_asset_news returns limited results, make sure to use get_global_news to provide additional market context. '
                 "Focus on supply/demand factors, geopolitical events, weather impacts (for agriculture), and macroeconomic trends. "
                 "Do not simply state the trends are mixed, provide detailed and fine-grained analysis."
-                + """ Make sure to append a Markdown table at the end of the report to organize key points."""
+                """ Make sure to append a Markdown table at the end of the report to organize key points."""
             )
         elif asset_class == "crypto":
             system_message = (
                 f"You are a news researcher tasked with analyzing recent news and trends for the cryptocurrency {ticker}. "
                 "Please write a comprehensive report of relevant news over the past week that impacts this cryptocurrency's price. "
-                f"Use the available tools: get_asset_news(symbol, start_date, end_date, asset_class=\"{asset_class}\") for crypto-specific blockchain news, "
+                f'Use the available tools: get_asset_news(symbol, start_date, end_date, asset_class="{asset_class}") for crypto-specific blockchain news, '
                 "and get_global_news(curr_date, look_back_days) for broader macroeconomic context (do NOT specify limit). "
-                f"IMPORTANT: Always pass asset_class=\"{asset_class}\" when calling get_asset_news. If get_asset_news returns limited results, make sure to use get_global_news to provide additional market context. "
+                f'IMPORTANT: Always pass asset_class="{asset_class}" when calling get_asset_news. If get_asset_news returns limited results, make sure to use get_global_news to provide additional market context. '
                 "Focus on regulatory developments, adoption trends, technological updates, market sentiment, and macroeconomic factors affecting crypto. "
                 "Do not simply state the trends are mixed, provide detailed and fine-grained analysis."
-                + """ Make sure to append a Markdown table at the end of the report to organize key points."""
+                """ Make sure to append a Markdown table at the end of the report to organize key points."""
             )
         else:  # equity
             system_message = (
                 "You are a news researcher tasked with analyzing recent news and trends over the past week. "
                 "Please write a comprehensive report of the current state of the world that is relevant for trading and macroeconomics. "
-                f"Use the available tools: get_asset_news(symbol, start_date, end_date, asset_class=\"{asset_class}\") for company-specific or targeted news searches, "
+                f'Use the available tools: get_asset_news(symbol, start_date, end_date, asset_class="{asset_class}") for company-specific or targeted news searches, '
                 "and get_global_news(curr_date, look_back_days) for broader macroeconomic news (omit limit parameter). "
-                f"IMPORTANT: Always pass asset_class=\"{asset_class}\" when calling get_asset_news. "
+                f'IMPORTANT: Always pass asset_class="{asset_class}" when calling get_asset_news. '
                 "Do not simply state the trends are mixed, provide detailed and fine-grained analysis and insights that may help traders make decisions."
-                + """ Make sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."""
+                """ Make sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."""
             )
 
         prompt = ChatPromptTemplate.from_messages(

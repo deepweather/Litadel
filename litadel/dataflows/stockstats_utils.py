@@ -1,21 +1,19 @@
+import os
+from typing import Annotated
+
 import pandas as pd
 import yfinance as yf
 from stockstats import wrap
-from typing import Annotated
-import os
-from .config import get_config, DATA_DIR
+
+from .config import DATA_DIR, get_config
 
 
 class StockstatsUtils:
     @staticmethod
     def get_stock_stats(
         symbol: Annotated[str, "ticker symbol for the company"],
-        indicator: Annotated[
-            str, "quantitative indicators based off of the stock data for the company"
-        ],
-        curr_date: Annotated[
-            str, "curr date for retrieving stock price data, YYYY-mm-dd"
-        ],
+        indicator: Annotated[str, "quantitative indicators based off of the stock data for the company"],
+        curr_date: Annotated[str, "curr date for retrieving stock price data, YYYY-mm-dd"],
     ):
         # Get config and set up data directory path
         config = get_config()
@@ -78,5 +76,4 @@ class StockstatsUtils:
         if not matching_rows.empty:
             indicator_value = matching_rows[indicator].values[0]
             return indicator_value
-        else:
-            return "N/A: Not a trading day (weekend or holiday)"
+        return "N/A: Not a trading day (weekend or holiday)"

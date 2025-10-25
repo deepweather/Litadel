@@ -1,16 +1,12 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-import time
-import json
+
 from litadel.agents.utils.agent_utils import (
-    get_fundamentals,
     get_balance_sheet,
     get_cashflow,
+    get_earnings_estimates,
+    get_fundamentals,
     get_income_statement,
-    get_insider_sentiment,
-    get_insider_transactions,
-    get_earnings_estimates
 )
-from litadel.dataflows.config import get_config
 
 
 def create_fundamentals_analyst(llm):
@@ -29,7 +25,7 @@ def create_fundamentals_analyst(llm):
                 get_income_statement,
                 get_earnings_estimates,
             ]
-            
+
             system_message = (
                 "You are a researcher tasked with analyzing fundamental information over the past week about a company. "
                 "Please write a comprehensive report of the company's fundamental information such as financial documents, "
@@ -39,8 +35,8 @@ def create_fundamentals_analyst(llm):
                 "\n\n**IMPORTANT: Analyze analyst earnings estimates** using `get_earnings_estimates(ticker)` to understand market expectations "
                 "and identify potential beat/miss scenarios. Compare historical earnings surprises to gauge the company's track record of "
                 "meeting or exceeding expectations. This forward-looking analysis is critical for trading decisions."
-                + "\n\nMake sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."
-                + " Use the available tools: `get_fundamentals` for comprehensive company analysis, `get_balance_sheet`, `get_cashflow`, "
+                "\n\nMake sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."
+                " Use the available tools: `get_fundamentals` for comprehensive company analysis, `get_balance_sheet`, `get_cashflow`, "
                 "`get_income_statement` for specific financial statements, and `get_earnings_estimates` for analyst expectations and consensus.",
             )
         else:

@@ -1,7 +1,6 @@
 """Response models for API endpoints."""
 
 from datetime import datetime
-from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -10,7 +9,7 @@ class ErrorResponse(BaseModel):
     """Standard error response."""
 
     error: str = Field(..., description="Error message")
-    detail: Optional[str] = Field(None, description="Additional error details")
+    detail: str | None = Field(None, description="Additional error details")
 
 
 class ReportResponse(BaseModel):
@@ -36,16 +35,16 @@ class AnalysisStatusResponse(BaseModel):
     id: str = Field(..., description="Analysis ID")
     status: str = Field(..., description="Current status")
     progress_percentage: int = Field(..., description="Progress percentage (0-100)")
-    current_agent: Optional[str] = Field(None, description="Currently active agent")
+    current_agent: str | None = Field(None, description="Currently active agent")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
 
 class TradingDecision(BaseModel):
     """Trading decision extracted from analysis reports."""
-    
+
     decision: str = Field(..., description="Trading decision (BUY/SELL/HOLD)")
-    confidence: Optional[int] = Field(None, description="Confidence percentage")
-    rationale: Optional[str] = Field(None, description="Brief rationale for the decision")
+    confidence: int | None = Field(None, description="Confidence percentage")
+    rationale: str | None = Field(None, description="Brief rationale for the decision")
 
 
 class AnalysisSummary(BaseModel):
@@ -55,11 +54,11 @@ class AnalysisSummary(BaseModel):
     ticker: str = Field(..., description="Ticker symbol")
     analysis_date: str = Field(..., description="Analysis date")
     status: str = Field(..., description="Current status")
-    selected_analysts: List[str] = Field(default_factory=list, description="Selected analysts for this analysis")
+    selected_analysts: list[str] = Field(default_factory=list, description="Selected analysts for this analysis")
     created_at: datetime = Field(..., description="Creation timestamp")
-    completed_at: Optional[datetime] = Field(None, description="Completion timestamp")
-    error_message: Optional[str] = Field(None, description="Error message if failed")
-    trading_decision: Optional[TradingDecision] = Field(None, description="Extracted trading decision")
+    completed_at: datetime | None = Field(None, description="Completion timestamp")
+    error_message: str | None = Field(None, description="Error message if failed")
+    trading_decision: TradingDecision | None = Field(None, description="Extracted trading decision")
 
 
 class AnalysisResponse(BaseModel):
@@ -69,18 +68,16 @@ class AnalysisResponse(BaseModel):
     ticker: str = Field(..., description="Ticker symbol")
     analysis_date: str = Field(..., description="Analysis date")
     status: str = Field(..., description="Current status")
-    config: Dict = Field(..., description="Analysis configuration")
-    selected_analysts: List[str] = Field(default_factory=list, description="Selected analysts for this analysis")
-    reports: List[ReportResponse] = Field(
-        default_factory=list, description="All report sections"
-    )
+    config: dict = Field(..., description="Analysis configuration")
+    selected_analysts: list[str] = Field(default_factory=list, description="Selected analysts for this analysis")
+    reports: list[ReportResponse] = Field(default_factory=list, description="All report sections")
     progress_percentage: int = Field(..., description="Progress percentage (0-100)")
-    current_agent: Optional[str] = Field(None, description="Currently active agent")
+    current_agent: str | None = Field(None, description="Currently active agent")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
-    completed_at: Optional[datetime] = Field(None, description="Completion timestamp")
-    error_message: Optional[str] = Field(None, description="Error message if failed")
-    trading_decision: Optional[TradingDecision] = Field(None, description="Extracted trading decision")
+    completed_at: datetime | None = Field(None, description="Completion timestamp")
+    error_message: str | None = Field(None, description="Error message if failed")
+    trading_decision: TradingDecision | None = Field(None, description="Extracted trading decision")
 
 
 class TickerInfo(BaseModel):
@@ -88,21 +85,20 @@ class TickerInfo(BaseModel):
 
     ticker: str = Field(..., description="Ticker symbol")
     analysis_count: int = Field(..., description="Number of analyses")
-    latest_date: Optional[str] = Field(None, description="Most recent analysis date")
+    latest_date: str | None = Field(None, description="Most recent analysis date")
 
 
 class CachedDataResponse(BaseModel):
     """Cached market data response."""
 
     ticker: str = Field(..., description="Ticker symbol")
-    date_range: Dict[str, str] = Field(..., description="Start and end dates")
-    data: List[Dict] = Field(..., description="OHLCV data records")
+    date_range: dict[str, str] = Field(..., description="Start and end dates")
+    data: list[dict] = Field(..., description="OHLCV data records")
 
 
 class CachedTickerInfo(BaseModel):
     """Information about cached ticker data."""
 
     ticker: str = Field(..., description="Ticker symbol")
-    date_range: Dict[str, str] = Field(..., description="Start and end dates")
+    date_range: dict[str, str] = Field(..., description="Start and end dates")
     record_count: int = Field(..., description="Number of records")
-

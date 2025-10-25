@@ -33,3 +33,7 @@ passlib[bcrypt]>=1.7.4
 bcrypt>=4.0.0
 python-multipart==0.0.6
 websockets==12.0
+
+# Development Tools (optional)
+ruff>=0.8.0
+pre-commit>=3.5.0

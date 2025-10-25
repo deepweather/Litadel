@@ -1,0 +1,87 @@
+# Pre-commit hooks for TradingAgents
+# Runs automatically before each commit to ensure code quality
+# Install: uv pip install pre-commit && pre-commit install
+
+repos:
+  # Python linting and formatting with Ruff
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      # Run the Ruff formatter (auto-fixes formatting)
+      - id: ruff-format
+        name: Ruff Format (Python auto-format)
+
+      # Run Ruff linter with auto-fix (only fails on critical errors)
+      - id: ruff
+        name: Ruff Check (Python linting)
+        args:
+          - --fix                      # Auto-fix what can be fixed
+          - --exit-zero                # Never fail - just auto-fix
+          - --config=pyproject.toml
+        # Auto-fixes everything, never blocks commits
+
+  # Frontend linting with ESLint
+  - repo: local
+    hooks:
+      - id: eslint-frontend
+        name: ESLint (Frontend auto-fix)
+        entry: bash -c 'cd frontend && npm run lint -- --fix --max-warnings=-1 || true'
+        language: system
+        files: '^frontend/.*\.(ts|tsx|js|jsx)$'
+        pass_filenames: false
+        # Always succeeds (|| true) because we only care about auto-fixes
+        # Real errors will be caught by TypeScript compiler
+
+  # Smoke tests to ensure app actually works
+  - repo: local
+    hooks:
+      - id: test-python-imports
+        name: Test Python imports (litadel, api, cli)
+        entry: uv run python tests/test_smoke.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+      - id: test-frontend-build
+        name: Test frontend build
+        entry: python tests/test_frontend_build.py
+        language: system
+        files: '^frontend/.*\.(ts|tsx|js|jsx|json|html|css)$'
+        pass_filenames: false
+        # Only runs when frontend files are changed
+
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        name: Remove trailing whitespace
+        args: [--markdown-linebreak-ext=md]
+
+      - id: end-of-file-fixer
+        name: Ensure files end with newline
+        exclude: '^frontend/.*$'  # Frontend has its own rules
+
+      - id: check-yaml
+        name: Check YAML syntax
+
+      - id: check-json
+        name: Check JSON syntax
+        exclude: '^(frontend/package-lock.json|frontend/tsconfig.*\.json)$'  # Exclude lock and tsconfig files (JSONC)
+
+      - id: check-merge-conflict
+        name: Check for merge conflicts
+
+      - id: mixed-line-ending
+        name: Fix mixed line endings
+        args: [--fix=lf]
+
+# Configuration
+default_language_version:
+  python: python3.10
+
+fail_fast: false  # Run all hooks even if one fails
+
+# Only run on commit, not on push
+default_stages: [pre-commit]
