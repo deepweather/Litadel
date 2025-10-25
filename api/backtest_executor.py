@@ -324,22 +324,26 @@ class BacktestExecutor:
 
                 # Try to ensure data is cached (with retry logic for network issues)
                 max_retries = 2
-                cache_created = False
+                cache_path = None
 
                 for attempt in range(max_retries):
                     try:
-                        _ensure_cached_data(ticker_upper, start_str, end_str, update_stale=True)
-                        cache_created = True
+                        cache_path = _ensure_cached_data(ticker_upper, start_str, end_str, update_stale=True)
+                        if cache_path:
+                            logger.info(
+                                f"Cache created/updated for {ticker_upper}: {cache_path.name if cache_path else 'existing'}"
+                            )
                         break
                     except Exception as e:
                         if attempt < max_retries - 1:
                             logger.warning(
                                 f"Attempt {attempt + 1}/{max_retries} failed for {ticker_upper}: {e}. Retrying..."
                             )
-                            time.sleep(1)  # Brief delay before retry
+                            time.sleep(2)  # Brief delay before retry
                         else:
-                            logger.warning(f"All {max_retries} attempts failed for {ticker_upper}: {e}")
-                            raise  # Re-raise to be caught by outer except
+                            logger.warning(
+                                f"All {max_retries} attempts failed for {ticker_upper}: {e}. Will try using existing cache if available."
+                            )
 
                 # Find cache file - ALL asset classes use the same pattern
                 pattern = f"{ticker_upper}-YFin-data-*.csv"
@@ -366,11 +370,18 @@ class BacktestExecutor:
 
                 # Read and parse CSV
                 ticker_prices = {}
+                total_rows = 0
+                date_range_in_file = []
+
                 with open(csv_file) as f:
                     reader = csv.DictReader(f)
                     for row in reader:
+                        total_rows += 1
                         date_str = row.get("Date", "")[:10]  # YYYY-MM-DD
                         close_price = row.get("Close", "")
+
+                        if date_str:
+                            date_range_in_file.append(date_str)
 
                         if date_str and close_price:
                             try:
@@ -381,10 +392,18 @@ class BacktestExecutor:
                                 continue
 
                 if not ticker_prices:
-                    logger.warning(
-                        f"No price data for {ticker_upper} in date range {start_str} to {end_str}. "
-                        f"Ticker may not have existed during this period or data is unavailable."
-                    )
+                    if date_range_in_file:
+                        file_start = min(date_range_in_file)
+                        file_end = max(date_range_in_file)
+                        logger.warning(
+                            f"No price data for {ticker_upper} in requested range {start_str} to {end_str}. "
+                            f"Cache file has {total_rows} rows spanning {file_start} to {file_end}. "
+                            f"The requested date range may be outside the available data."
+                        )
+                    else:
+                        logger.warning(
+                            f"No price data for {ticker_upper}. Cache file has {total_rows} rows but no valid dates."
+                        )
                     failed_tickers.append(ticker_upper)
                     continue
 
@@ -784,9 +803,12 @@ class BacktestExecutor:
 
             # Validate dates (no future dates allowed)
             today = datetime.now()
-            if end_date > today:
-                logger.warning(f"End date {end_date} is in the future, adjusting to today")
-                end_date = today
+
+            # Ensure end date is at least 1 day in the past (yfinance typically has 1-day lag)
+            min_end_date = today - timedelta(days=1)
+            if end_date > min_end_date:
+                logger.warning(f"End date {end_date.date()} is too recent, adjusting to {min_end_date.date()}")
+                end_date = min_end_date
                 # Update in database
                 backtest.end_date = end_date
                 db.commit()
@@ -794,6 +816,22 @@ class BacktestExecutor:
             if start_date >= end_date:
                 raise ValueError(
                     f"Invalid date range: start_date ({start_date.date()}) must be before end_date ({end_date.date()})"
+                )
+
+            # Warn about short date ranges but allow them
+            date_range_days = (end_date - start_date).days
+            if date_range_days < 60:
+                logger.warning(
+                    f"Short date range detected ({date_range_days} days). "
+                    f"Backtests with < 60 days may have less reliable metrics. "
+                    f"Consider using 90+ days for better results."
+                )
+
+            # Absolute minimum: 14 days
+            if date_range_days < 14:
+                raise ValueError(
+                    f"Date range too short ({date_range_days} days). "
+                    f"Minimum 14 days required. Selected: {start_date.date()} to {end_date.date()}"
                 )
 
             # RANDOM STRATEGY: Ignore user's ticker_list and pick random tickers
@@ -806,11 +844,11 @@ class BacktestExecutor:
                     f"Try a more recent start date (2010 or later recommended)."
                 )
 
-            # Randomly select tickers - try to fetch more than needed since some may fail
+            # Randomly select tickers - try more than needed since some may fail
             # Target: 3-10 successful tickers
             target_num = min(random.randint(3, 10), max_positions)
-            # Try to fetch 50% more than target to account for potential failures
-            num_to_try = min(int(target_num * 1.5), len(filtered_pool))
+            # Try to fetch 2x the target to account for failures (some tickers may not have data in range)
+            num_to_try = min(target_num * 2, len(filtered_pool))
             tickers = random.sample(filtered_pool, num_to_try)
 
             logger.info(
@@ -828,21 +866,24 @@ class BacktestExecutor:
             self._update_status(backtest_id, progress=5)
             price_data = self._fetch_historical_prices(tickers, start_date, end_date)
 
-            # Require at least 2 tickers to have data for meaningful backtest
+            # Require at least 1 ticker to have data
             if not price_data:
                 error_msg = (
                     f"Failed to fetch price data for any ticker in the random selection. "
-                    f"Attempted tickers: {', '.join(tickers)}. "
+                    f"Attempted {len(tickers)} tickers: {', '.join(tickers)}. "
                     f"Date range: {start_date.date()} to {end_date.date()}. "
-                    f"This may be due to: (1) Data source temporarily unavailable, (2) Selected date range too old, "
-                    f"or (3) Network issues. Please try again or select a different date range (2010-2024 recommended)."
+                    f"This may be due to: "
+                    f"(1) Date range may be too recent or outside available data, "
+                    f"(2) Data source temporarily unavailable, or "
+                    f"(3) Network issues. "
+                    f"Recommended date ranges: 2015-2024 for stocks, 2020-2024 for crypto."
                 )
                 raise ValueError(error_msg)
 
-            if len(price_data) < 2:
+            if len(price_data) < 3:
                 logger.warning(
-                    f"Only {len(price_data)} ticker(s) had valid data. "
-                    f"Backtests work better with 2+ tickers, but continuing anyway."
+                    f"Only {len(price_data)} ticker(s) had valid data out of {len(tickers)} attempted. "
+                    f"Backtests work better with 3+ tickers, but continuing with available data."
                 )
 
             # Log which tickers succeeded/failed

@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from pathlib import Path
 
 import typer
@@ -80,7 +80,7 @@ def get_user_selections():
     console.print(f"[dim]→ Detected asset class: [bold]{get_asset_class_display_name(asset_class)}[/bold][/dim]\n")
 
     # Step 2: Analysis date
-    default_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    default_date = datetime.now().strftime("%Y-%m-%d")
     console.print(
         create_question_box(
             "Step 2: Analysis Date",
@@ -168,11 +168,11 @@ def get_ticker():
 def get_analysis_date():
     """Get the analysis date from user input."""
     while True:
-        date_str = typer.prompt("", default=datetime.datetime.now().strftime("%Y-%m-%d"))
+        date_str = typer.prompt("", default=datetime.now().strftime("%Y-%m-%d"))
         try:
             # Validate date format and ensure it's not in the future
-            analysis_date = datetime.datetime.strptime(date_str, "%Y-%m-%d")
-            if analysis_date.date() > datetime.datetime.now().date():
+            analysis_date = datetime.strptime(date_str, "%Y-%m-%d")
+            if analysis_date.date() > datetime.now().date():
                 console.print("[red]Error: Analysis date cannot be in the future[/red]")
                 continue
         except ValueError:

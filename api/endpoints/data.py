@@ -76,7 +76,15 @@ def _normalize_ohlcv_rows_from_csv(csv_text: str) -> list[dict[str, str]]:
     if not csv_text:
         return rows
 
-    f = io.StringIO(csv_text)
+    # Remove comment lines (lines starting with #) AND empty lines that some vendors add
+    lines = csv_text.strip().split("\n")
+    clean_lines = [line for line in lines if line.strip() and not line.strip().startswith("#")]
+    clean_csv = "\n".join(clean_lines)
+
+    if not clean_csv.strip():
+        return rows
+
+    f = io.StringIO(clean_csv)
     reader = csv.DictReader(f)
 
     # Map common header variants to our standard fields
@@ -419,7 +427,14 @@ def _ensure_cached_data(
         return None
 
     if not rows:
-        logger.warning(f"No data rows returned for {ticker}")
+        # Debug: log the actual CSV content to understand why it's empty
+        csv_preview = csv_text[:500] if csv_text else "(empty)"
+        logger.warning(
+            f"No data rows returned for {ticker}. "
+            f"Asset class: {asset_class}. "
+            f"CSV length: {len(csv_text) if csv_text else 0} chars. "
+            f"CSV preview: {csv_preview}"
+        )
         return None
 
     # Sort by date to be safe
