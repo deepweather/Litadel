@@ -206,7 +206,7 @@ class AnalysisExecutor:
             db.close()
 
     def _store_log(self, analysis_id: str, log_type: str, content: str, agent_name: str = "System"):
-        """Store a log entry."""
+        """Store a log entry and broadcast via WebSocket."""
         db = SessionLocal()
         try:
             log = AnalysisLog(
@@ -218,6 +218,24 @@ class AnalysisExecutor:
             )
             db.add(log)
             db.commit()
+            db.refresh(log)
+
+            # Broadcast log update via WebSocket
+            log_data = {
+                "type": "log_update",
+                "analysis_id": analysis_id,
+                "log": {
+                    "id": str(log.id),
+                    "analysis_id": analysis_id,
+                    "agent_name": agent_name,
+                    "log_type": log_type,
+                    "content": content,
+                    "timestamp": log.timestamp.isoformat(),
+                },
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+            self._notify_callbacks(analysis_id, log_data)
+
         finally:
             db.close()
 

@@ -4,9 +4,12 @@ import asyncio
 import json
 import logging
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+from jose import JWTError
 
-from api.database import Analysis, SessionLocal
+from api.auth.api_key_auth import verify_api_key_from_db
+from api.auth.jwt_handler import verify_token
+from api.database import Analysis, SessionLocal, User
 from api.state_manager import get_executor
 
 router = APIRouter()
@@ -86,11 +89,35 @@ manager = ConnectionManager()
 
 
 @router.websocket("/api/v1/ws/analyses/{analysis_id}")
-async def websocket_analysis_status(websocket: WebSocket, analysis_id: str):
+async def websocket_analysis_status(
+    websocket: WebSocket,
+    analysis_id: str,
+    token: str | None = Query(None, description="JWT token or API key for authentication"),
+):
     """WebSocket endpoint for real-time analysis status updates."""
-    # Verify analysis exists
+    # Authenticate first
     db = SessionLocal()
+    authenticated = False
+
     try:
+        if token:
+            # Try JWT first
+            try:
+                token_data = verify_token(token)
+                user = db.query(User).filter(User.id == token_data.user_id).first()
+                if user and user.is_active:
+                    authenticated = True
+            except JWTError:
+                # Try API key
+                key_record = verify_api_key_from_db(db, token)
+                if key_record:
+                    authenticated = True
+
+        if not authenticated:
+            await websocket.close(code=1008, reason="Authentication required")
+            return
+
+        # Verify analysis exists
         analysis = db.query(Analysis).filter(Analysis.id == analysis_id).first()
         if not analysis:
             await websocket.close(code=1008, reason="Analysis not found")

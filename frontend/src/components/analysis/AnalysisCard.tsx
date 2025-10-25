@@ -120,13 +120,18 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({ analysis }) => {
             )}
           </div>
 
-          {/* Date and Duration */}
+          {/* Date, Duration, and Owner */}
           <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.75rem', color: '#5a6e7a' }}>
             <span>{analysis.analysis_date}</span>
             {duration && (
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                 <Clock size={12} />
                 {duration}
+              </span>
+            )}
+            {analysis.owner_username && (
+              <span style={{ color: '#4da6ff' }}>
+                Owner: {analysis.owner_username}
               </span>
             )}
             <span>ID: {analysis.id.slice(0, 8)}</span>

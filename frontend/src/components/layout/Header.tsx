@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { UserMenu } from './UserMenu'
 
 export const Header: React.FC = () => {
   const [time, setTime] = useState(new Date())
@@ -59,6 +60,7 @@ export const Header: React.FC = () => {
           <div style={{ color: '#4da6ff' }}>
             <span style={{ color: '#2a3e4a' }}>STATUS:</span> <span>ONLINE</span>
           </div>
+          <UserMenu />
         </div>
       </div>
     </header>

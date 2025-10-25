@@ -11,7 +11,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from api.auth import APIKey, get_current_api_key
+from api.auth import get_current_auth
 from api.models.responses import CachedDataResponse, CachedTickerInfo
 from cli.asset_detection import detect_asset_class
 from litadel.dataflows.interface import route_to_vendor
@@ -157,7 +157,7 @@ def _ensure_cached_data(ticker: str, start_date: str | None, end_date: str | Non
 
 @router.get("/cache", response_model=list[CachedTickerInfo])
 async def list_cached_tickers(
-    api_key: APIKey = Depends(get_current_api_key),
+    auth=Depends(get_current_auth),
 ):
     """List all cached tickers with date ranges."""
     if not DATA_CACHE_DIR.exists():
@@ -193,7 +193,7 @@ async def get_cached_data(
     ticker: str,
     start_date: str | None = Query(None, description="Filter from date (YYYY-MM-DD)"),
     end_date: str | None = Query(None, description="Filter to date (YYYY-MM-DD)"),
-    api_key: APIKey = Depends(get_current_api_key),
+    auth=Depends(get_current_auth),
 ):
     """Get cached market data for a ticker."""
     logger.info(f"Fetching cached data for {ticker} from {DATA_CACHE_DIR}")

@@ -16,7 +16,7 @@ load_dotenv()
 
 from api.auth import create_api_key
 from api.database import SessionLocal, init_db
-from api.endpoints import analyses, data, tickers
+from api.endpoints import analyses, auth, data, tickers
 from api.state_manager import get_executor, shutdown_executor
 from api.websockets import status
 
@@ -105,6 +105,7 @@ app.add_middleware(
 
 
 # Include routers
+app.include_router(auth.router)
 app.include_router(analyses.router)
 app.include_router(tickers.router)
 app.include_router(data.router)
