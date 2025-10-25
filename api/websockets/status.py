@@ -1,6 +1,5 @@
 """WebSocket status streaming."""
 
-
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from api.database import Analysis, SessionLocal

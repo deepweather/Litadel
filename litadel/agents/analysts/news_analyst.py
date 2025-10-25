@@ -1,4 +1,3 @@
-
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 from litadel.agents.utils.agent_utils import (
@@ -28,7 +27,7 @@ def create_news_analyst(llm):
                 f'IMPORTANT: Always pass asset_class="{asset_class}" when calling get_asset_news. If get_asset_news returns limited results, make sure to use get_global_news to provide additional market context. '
                 "Focus on supply/demand factors, geopolitical events, weather impacts (for agriculture), and macroeconomic trends. "
                 "Do not simply state the trends are mixed, provide detailed and fine-grained analysis."
-                 """ Make sure to append a Markdown table at the end of the report to organize key points."""
+                """ Make sure to append a Markdown table at the end of the report to organize key points."""
             )
         elif asset_class == "crypto":
             system_message = (
@@ -39,7 +38,7 @@ def create_news_analyst(llm):
                 f'IMPORTANT: Always pass asset_class="{asset_class}" when calling get_asset_news. If get_asset_news returns limited results, make sure to use get_global_news to provide additional market context. '
                 "Focus on regulatory developments, adoption trends, technological updates, market sentiment, and macroeconomic factors affecting crypto. "
                 "Do not simply state the trends are mixed, provide detailed and fine-grained analysis."
-                 """ Make sure to append a Markdown table at the end of the report to organize key points."""
+                """ Make sure to append a Markdown table at the end of the report to organize key points."""
             )
         else:  # equity
             system_message = (
@@ -49,7 +48,7 @@ def create_news_analyst(llm):
                 "and get_global_news(curr_date, look_back_days) for broader macroeconomic news (omit limit parameter). "
                 f'IMPORTANT: Always pass asset_class="{asset_class}" when calling get_asset_news. '
                 "Do not simply state the trends are mixed, provide detailed and fine-grained analysis and insights that may help traders make decisions."
-                 """ Make sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."""
+                """ Make sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."""
             )
 
         prompt = ChatPromptTemplate.from_messages(

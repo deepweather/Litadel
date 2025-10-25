@@ -8,7 +8,7 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 export default defineConfig([
   // Ignore build output and dependencies
   globalIgnores(['dist', 'node_modules', '*.config.js']),
-  
+
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -24,7 +24,7 @@ export default defineConfig([
     rules: {
       // TypeScript specific rules - relaxed for practical use
       '@typescript-eslint/no-explicit-any': 'warn',  // Warn instead of error
-      '@typescript-eslint/no-unused-vars': ['warn', { 
+      '@typescript-eslint/no-unused-vars': ['warn', {
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
         destructuredArrayIgnorePattern: '^_'
@@ -34,18 +34,18 @@ export default defineConfig([
         allowTernary: true,        // Allow ternary expressions
         allowTaggedTemplates: true
       }],
-      
+
       // React specific rules
       'react-hooks/exhaustive-deps': 'warn',  // Warn about missing dependencies
-      'react-refresh/only-export-components': ['warn', { 
-        allowConstantExport: true 
+      'react-refresh/only-export-components': ['warn', {
+        allowConstantExport: true
       }],
-      
+
       // Code quality rules
       'no-console': ['warn', { allow: ['warn', 'error'] }],  // Warn on console.log
       'no-debugger': 'warn',
       'no-case-declarations': 'error',
-      
+
       // Import/organization rules
       'sort-imports': ['warn', {
         ignoreCase: true,
@@ -54,7 +54,7 @@ export default defineConfig([
       }]
     }
   },
-  
+
   // Configuration for JavaScript config files
   {
     files: ['**/*.js', '**/*.mjs', '**/*.cjs'],

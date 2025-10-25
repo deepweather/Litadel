@@ -1,4 +1,3 @@
-
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 from litadel.agents.utils.agent_utils import (
@@ -36,8 +35,8 @@ def create_fundamentals_analyst(llm):
                 "\n\n**IMPORTANT: Analyze analyst earnings estimates** using `get_earnings_estimates(ticker)` to understand market expectations "
                 "and identify potential beat/miss scenarios. Compare historical earnings surprises to gauge the company's track record of "
                 "meeting or exceeding expectations. This forward-looking analysis is critical for trading decisions."
-                 "\n\nMake sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."
-                 " Use the available tools: `get_fundamentals` for comprehensive company analysis, `get_balance_sheet`, `get_cashflow`, "
+                "\n\nMake sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."
+                " Use the available tools: `get_fundamentals` for comprehensive company analysis, `get_balance_sheet`, `get_cashflow`, "
                 "`get_income_statement` for specific financial statements, and `get_earnings_estimates` for analyst expectations and consensus.",
             )
         else:

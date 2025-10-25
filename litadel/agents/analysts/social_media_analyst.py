@@ -1,4 +1,3 @@
-
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 from litadel.agents.utils.agent_utils import (
@@ -27,7 +26,7 @@ def create_social_media_analyst(llm):
                 f'IMPORTANT: Always pass asset_class="{asset_class}" when calling get_asset_news. If get_asset_news returns limited results, supplement with get_global_news(curr_date, look_back_days) for broader market context (do NOT specify limit). '
                 "Focus on trader sentiment, supply/demand expectations, geopolitical concerns, and market psychology. "
                 "Do not simply state the trends are mixed, provide detailed and fine-grained analysis."
-                 """ Make sure to append a Markdown table at the end of the report to organize key points."""
+                """ Make sure to append a Markdown table at the end of the report to organize key points."""
             )
         elif asset_class == "crypto":
             system_message = (
@@ -37,7 +36,7 @@ def create_social_media_analyst(llm):
                 f'IMPORTANT: Always pass asset_class="{asset_class}" when calling get_asset_news. If get_asset_news returns limited results, supplement with get_global_news(curr_date, look_back_days) for broader market context (do NOT specify limit). '
                 "Focus on community sentiment, adoption trends, regulatory concerns, developer activity, whale movements, and market psychology. "
                 "Do not simply state the trends are mixed, provide detailed and fine-grained analysis."
-                 """ Make sure to append a Markdown table at the end of the report to organize key points."""
+                """ Make sure to append a Markdown table at the end of the report to organize key points."""
             )
         else:  # equity
             system_message = (
@@ -47,7 +46,7 @@ def create_social_media_analyst(llm):
                 f'Use the get_asset_news(symbol, start_date, end_date, asset_class="{asset_class}") tool to search for company-specific news and social media discussions. '
                 f'IMPORTANT: Always pass asset_class="{asset_class}" when calling get_asset_news. If needed, use get_global_news(curr_date, look_back_days) for broader market context (omit limit). '
                 "Try to look at all sources possible from social media to sentiment to news. Do not simply state the trends are mixed, provide detailed and fine-grained analysis and insights that may help traders make decisions."
-                 """ Make sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."""
+                """ Make sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."""
             )
 
         prompt = ChatPromptTemplate.from_messages(

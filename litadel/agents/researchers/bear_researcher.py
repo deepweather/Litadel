@@ -1,5 +1,3 @@
-
-
 def create_bear_researcher(llm, memory):
     def bear_node(state) -> dict:
         investment_debate_state = state["investment_debate_state"]

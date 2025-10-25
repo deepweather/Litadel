@@ -382,4 +382,3 @@ async def delete_analysis(
         analysis.status = "cancelled"
         analysis.updated_at = datetime.utcnow()
         db.commit()
-

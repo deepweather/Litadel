@@ -1,6 +1,5 @@
 """Request models for API endpoints."""
 
-
 from pydantic import BaseModel, Field, field_validator
 
 

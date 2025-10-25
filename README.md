@@ -6,7 +6,7 @@
 
 # Litadel: Multi-Agents LLM Financial Trading Framework
 
-> *Citadel was built by quants. Litadel was built by vibes.* 🚀 
+> *Citadel was built by quants. Litadel was built by vibes.* 🚀
 
 > **About Litadel:** Built on the foundation of TradingAgents, Litadel extends the original framework with production-ready features needed for a fully functional trading platform. While TradingAgents provided an excellent proof-of-concept for multi-agent trading analysis, it lacked critical infrastructure for real-world deployment: multi-asset support (crypto & commodities), a modern web interface, parallel execution capabilities, persistent storage, REST API, and foundations for portfolio management and backtesting. Litadel addresses these gaps while maintaining the powerful multi-agent architecture that made the original framework compelling.
 
@@ -294,7 +294,7 @@ Litadel citation:
 
 ```
 @software{gabler2025litadel,
-      title={Litadel: Multi-Agents LLM Financial Trading Framework}, 
+      title={Litadel: Multi-Agents LLM Financial Trading Framework},
       author={Marvin Gabler},
       year={2025},
       url={https://github.com/deepweather/Litadel},
@@ -306,12 +306,12 @@ Original TradingAgents citation:
 
 ```
 @misc{xiao2025tradingagentsmultiagentsllmfinancial,
-      title={TradingAgents: Multi-Agents LLM Financial Trading Framework}, 
+      title={TradingAgents: Multi-Agents LLM Financial Trading Framework},
       author={Yijia Xiao and Edward Sun and Di Luo and Wei Wang},
       year={2025},
       eprint={2412.20138},
       archivePrefix={arXiv},
       primaryClass={q-fin.TR},
-      url={https://arxiv.org/abs/2412.20138}, 
+      url={https://arxiv.org/abs/2412.20138},
 }
 ```

@@ -44,7 +44,7 @@ def create_macro_analyst(llm):
                 "Provide a comprehensive macroeconomic backdrop with clear, actionable implications for equity trading. "
                 "Explain whether the current environment favors growth vs value stocks, cyclical vs defensive sectors. "
                 "Do not simply list the data - provide insightful analysis of trends and trading implications."
-                 " Make sure to append a Markdown table at the end of the report to organize key points, well-structured and easy to read."
+                " Make sure to append a Markdown table at the end of the report to organize key points, well-structured and easy to read."
             )
         elif asset_class == "commodity":
             system_message = (
@@ -64,7 +64,7 @@ def create_macro_analyst(llm):
                 "Provide comprehensive analysis of how the economic environment affects commodity supply, demand, and pricing. "
                 "Explain which economic trends support bullish vs bearish commodity outlooks. "
                 "Do not simply list the data - provide insightful analysis of trends and trading implications."
-                 " Make sure to append a Markdown table at the end of the report to organize key points, well-structured and easy to read."
+                " Make sure to append a Markdown table at the end of the report to organize key points, well-structured and easy to read."
             )
         else:  # crypto
             system_message = (
@@ -84,7 +84,7 @@ def create_macro_analyst(llm):
                 "Provide comprehensive analysis of how the macroeconomic environment affects crypto market sentiment, adoption, "
                 "and investment flows. Explain whether economic conditions favor crypto speculation or risk-off behavior. "
                 "Do not simply list the data - provide insightful analysis of trends and trading implications."
-                 " Make sure to append a Markdown table at the end of the report to organize key points, well-structured and easy to read."
+                " Make sure to append a Markdown table at the end of the report to organize key points, well-structured and easy to read."
             )
 
         prompt = ChatPromptTemplate.from_messages(

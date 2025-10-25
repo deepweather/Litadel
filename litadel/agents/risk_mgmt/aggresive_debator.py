@@ -1,5 +1,3 @@
-
-
 def create_risky_debator(llm):
     def risky_node(state) -> dict:
         risk_debate_state = state["risk_debate_state"]

@@ -1,6 +1,5 @@
 """Interactive user prompts for the Litadel CLI."""
 
-
 import questionary
 
 from cli.helpers import AnalystType
