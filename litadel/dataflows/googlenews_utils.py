@@ -26,8 +26,7 @@ def make_request(url, headers):
     """Make a request with retry logic for rate limiting"""
     # Random delay before each request to avoid detection
     time.sleep(random.uniform(2, 6))
-    response = requests.get(url, headers=headers)
-    return response
+    return requests.get(url, headers=headers)
 
 
 def getNewsData(query, start_date, end_date):

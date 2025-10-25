@@ -68,7 +68,7 @@ def verify_api_key_from_db(db: Session, api_key: str) -> APIKey | None:
         APIKey record if valid and active, None otherwise
     """
     # Get all active keys
-    active_keys = db.query(APIKey).filter(APIKey.is_active == True).all()
+    active_keys = db.query(APIKey).filter(APIKey.is_active).all()
 
     # Check each one
     for key_record in active_keys:

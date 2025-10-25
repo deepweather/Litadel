@@ -59,7 +59,8 @@ def get_YFin_data(
     )
 
     if end_date > "2025-03-25":
-        raise Exception(f"Get_YFin_Data: {end_date} is outside of the data range of 2015-01-01 to 2025-03-25")
+        msg = f"Get_YFin_Data: {end_date} is outside of the data range of 2015-01-01 to 2025-03-25"
+        raise Exception(msg)
 
     # Extract just the date part for comparison
     data["DateOnly"] = data["Date"].str[:10]
@@ -71,9 +72,7 @@ def get_YFin_data(
     filtered_data = filtered_data.drop("DateOnly", axis=1)
 
     # remove the index from the dataframe
-    filtered_data = filtered_data.reset_index(drop=True)
-
-    return filtered_data
+    return filtered_data.reset_index(drop=True)
 
 
 def get_finnhub_news(
@@ -133,7 +132,7 @@ def get_finnhub_company_insider_sentiment(
 
     result_str = ""
     seen_dicts = []
-    for date, senti_list in data.items():
+    for _date, senti_list in data.items():
         for entry in senti_list:
             if entry not in seen_dicts:
                 result_str += f"### {entry['year']}-{entry['month']}:\nChange: {entry['change']}\nMonthly Share Purchase Ratio: {entry['mspr']}\n\n"
@@ -171,7 +170,7 @@ def get_finnhub_company_insider_transactions(
     result_str = ""
 
     seen_dicts = []
-    for date, senti_list in data.items():
+    for _date, senti_list in data.items():
         for entry in senti_list:
             if entry not in seen_dicts:
                 result_str += f"### Filing Date: {entry['filingDate']}, {entry['name']}:\nChange:{entry['change']}\nShares: {entry['share']}\nTransaction Price: {entry['transactionPrice']}\nTransaction Code: {entry['transactionCode']}\n\n"

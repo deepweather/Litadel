@@ -32,7 +32,8 @@ class StockstatsUtils:
                 )
                 df = wrap(data)
             except FileNotFoundError:
-                raise Exception("Stockstats fail: Yahoo Finance data not fetched yet!")
+                msg = "Stockstats fail: Yahoo Finance data not fetched yet!"
+                raise Exception(msg)
         else:
             # Get today's date as YYYY-mm-dd to add to cache
             today_date = pd.Timestamp.today()
@@ -74,6 +75,5 @@ class StockstatsUtils:
         matching_rows = df[df["Date"].str.startswith(curr_date)]
 
         if not matching_rows.empty:
-            indicator_value = matching_rows[indicator].values[0]
-            return indicator_value
+            return matching_rows[indicator].values[0]
         return "N/A: Not a trading day (weekend or holiday)"

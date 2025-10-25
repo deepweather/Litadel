@@ -127,7 +127,8 @@ def get_stock_stats_indicators_window(
     }
 
     if indicator not in best_ind_params:
-        raise ValueError(f"Indicator {indicator} is not supported. Please choose from: {list(best_ind_params.keys())}")
+        msg = f"Indicator {indicator} is not supported. Please choose from: {list(best_ind_params.keys())}"
+        raise ValueError(msg)
 
     end_date = curr_date
     curr_date_dt = datetime.strptime(curr_date, "%Y-%m-%d")
@@ -168,14 +169,12 @@ def get_stock_stats_indicators_window(
             ind_string += f"{curr_date_dt.strftime('%Y-%m-%d')}: {indicator_value}\n"
             curr_date_dt = curr_date_dt - relativedelta(days=1)
 
-    result_str = (
+    return (
         f"## {indicator} values from {before.strftime('%Y-%m-%d')} to {end_date}:\n\n"
         + ind_string
         + "\n\n"
         + best_ind_params.get(indicator, "No description available.")
     )
-
-    return result_str
 
 
 def _get_stock_stats_bulk(
@@ -207,11 +206,12 @@ def _get_stock_stats_bulk(
             )
             df = wrap(data)
         except FileNotFoundError:
-            raise Exception("Stockstats fail: Yahoo Finance data not fetched yet!")
+            msg = "Stockstats fail: Yahoo Finance data not fetched yet!"
+            raise Exception(msg)
     else:
         # Online data fetching with caching
         today_date = pd.Timestamp.today()
-        curr_date_dt = pd.to_datetime(curr_date)
+        pd.to_datetime(curr_date)
 
         end_date = today_date
         start_date = today_date - pd.DateOffset(years=15)
@@ -285,16 +285,13 @@ def get_stockstats_indicator(
 def get_balance_sheet(
     ticker: Annotated[str, "ticker symbol of the company"],
     freq: Annotated[str, "frequency of data: 'annual' or 'quarterly'"] = "quarterly",
-    curr_date: Annotated[str, "current date (not used for yfinance)"] = None,
+    curr_date: Annotated[str | None, "current date (not used for yfinance)"] = None,
 ):
     """Get balance sheet data from yfinance."""
     try:
         ticker_obj = yf.Ticker(ticker.upper())
 
-        if freq.lower() == "quarterly":
-            data = ticker_obj.quarterly_balance_sheet
-        else:
-            data = ticker_obj.balance_sheet
+        data = ticker_obj.quarterly_balance_sheet if freq.lower() == "quarterly" else ticker_obj.balance_sheet
 
         if data.empty:
             return f"No balance sheet data found for symbol '{ticker}'"
@@ -315,16 +312,13 @@ def get_balance_sheet(
 def get_cashflow(
     ticker: Annotated[str, "ticker symbol of the company"],
     freq: Annotated[str, "frequency of data: 'annual' or 'quarterly'"] = "quarterly",
-    curr_date: Annotated[str, "current date (not used for yfinance)"] = None,
+    curr_date: Annotated[str | None, "current date (not used for yfinance)"] = None,
 ):
     """Get cash flow data from yfinance."""
     try:
         ticker_obj = yf.Ticker(ticker.upper())
 
-        if freq.lower() == "quarterly":
-            data = ticker_obj.quarterly_cashflow
-        else:
-            data = ticker_obj.cashflow
+        data = ticker_obj.quarterly_cashflow if freq.lower() == "quarterly" else ticker_obj.cashflow
 
         if data.empty:
             return f"No cash flow data found for symbol '{ticker}'"
@@ -345,16 +339,13 @@ def get_cashflow(
 def get_income_statement(
     ticker: Annotated[str, "ticker symbol of the company"],
     freq: Annotated[str, "frequency of data: 'annual' or 'quarterly'"] = "quarterly",
-    curr_date: Annotated[str, "current date (not used for yfinance)"] = None,
+    curr_date: Annotated[str | None, "current date (not used for yfinance)"] = None,
 ):
     """Get income statement data from yfinance."""
     try:
         ticker_obj = yf.Ticker(ticker.upper())
 
-        if freq.lower() == "quarterly":
-            data = ticker_obj.quarterly_income_stmt
-        else:
-            data = ticker_obj.income_stmt
+        data = ticker_obj.quarterly_income_stmt if freq.lower() == "quarterly" else ticker_obj.income_stmt
 
         if data.empty:
             return f"No income statement data found for symbol '{ticker}'"

@@ -61,7 +61,7 @@ class ConnectionManager:
                 # Schedule the broadcast coroutine on the main event loop from this thread
                 asyncio.run_coroutine_threadsafe(self.broadcast(analysis_id, status_data), self._main_loop)
             except Exception as e:
-                logger.error(f"Failed to schedule WebSocket broadcast for {analysis_id}: {e}")
+                logger.exception(f"Failed to schedule WebSocket broadcast for {analysis_id}: {e}")
 
         return callback
 

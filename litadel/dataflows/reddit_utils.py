@@ -50,7 +50,7 @@ def fetch_top_from_category(
     category: Annotated[str, "Category to fetch top post from. Collection of subreddits."],
     date: Annotated[str, "Date to fetch top posts from."],
     max_limit: Annotated[int, "Maximum number of posts to fetch."],
-    query: Annotated[str, "Optional query to search for in the subreddit."] = None,
+    query: Annotated[str | None, "Optional query to search for in the subreddit."] = None,
     data_path: Annotated[
         str,
         "Path to the data folder. Default is 'reddit_data'.",
@@ -61,9 +61,8 @@ def fetch_top_from_category(
     all_content = []
 
     if max_limit < len(os.listdir(os.path.join(base_path, category))):
-        raise ValueError(
-            "REDDIT FETCHING ERROR: max limit is less than the number of files in the category. Will not be able to fetch any posts"
-        )
+        msg = "REDDIT FETCHING ERROR: max limit is less than the number of files in the category. Will not be able to fetch any posts"
+        raise ValueError(msg)
 
     limit_per_subreddit = max_limit // len(os.listdir(os.path.join(base_path, category)))
 
@@ -75,7 +74,7 @@ def fetch_top_from_category(
         all_content_curr_subreddit = []
 
         with open(os.path.join(base_path, category, data_file), "rb") as f:
-            for i, line in enumerate(f):
+            for _i, line in enumerate(f):
                 # skip empty lines
                 if not line.strip():
                     continue

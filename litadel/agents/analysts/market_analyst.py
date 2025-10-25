@@ -10,7 +10,7 @@ def create_market_analyst(llm):
     def market_analyst_node(state):
         current_date = state["trade_date"]
         ticker = state["company_of_interest"]
-        company_name = state["company_of_interest"]
+        state["company_of_interest"]
         asset_class = state.get("asset_class", "equity")
 
         # Use unified tools for all asset classes

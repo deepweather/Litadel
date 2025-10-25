@@ -23,8 +23,8 @@ class TradingAgentsAPIClient:
     async def create_analysis(
         self,
         ticker: str,
-        analysis_date: str = None,
-        selected_analysts: list = None,
+        analysis_date: str | None = None,
+        selected_analysts: list | None = None,
         research_depth: int = 1,
     ):
         """Create a new analysis."""
@@ -68,7 +68,7 @@ class TradingAgentsAPIClient:
             response.raise_for_status()
             return response.json()
 
-    async def list_analyses(self, ticker: str = None):
+    async def list_analyses(self, ticker: str | None = None):
         """List all analyses."""
         params = {}
         if ticker:

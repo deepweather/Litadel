@@ -87,7 +87,7 @@ async def create_analysis(
         )
         logger.info(f"Analysis {analysis_id} started successfully")
     except Exception as e:
-        logger.error(f"Failed to start analysis {analysis_id}: {e!s}")
+        logger.exception(f"Failed to start analysis {analysis_id}: {e!s}")
         # Update status to failed
         analysis.status = "failed"
         analysis.error_message = str(e)

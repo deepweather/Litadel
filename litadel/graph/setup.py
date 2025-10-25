@@ -38,7 +38,7 @@ class GraphSetup:
         self.risk_manager_memory = risk_manager_memory
         self.conditional_logic = conditional_logic
 
-    def setup_graph(self, selected_analysts=["market", "social", "news", "fundamentals"]):
+    def setup_graph(self, selected_analysts=None):
         """Set up and compile the agent workflow graph.
 
         Args:
@@ -49,8 +49,11 @@ class GraphSetup:
                 - "news": News analyst
                 - "fundamentals": Fundamentals analyst
         """
+        if selected_analysts is None:
+            selected_analysts = ["market", "social", "news", "fundamentals"]
         if len(selected_analysts) == 0:
-            raise ValueError("Trading Agents Graph Setup Error: no analysts selected!")
+            msg = "Trading Agents Graph Setup Error: no analysts selected!"
+            raise ValueError(msg)
 
         # Create analyst nodes
         analyst_nodes = {}

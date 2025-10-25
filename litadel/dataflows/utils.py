@@ -32,6 +32,5 @@ def get_next_weekday(date):
 
     if date.weekday() >= 5:
         days_to_add = 7 - date.weekday()
-        next_weekday = date + timedelta(days=days_to_add)
-        return next_weekday
+        return date + timedelta(days=days_to_add)
     return date

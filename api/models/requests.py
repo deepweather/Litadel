@@ -48,9 +48,11 @@ class CreateAnalysisRequest(BaseModel):
         valid_analysts = {"macro", "market", "news", "social", "fundamentals"}
         for analyst in v:
             if analyst not in valid_analysts:
-                raise ValueError(f"Invalid analyst: {analyst}. Must be one of {valid_analysts}")
+                msg = f"Invalid analyst: {analyst}. Must be one of {valid_analysts}"
+                raise ValueError(msg)
         if not v:
-            raise ValueError("At least one analyst must be selected")
+            msg = "At least one analyst must be selected"
+            raise ValueError(msg)
         return v
 
 

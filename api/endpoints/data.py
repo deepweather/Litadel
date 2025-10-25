@@ -1,5 +1,7 @@
 """Cached data access endpoints."""
 
+import builtins
+import contextlib
 import csv
 import logging
 import os
@@ -135,14 +137,14 @@ def _ensure_cached_data(ticker: str, start_date: str | None, end_date: str | Non
             csv_text = route_to_vendor("get_stock_data", ticker.upper(), start, end)
     except Exception as e:
         # Log the error for debugging
-        logger.error(f"Failed to fetch data for {ticker}: {e}")
+        logger.exception(f"Failed to fetch data for {ticker}: {e}")
         return None
 
     try:
         rows = _normalize_ohlcv_rows_from_csv(csv_text)
     except Exception as e:
         # Log CSV parsing errors
-        logger.error(f"Failed to parse CSV data for {ticker}: {e}")
+        logger.exception(f"Failed to parse CSV data for {ticker}: {e}")
         return None
 
     if not rows:
@@ -240,10 +242,8 @@ async def get_cached_data(
                     continue
                 for field in ["Close", "High", "Low", "Open", "Volume"]:
                     if row.get(field):
-                        try:
+                        with contextlib.suppress(builtins.BaseException):
                             row[field] = float(row[field])
-                        except:
-                            pass
                 rows.append(row)
         return rows
 
@@ -255,10 +255,8 @@ async def get_cached_data(
         )
         if not has_any_price:
             # Delete and regenerate cache
-            try:
+            with contextlib.suppress(Exception):
                 os.remove(csv_file)
-            except Exception:
-                pass
             # Recreate
             _ensure_cached_data(ticker, start_date, end_date)
             # Re-discover and re-read

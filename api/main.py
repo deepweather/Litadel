@@ -69,7 +69,7 @@ async def lifespan(app: FastAPI):
 
         db = SessionLocal()
         try:
-            plain_key, db_key = create_api_key(db, "Default API Key")
+            plain_key, _db_key = create_api_key(db, "Default API Key")
             logger.info("")
             logger.info("✓ Database initialized successfully!")
             logger.info("✓ Default API key created!")
@@ -85,7 +85,7 @@ async def lifespan(app: FastAPI):
             logger.info("=" * 70)
             logger.info("")
         except Exception as e:
-            logger.error(f"Failed to create default API key: {e}")
+            logger.exception(f"Failed to create default API key: {e}")
         finally:
             db.close()
 

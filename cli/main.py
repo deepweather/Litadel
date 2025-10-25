@@ -266,7 +266,7 @@ def finalize_analysis(trace, graph, selections, layout):
     """Process final results and display the complete report."""
     # Get final state and decision
     final_state = trace[-1]
-    decision = graph.process_signal(final_state["final_trade_decision"])
+    graph.process_signal(final_state["final_trade_decision"])
 
     # Update all agent statuses to completed
     for agent in message_buffer.agent_status:
@@ -275,7 +275,7 @@ def finalize_analysis(trace, graph, selections, layout):
     message_buffer.add_message("Analysis", f"Completed analysis for {selections['analysis_date']}")
 
     # Update final report sections
-    for section in message_buffer.report_sections.keys():
+    for section in message_buffer.report_sections:
         if section in final_state:
             message_buffer.update_report_section(section, final_state[section])
 
@@ -292,11 +292,11 @@ def run_analysis():
 
     # Setup configuration and initialize components
     config = setup_config(selections)
-    graph, log_file, report_dir = setup_analysis(selections, config)
+    graph, _log_file, _report_dir = setup_analysis(selections, config)
 
     # Create display layout and run analysis
     layout = create_layout()
-    with Live(layout, refresh_per_second=4) as live:
+    with Live(layout, refresh_per_second=4):
         # Initialize display with startup messages
         initialize_display(layout, selections)
 

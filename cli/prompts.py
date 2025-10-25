@@ -1,5 +1,7 @@
 """Interactive user prompts for the Litadel CLI."""
 
+import sys
+
 import questionary
 
 from cli.helpers import AnalystType
@@ -29,7 +31,7 @@ def get_ticker() -> str:
 
     if not ticker:
         console.print("\n[red]No ticker symbol provided. Exiting...[/red]")
-        exit(1)
+        sys.exit(1)
 
     return ticker.strip().upper()
 
@@ -61,7 +63,7 @@ def get_analysis_date() -> str:
 
     if not date:
         console.print("\n[red]No date provided. Exiting...[/red]")
-        exit(1)
+        sys.exit(1)
 
     return date.strip()
 
@@ -92,7 +94,7 @@ def select_analysts(asset_class: str | None = None) -> list[AnalystType]:
 
     if not choices:
         console.print("\n[red]No analysts selected. Exiting...[/red]")
-        exit(1)
+        sys.exit(1)
 
     return choices
 
@@ -122,7 +124,7 @@ def select_research_depth() -> int:
 
     if choice is None:
         console.print("\n[red]No research depth selected. Exiting...[/red]")
-        exit(1)
+        sys.exit(1)
 
     return choice
 
@@ -146,7 +148,7 @@ def select_shallow_thinking_agent(provider) -> str:
 
     if choice is None:
         console.print("\n[red]No shallow thinking llm engine selected. Exiting...[/red]")
-        exit(1)
+        sys.exit(1)
 
     return choice
 
@@ -168,7 +170,7 @@ def select_deep_thinking_agent(provider) -> str:
 
     if choice is None:
         console.print("\n[red]No deep thinking llm engine selected. Exiting...[/red]")
-        exit(1)
+        sys.exit(1)
 
     return choice
 
@@ -190,7 +192,7 @@ def select_llm_provider() -> tuple[str, str]:
 
     if choice is None:
         console.print("\n[red]no OpenAI backend selected. Exiting...[/red]")
-        exit(1)
+        sys.exit(1)
 
     display_name, url = choice
     print(f"You selected: {display_name}\tURL: {url}")

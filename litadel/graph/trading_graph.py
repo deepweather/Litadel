@@ -47,9 +47,9 @@ class TradingAgentsGraph:
 
     def __init__(
         self,
-        selected_analysts=["market", "social", "news", "fundamentals"],
+        selected_analysts=None,
         debug=False,
-        config: dict[str, Any] = None,
+        config: dict[str, Any] | None = None,
         analysis_id: str | None = None,
     ):
         """Initialize the trading agents graph and components.
@@ -60,6 +60,8 @@ class TradingAgentsGraph:
             config: Configuration dictionary. If None, uses default config
             analysis_id: Optional unique identifier for this analysis (makes memory collections unique)
         """
+        if selected_analysts is None:
+            selected_analysts = ["market", "social", "news", "fundamentals"]
         self.debug = debug
         self.config = config or DEFAULT_CONFIG
         self.analysis_id = analysis_id
@@ -96,7 +98,8 @@ class TradingAgentsGraph:
             self.deep_thinking_llm = ChatGoogleGenerativeAI(model=self.config["deep_think_llm"])
             self.quick_thinking_llm = ChatGoogleGenerativeAI(model=self.config["quick_think_llm"])
         else:
-            raise ValueError(f"Unsupported LLM provider: {self.config['llm_provider']}")
+            msg = f"Unsupported LLM provider: {self.config['llm_provider']}"
+            raise ValueError(msg)
 
         # Initialize memories with unique names per analysis
         # This prevents "Collection already exists" errors when running multiple analyses

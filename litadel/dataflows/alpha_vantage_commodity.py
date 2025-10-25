@@ -37,7 +37,8 @@ def get_commodity(
     """
     func = FUNCTIONS.get(commodity.upper())
     if not func:
-        raise ValueError(f"Unsupported commodity: {commodity}")
+        msg = f"Unsupported commodity: {commodity}"
+        raise ValueError(msg)
 
     params = {
         "interval": interval,

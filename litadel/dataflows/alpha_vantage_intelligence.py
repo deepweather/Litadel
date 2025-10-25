@@ -90,14 +90,13 @@ def get_earnings_estimates(ticker: str) -> str:
 
         # Cache the formatted result
         _intelligence_cache.set_cached(cache_key, formatted, ttl)
-        return formatted
 
     except json.JSONDecodeError:
-        error_msg = f"Error parsing earnings data for {ticker}: {response[:500]}"
-        return error_msg
+        return f"Error parsing earnings data for {ticker}: {response[:500]}"
     except Exception as e:
-        error_msg = f"Error retrieving earnings estimates for {ticker}: {e!s}"
-        return error_msg
+        return f"Error retrieving earnings estimates for {ticker}: {e!s}"
+    else:
+        return formatted
 
 
 def get_top_gainers() -> str:
