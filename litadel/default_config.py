@@ -115,6 +115,7 @@ _base_config = {
     "data_vendors": {
         "core_stock_apis": "yfinance",
         "technical_indicators": "yfinance",
+        "crypto_indicators": "alpha_vantage",
         "fundamental_data": "alpha_vantage",
         "news_data": "alpha_vantage",
         "commodity_data": "alpha_vantage",

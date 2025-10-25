@@ -51,6 +51,7 @@ from .alpha_vantage_common import AlphaVantageRateLimitError
 
 # Configuration and routing logic
 from .config import get_config
+from .crypto_indicators import get_crypto_indicators
 from .google import get_google_news
 from .local import (
     get_finnhub_company_insider_sentiment,
@@ -87,6 +88,7 @@ TOOLS_CATEGORIES = {
     "commodity_data": {"description": "Commodity price data", "tools": ["get_commodity_data"]},
     "crypto_data": {"description": "Cryptocurrency price data", "tools": ["get_crypto_data"]},
     "technical_indicators": {"description": "Technical analysis indicators", "tools": ["get_indicators"]},
+    "crypto_indicators": {"description": "Cryptocurrency technical indicators", "tools": ["get_crypto_indicators"]},
     "fundamental_data": {
         "description": "Company fundamentals",
         "tools": ["get_fundamentals", "get_balance_sheet", "get_cashflow", "get_income_statement"],
@@ -135,6 +137,11 @@ VENDOR_METHODS = {
         "alpha_vantage": get_alpha_vantage_indicator,
         "yfinance": get_stock_stats_indicators_window,
         "local": get_stock_stats_indicators_window,
+    },
+    # crypto_indicators
+    "get_crypto_indicators": {
+        "alpha_vantage": get_crypto_indicators,
+        "local": get_crypto_indicators,
     },
     # fundamental_data
     "get_fundamentals": {

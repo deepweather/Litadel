@@ -16,8 +16,11 @@ def create_market_analyst(llm):
         # Use unified tools for all asset classes
         if asset_class == "equity":
             tools = [get_market_data, get_indicators]
+        elif asset_class == "crypto":
+            # Crypto now supports both market data and technical indicators
+            tools = [get_market_data, get_indicators]
         else:
-            # Commodities and crypto just use market data (no indicators yet)
+            # Commodities just use market data (no indicators yet)
             tools = [get_market_data]
 
         system_message = (
@@ -50,13 +53,14 @@ Volume-Based Indicators:
         )
 
         if asset_class == "equity":
-            system_message += f""" IMPORTANT: When calling get_market_data, always pass asset_class="{asset_class}". First call get_market_data with asset_class="{asset_class}" to retrieve the CSV data, then use get_indicators with the specific indicator names."""
+            system_message += f""" IMPORTANT: When calling get_market_data, always pass asset_class="{asset_class}". First call get_market_data with asset_class="{asset_class}" to retrieve the CSV data, then use get_indicators with asset_class="{asset_class}" and the specific indicator names."""
             system_message += f"""\n\n**CRITICAL BACKTESTING RULE**: The current date is {current_date}. You MUST NOT request data with end_date after {current_date}. Only use historical data available on or before {current_date}. Requesting future data will cause look-ahead bias and invalidate backtesting."""
         elif asset_class == "commodity":
             system_message += f""" IMPORTANT: When calling get_market_data, always pass asset_class="{asset_class}". Call get_market_data with asset_class="{asset_class}" to retrieve the commodity price series (value column). You may analyze trends directly on the series."""
             system_message += f"""\n\n**CRITICAL BACKTESTING RULE**: The current date is {current_date}. You MUST NOT request data with end_date after {current_date}. Only use historical data available on or before {current_date}. Requesting future data will cause look-ahead bias and invalidate backtesting."""
         else:  # crypto
-            system_message += f""" IMPORTANT: When calling get_market_data, always pass asset_class="{asset_class}". Call get_market_data with asset_class="{asset_class}" to retrieve OHLCV data. You may analyze price trends and patterns directly."""
+            system_message += f""" IMPORTANT: When calling get_market_data, always pass asset_class="{asset_class}". Call get_market_data with asset_class="{asset_class}" to retrieve OHLCV data. You can also use get_indicators with asset_class="{asset_class}" to calculate technical indicators like RSI, MACD, Bollinger Bands, etc."""
+            system_message += """\n\n**CRYPTO ANALYSIS NOTES**: Due to 24/7 trading and higher volatility, consider using wider Bollinger Bands and adjusted RSI thresholds (80/20 instead of 70/30). ATR values will be higher than equities."""
             system_message += f"""\n\n**CRITICAL BACKTESTING RULE**: The current date is {current_date}. You MUST NOT request data with end_date after {current_date}. Only use historical data available on or before {current_date}. Requesting future data will cause look-ahead bias and invalidate backtesting."""
 
         prompt = ChatPromptTemplate.from_messages(

@@ -64,30 +64,37 @@ def get_market_data(
 
 @tool
 def get_indicators(
-    symbol: Annotated[str, "Stock ticker symbol"],
+    symbol: Annotated[str, "Asset symbol (stock ticker, crypto symbol like BTC/ETH)"],
     start_date: Annotated[str, "Start date in YYYY-mm-dd format"],
     end_date: Annotated[str, "End date in YYYY-mm-dd format"],
     indicators: Annotated[str, "Comma-separated list of indicators (sma_20, rsi, macd, etc.)"],
+    asset_class: Annotated[str, "Asset class: equity or crypto"] = "equity",
+    market: Annotated[str, "Market currency for crypto (USD, EUR, etc.)"] = "USD",
     max_date: Annotated[str | None, "Maximum date for backtesting (INTERNAL - set by system)"] = None,
 ) -> str:
     """
-    Calculate technical indicators for stock data.
-    Note: Currently only supported for equities.
+    Calculate technical indicators for any asset type.
+    Automatically routes to the appropriate calculation method based on asset class.
 
     IMPORTANT: Date validation is enforced to prevent look-ahead bias in backtesting.
     The end_date cannot exceed the current analysis date.
 
-    Supported indicators: sma_X, ema_X, rsi, macd, boll (Bollinger Bands), adx, cci, stoch
+    Supported indicators: sma_X, ema_X, rsi, macd, boll (Bollinger Bands), adx, cci, stoch, atr, vwma, mfi
+
+    For stocks: Uses yfinance/Alpha Vantage data
+    For crypto: Uses Alpha Vantage crypto data with local calculation
 
     Args:
-        symbol: Stock ticker symbol
+        symbol: Asset symbol (e.g., "AAPL" for stocks, "BTC" for crypto)
         start_date: Start date in YYYY-mm-dd format
         end_date: End date in YYYY-mm-dd format
         indicators: Comma-separated list of indicator names
+        asset_class: The type of asset (equity or crypto)
+        market: Market currency for crypto pairs (default: USD) - only used for crypto
         max_date: Internal parameter used by the system for date validation
 
     Returns:
-        CSV-formatted data with requested technical indicators
+        Formatted string with requested technical indicators
 
     Raises:
         LookAheadBiasError: If end_date exceeds max_date (when max_date is set)
@@ -98,7 +105,7 @@ def get_indicators(
 
     # Adapter: Translate new unified signature to old vendor signature
     # Old signature: (symbol, indicator, curr_date, look_back_days)
-    # New signature: (symbol, start_date, end_date, indicators)
+    # New signature: (symbol, start_date, end_date, indicators, asset_class)
 
     from datetime import datetime
 
@@ -110,11 +117,16 @@ def get_indicators(
     # Parse comma-separated indicators
     indicator_list = [ind.strip() for ind in indicators.split(",")]
 
-    # Call vendor for each indicator and combine results
+    # Route based on asset class
     results = []
     for indicator in indicator_list:
         if indicator:  # Skip empty strings
-            result = route_to_vendor("get_indicators", symbol, indicator, end_date, look_back_days)
+            if asset_class == "crypto":
+                # Use crypto-specific indicator calculation
+                result = route_to_vendor("get_crypto_indicators", symbol, indicator, end_date, look_back_days, market)
+            else:
+                # Use equity indicator calculation
+                result = route_to_vendor("get_indicators", symbol, indicator, end_date, look_back_days)
             results.append(result)
 
     # Combine results with separators
