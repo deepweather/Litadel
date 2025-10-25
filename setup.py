@@ -34,6 +34,7 @@ setup(
         "console_scripts": [
             "litadel-cli=cli.main:app",
             "litadel-api=api.main:run_api",
+            "litadel-admin=api.cli_admin:app",
         ],
     },
     classifiers=[
