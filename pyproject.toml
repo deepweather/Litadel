@@ -135,8 +135,8 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.per-file-ignores]
 # Ignore specific rules in test files
-"test_*.py" = ["PLR2004", "S101", "TID252"]
-"**/tests/**" = ["PLR2004", "S101", "TID252"]
+"test_*.py" = ["PLR2004", "S101", "TID252", "T201", "F401", "PLC0415", "TRY300"]
+"**/tests/**" = ["PLR2004", "S101", "TID252", "T201", "F401", "PLC0415", "TRY300"]  # Allow print, unused imports, non-top-level imports in tests
 # Ignore import errors in __init__.py files and re-export modules
 "__init__.py" = ["F401", "F403"]
 "**/agent_utils.py" = ["F401"]  # Re-exports utilities for agents

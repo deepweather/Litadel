@@ -37,7 +37,7 @@ repos:
     hooks:
       - id: test-python-imports
         name: Test Python imports (litadel, api, cli)
-        entry: bash -c 'uv run python -c "from litadel.graph.trading_graph import TradingAgentsGraph; from litadel.default_config import DEFAULT_CONFIG; from api.main import app; from cli.main import console; print(\"✓ All Python imports successful\")"'
+        entry: uv run python tests/test_smoke.py
         language: system
         pass_filenames: false
         always_run: true
@@ -45,7 +45,7 @@ repos:
 
       - id: test-frontend-build
         name: Test frontend build
-        entry: bash -c 'cd frontend && npm run build > /tmp/frontend-build.log 2>&1 && echo "✓ Frontend build successful" || (echo "✗ Frontend build failed. Check /tmp/frontend-build.log"; exit 1)'
+        entry: python tests/test_frontend_build.py
         language: system
         files: '^frontend/.*\.(ts|tsx|js|jsx|json|html|css)$'
         pass_filenames: false
