@@ -1,7 +1,11 @@
-import React from 'react'
+import React, { useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { CreateAnalysisForm } from '../components/analysis/CreateAnalysisForm'
 
 export const CreateAnalysis: React.FC = () => {
+  const [searchParams] = useSearchParams()
+  const prefilledTicker = useMemo(() => searchParams.get('ticker'), [searchParams])
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div
@@ -19,7 +23,7 @@ export const CreateAnalysis: React.FC = () => {
             marginBottom: '0.5rem',
           }}
         >
-          CREATE NEW ANALYSIS
+          {prefilledTicker ? `ANALYZE ${prefilledTicker}` : 'CREATE NEW ANALYSIS'}
         </h1>
         <p
           style={{
@@ -31,7 +35,7 @@ export const CreateAnalysis: React.FC = () => {
           Configure your multi-agent trading analysis
         </p>
       </div>
-      <CreateAnalysisForm />
+      <CreateAnalysisForm initialTicker={prefilledTicker || undefined} />
     </div>
   )
 }

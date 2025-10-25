@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
+  Briefcase,
   LayoutDashboard,
   LineChart,
   Plus,
@@ -28,6 +29,11 @@ const navItems: NavItem[] = [
     name: 'New Analysis',
     path: '/analyses/create',
     icon: <Plus size={18} />,
+  },
+  {
+    name: 'Portfolio',
+    path: '/portfolio',
+    icon: <Briefcase size={18} />,
   },
   {
     name: 'Settings',

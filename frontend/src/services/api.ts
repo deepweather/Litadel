@@ -9,6 +9,15 @@ import type {
   CreateAnalysisRequest,
   PaginatedResponse,
 } from '../types/api'
+import type {
+  CreatePortfolioRequest,
+  CreatePositionRequest,
+  Portfolio,
+  PortfolioSummary,
+  Position,
+  UpdatePortfolioRequest,
+  UpdatePositionRequest,
+} from '../types/portfolio'
 
 class APIService {
   public client: AxiosInstance
@@ -134,6 +143,154 @@ class APIService {
     is_active: boolean
   }> {
     const response = await this.client.get('/api/v1/auth/me')
+    return response.data
+  }
+
+  // Portfolio endpoints
+  async getPortfolios(): Promise<PortfolioSummary[]> {
+    const response = await this.client.get<PortfolioSummary[]>('/api/v1/portfolios')
+    return response.data
+  }
+
+  async getPortfolio(id: number): Promise<Portfolio> {
+    const response = await this.client.get<Portfolio>(`/api/v1/portfolios/${id}`)
+    return response.data
+  }
+
+  async createPortfolio(data: CreatePortfolioRequest): Promise<Portfolio> {
+    const response = await this.client.post<Portfolio>('/api/v1/portfolios', data)
+    return response.data
+  }
+
+  async updatePortfolio(id: number, data: UpdatePortfolioRequest): Promise<Portfolio> {
+    const response = await this.client.put<Portfolio>(`/api/v1/portfolios/${id}`, data)
+    return response.data
+  }
+
+  async deletePortfolio(id: number): Promise<void> {
+    await this.client.delete(`/api/v1/portfolios/${id}`)
+  }
+
+  async addPosition(portfolioId: number, data: CreatePositionRequest): Promise<Position> {
+    const response = await this.client.post<Position>(
+      `/api/v1/portfolios/${portfolioId}/positions`,
+      data
+    )
+    return response.data
+  }
+
+  async updatePosition(
+    portfolioId: number,
+    positionId: number,
+    data: UpdatePositionRequest
+  ): Promise<Position> {
+    const response = await this.client.put<Position>(
+      `/api/v1/portfolios/${portfolioId}/positions/${positionId}`,
+      data
+    )
+    return response.data
+  }
+
+  async deletePosition(portfolioId: number, positionId: number): Promise<void> {
+    await this.client.delete(`/api/v1/portfolios/${portfolioId}/positions/${positionId}`)
+  }
+
+  // Portfolio helper endpoints
+  async getHistoricalPrice(
+    ticker: string,
+    date: string
+  ): Promise<{ ticker: string; date: string; price: number; note?: string }> {
+    const response = await this.client.get('/api/v1/portfolios/helpers/historical-price', {
+      params: { ticker, date },
+    })
+    return response.data
+  }
+
+  async validateTicker(ticker: string): Promise<{
+    ticker: string
+    valid: boolean
+    asset_class?: string
+    current_price?: number
+    message?: string
+  }> {
+    const response = await this.client.get('/api/v1/portfolios/helpers/validate-ticker', {
+      params: { ticker },
+    })
+    return response.data
+  }
+
+  async bulkImportPositions(
+    portfolioId: number,
+    file: File
+  ): Promise<{
+    success: boolean
+    added_count: number
+    error_count: number
+    added_positions: any[]
+    errors: string[]
+  }> {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await this.client.post(
+      `/api/v1/portfolios/${portfolioId}/positions/bulk-import`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    )
+    return response.data
+  }
+
+  // Ticker/Asset endpoints
+  async getTickerSummary(ticker: string): Promise<{
+    ticker: string
+    asset_class: string
+    current_price: number | null
+    analyses: {
+      total_count: number
+      completed_count: number
+      latest_date: string | null
+      latest_status: string | null
+      decision_counts: { BUY: number; SELL: number; HOLD: number }
+      latest_decision: {
+        decision: string
+        confidence: number | null
+        rationale: string | null
+        analysis_date: string
+      } | null
+    }
+    holdings: {
+      total_positions: number
+      open_positions: number
+      closed_positions: number
+      total_quantity: number
+      avg_entry_price: number | null
+      current_value: number | null
+      total_pnl: number
+      unrealized_pnl: number
+      realized_pnl: number
+    }
+  }> {
+    const response = await this.client.get(`/api/v1/tickers/${ticker}/summary`)
+    return response.data
+  }
+
+  async getTickerPositions(ticker: string): Promise<
+    Array<{
+      position: any
+      portfolio_id: number
+      portfolio_name: string
+    }>
+  > {
+    const response = await this.client.get(`/api/v1/tickers/${ticker}/positions`)
+    return response.data
+  }
+
+  async getTickerAnalyses(ticker: string): Promise<Analysis[]> {
+    const response = await this.client.get(`/api/v1/tickers/${ticker}/analyses`)
     return response.data
   }
 }
