@@ -1,6 +1,9 @@
-from langchain_core.tools import tool
 from typing import Annotated
+
+from langchain_core.tools import tool
+
 from litadel.dataflows.interface import route_to_vendor
+
 
 @tool
 def get_news(
@@ -20,6 +23,7 @@ def get_news(
     """
     return route_to_vendor("get_news", ticker, start_date, end_date)
 
+
 @tool
 def get_global_news(
     curr_date: Annotated[str, "Current date in yyyy-mm-dd format"],
@@ -30,7 +34,7 @@ def get_global_news(
     Retrieve global news data.
     DO NOT specify limit parameter - it will use the system-configured optimal value.
     Only override if you have a specific reason to fetch more/fewer articles.
-    
+
     Args:
         curr_date (str): Current date in yyyy-mm-dd format
         look_back_days (int): Number of days to look back (default 7)
@@ -41,9 +45,11 @@ def get_global_news(
     # Use config default if not specified
     if limit is None:
         from litadel.dataflows.config import get_config
+
         limit = get_config().get("global_news_limit", 15)
-    
+
     return route_to_vendor("get_global_news", curr_date, look_back_days, limit)
+
 
 @tool
 def get_commodity_news(
@@ -55,7 +61,7 @@ def get_commodity_news(
     Retrieve news data for a commodity (oil, metals, agriculture).
     Uses topic-based search since commodities don't have stock tickers.
     Searches news by relevant topics (energy, economy, etc.) and filters for the commodity.
-    
+
     Args:
         commodity (str): Commodity symbol (e.g., "BRENT", "WTI", "COPPER")
         start_date (str): Start date in yyyy-mm-dd format
@@ -64,6 +70,7 @@ def get_commodity_news(
         str: A formatted string containing commodity-related news data
     """
     return route_to_vendor("get_commodity_news", commodity, start_date, end_date)
+
 
 @tool
 def get_crypto_news(
@@ -75,7 +82,7 @@ def get_crypto_news(
     Retrieve news data for a cryptocurrency (Bitcoin, Ethereum, etc.).
     Uses topic-based search since crypto doesn't have traditional stock tickers.
     Searches news by blockchain/technology topics and filters for the specific cryptocurrency.
-    
+
     Args:
         crypto (str): Cryptocurrency symbol (e.g., "BTC", "ETH", "SOL")
         start_date (str): Start date in yyyy-mm-dd format
@@ -84,6 +91,7 @@ def get_crypto_news(
         str: A formatted string containing crypto-related news data
     """
     return route_to_vendor("get_crypto_news", crypto, start_date, end_date)
+
 
 @tool
 def get_insider_sentiment(
@@ -100,6 +108,7 @@ def get_insider_sentiment(
         str: A report of insider sentiment data
     """
     return route_to_vendor("get_insider_sentiment", ticker, curr_date)
+
 
 @tool
 def get_insider_transactions(

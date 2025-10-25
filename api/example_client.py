@@ -30,10 +30,10 @@ class TradingAgentsAPIClient:
         """Create a new analysis."""
         if analysis_date is None:
             analysis_date = date.today().strftime("%Y-%m-%d")
-        
+
         if selected_analysts is None:
             selected_analysts = ["market", "news"]
-        
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{self.base_url}/api/v1/analyses",
@@ -73,7 +73,7 @@ class TradingAgentsAPIClient:
         params = {}
         if ticker:
             params["ticker"] = ticker
-        
+
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{self.base_url}/api/v1/analyses",
@@ -86,35 +86,33 @@ class TradingAgentsAPIClient:
     async def monitor_via_websocket(self, analysis_id: str, duration: int = 300):
         """Monitor analysis via WebSocket."""
         ws_url = f"ws://localhost:8000/api/v1/ws/analyses/{analysis_id}"
-        
+
         print(f"Connecting to WebSocket: {ws_url}")
-        
+
         try:
             async with websockets.connect(ws_url) as websocket:
                 print("Connected! Waiting for updates...")
-                
+
                 start_time = time.time()
                 while time.time() - start_time < duration:
                     try:
-                        message = await asyncio.wait_for(
-                            websocket.recv(), timeout=10.0
-                        )
+                        message = await asyncio.wait_for(websocket.recv(), timeout=10.0)
                         data = json.loads(message)
-                        
+
                         print(f"\n[Update] Status: {data['status']}")
                         print(f"         Progress: {data['progress_percentage']}%")
-                        if data.get('current_agent'):
+                        if data.get("current_agent"):
                             print(f"         Agent: {data['current_agent']}")
-                        
-                        if data['status'] in ['completed', 'failed', 'cancelled']:
+
+                        if data["status"] in ["completed", "failed", "cancelled"]:
                             print("\nAnalysis finished!")
                             break
-                    
+
                     except asyncio.TimeoutError:
                         # Send ping to keep connection alive
                         await websocket.send("ping")
                         continue
-        
+
         except Exception as e:
             print(f"WebSocket error: {e}")
 
@@ -123,13 +121,13 @@ async def main():
     """Example usage."""
     # Replace with your actual API key
     API_KEY = "your-api-key-here"
-    
+
     client = TradingAgentsAPIClient(API_KEY)
-    
+
     print("=" * 60)
     print("Trading Agents API Client Example")
     print("=" * 60)
-    
+
     # 1. Create an analysis
     print("\n1. Creating analysis for AAPL...")
     analysis = await client.create_analysis(
@@ -140,30 +138,29 @@ async def main():
     analysis_id = analysis["id"]
     print(f"   Created: {analysis_id}")
     print(f"   Status: {analysis['status']}")
-    
+
     # 2. Monitor via WebSocket (run this in background or separately)
     print("\n2. Monitoring via WebSocket...")
     await client.monitor_via_websocket(analysis_id, duration=600)
-    
+
     # 3. Get final results
     print("\n3. Getting final results...")
     final = await client.get_analysis(analysis_id)
     print(f"   Status: {final['status']}")
     print(f"   Reports: {len(final['reports'])} available")
-    
-    for report in final['reports']:
+
+    for report in final["reports"]:
         print(f"\n   - {report['report_type']}:")
         print(f"     {report['content'][:200]}...")
-    
+
     # 4. List all analyses
     print("\n4. Listing all AAPL analyses...")
     all_analyses = await client.list_analyses(ticker="AAPL")
     print(f"   Found {len(all_analyses)} analyses")
-    
+
     print("\n" + "=" * 60)
     print("Done!")
 
 
 if __name__ == "__main__":
     asyncio.run(main())
-

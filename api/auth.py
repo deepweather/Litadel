@@ -2,7 +2,6 @@
 
 import secrets
 import warnings
-from typing import Optional
 
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import APIKeyHeader
@@ -41,41 +40,41 @@ def generate_api_key() -> str:
 def create_api_key(db: Session, name: str) -> tuple[str, APIKey]:
     """
     Create a new API key in the database.
-    
+
     Returns:
         tuple: (plain_key, db_record)
     """
     plain_key = generate_api_key()
     key_hash = hash_api_key(plain_key)
-    
+
     db_key = APIKey(key_hash=key_hash, name=name, is_active=True)
     db.add(db_key)
     db.commit()
     db.refresh(db_key)
-    
+
     return plain_key, db_key
 
 
-def get_api_key_by_hash(db: Session, key_hash: str) -> Optional[APIKey]:
+def get_api_key_by_hash(db: Session, key_hash: str) -> APIKey | None:
     """Get an API key record by its hash."""
     return db.query(APIKey).filter(APIKey.key_hash == key_hash).first()
 
 
-def verify_api_key_from_db(db: Session, api_key: str) -> Optional[APIKey]:
+def verify_api_key_from_db(db: Session, api_key: str) -> APIKey | None:
     """
     Verify an API key against the database.
-    
+
     Returns:
         APIKey record if valid and active, None otherwise
     """
     # Get all active keys
     active_keys = db.query(APIKey).filter(APIKey.is_active == True).all()
-    
+
     # Check each one
     for key_record in active_keys:
         if verify_api_key_hash(api_key, key_record.key_hash):
             return key_record
-    
+
     return None
 
 
@@ -85,17 +84,16 @@ async def get_current_api_key(
 ) -> APIKey:
     """
     Dependency to verify API key and return the key record.
-    
+
     Raises:
         HTTPException: If API key is invalid or inactive
     """
     key_record = verify_api_key_from_db(db, api_key)
-    
+
     if not key_record:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or inactive API key",
         )
-    
-    return key_record
 
+    return key_record

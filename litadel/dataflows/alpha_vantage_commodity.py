@@ -1,5 +1,6 @@
-from .alpha_vantage_common import _make_api_request
 from datetime import datetime, timedelta
+
+from .alpha_vantage_common import _make_api_request
 
 # Map human-friendly names to Alpha Vantage commodity functions
 FUNCTIONS = {
@@ -46,8 +47,8 @@ def get_commodity(
     raw = _make_api_request(func, params)
 
     # Convert AV JSON payload to simple CSV
-    import json
     import io
+    import json
 
     try:
         payload = json.loads(raw)

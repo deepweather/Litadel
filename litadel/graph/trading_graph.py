@@ -2,48 +2,43 @@
 # Copyright Notice: Litadel is a successor of TradingAgents by TaurusResearch.
 # This project builds upon and extends the original TradingAgents framework.
 
+import json
 import os
 from pathlib import Path
-import json
-from datetime import date
-from typing import Dict, Any, Tuple, List, Optional
+from typing import Any
 
-from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
-
+from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import ToolNode
 
 from litadel.agents import *
-from litadel.default_config import DEFAULT_CONFIG
-from litadel.agents.utils.memory import FinancialSituationMemory
-from litadel.agents.utils.agent_states import (
-    AgentState,
-    InvestDebateState,
-    RiskDebateState,
-)
-from litadel.dataflows.config import set_config
 
 # Import unified tools from agent_utils
 from litadel.agents.utils.agent_utils import (
-    get_market_data,
-    get_indicators,
     get_asset_news,
-    get_global_news_unified as get_global_news,
-    get_fundamentals,
     get_balance_sheet,
     get_cashflow,
+    get_earnings_estimates,
+    get_economic_indicators,
+    get_fundamentals,
     get_income_statement,
+    get_indicators,
     get_insider_sentiment,
     get_insider_transactions,
-    get_economic_indicators,
-    get_earnings_estimates,
+    get_market_data,
 )
+from litadel.agents.utils.agent_utils import (
+    get_global_news_unified as get_global_news,
+)
+from litadel.agents.utils.memory import FinancialSituationMemory
+from litadel.dataflows.config import set_config
+from litadel.default_config import DEFAULT_CONFIG
 
 from .conditional_logic import ConditionalLogic
-from .setup import GraphSetup
 from .propagation import Propagator
 from .reflection import Reflector
+from .setup import GraphSetup
 from .signal_processing import SignalProcessor
 
 
@@ -54,8 +49,8 @@ class TradingAgentsGraph:
         self,
         selected_analysts=["market", "social", "news", "fundamentals"],
         debug=False,
-        config: Dict[str, Any] = None,
-        analysis_id: Optional[str] = None,
+        config: dict[str, Any] = None,
+        analysis_id: str | None = None,
     ):
         """Initialize the trading agents graph and components.
 
@@ -79,18 +74,30 @@ class TradingAgentsGraph:
         )
 
         # Initialize LLMs
-        if self.config["llm_provider"].lower() == "openai" or self.config["llm_provider"] == "ollama" or self.config["llm_provider"] == "openrouter":
-            self.deep_thinking_llm = ChatOpenAI(model=self.config["deep_think_llm"], base_url=self.config["backend_url"])
-            self.quick_thinking_llm = ChatOpenAI(model=self.config["quick_think_llm"], base_url=self.config["backend_url"])
+        if (
+            self.config["llm_provider"].lower() == "openai"
+            or self.config["llm_provider"] == "ollama"
+            or self.config["llm_provider"] == "openrouter"
+        ):
+            self.deep_thinking_llm = ChatOpenAI(
+                model=self.config["deep_think_llm"], base_url=self.config["backend_url"]
+            )
+            self.quick_thinking_llm = ChatOpenAI(
+                model=self.config["quick_think_llm"], base_url=self.config["backend_url"]
+            )
         elif self.config["llm_provider"].lower() == "anthropic":
-            self.deep_thinking_llm = ChatAnthropic(model=self.config["deep_think_llm"], base_url=self.config["backend_url"])
-            self.quick_thinking_llm = ChatAnthropic(model=self.config["quick_think_llm"], base_url=self.config["backend_url"])
+            self.deep_thinking_llm = ChatAnthropic(
+                model=self.config["deep_think_llm"], base_url=self.config["backend_url"]
+            )
+            self.quick_thinking_llm = ChatAnthropic(
+                model=self.config["quick_think_llm"], base_url=self.config["backend_url"]
+            )
         elif self.config["llm_provider"].lower() == "google":
             self.deep_thinking_llm = ChatGoogleGenerativeAI(model=self.config["deep_think_llm"])
             self.quick_thinking_llm = ChatGoogleGenerativeAI(model=self.config["quick_think_llm"])
         else:
             raise ValueError(f"Unsupported LLM provider: {self.config['llm_provider']}")
-        
+
         # Initialize memories with unique names per analysis
         # This prevents "Collection already exists" errors when running multiple analyses
         memory_suffix = f"_{analysis_id}" if analysis_id else ""
@@ -129,7 +136,7 @@ class TradingAgentsGraph:
         # Set up the graph
         self.graph = self.graph_setup.setup_graph(selected_analysts)
 
-    def _create_tool_nodes(self) -> Dict[str, ToolNode]:
+    def _create_tool_nodes(self) -> dict[str, ToolNode]:
         """Create tool nodes using unified tools that work across all asset classes."""
         # Unified tools automatically route based on asset_class context
         # No more conditional logic needed here!
@@ -138,15 +145,17 @@ class TradingAgentsGraph:
             "market": ToolNode([get_market_data, get_indicators]),
             "social": ToolNode([get_asset_news, get_global_news]),
             "news": ToolNode([get_asset_news, get_global_news]),
-            "fundamentals": ToolNode([
-                get_fundamentals,
-                get_balance_sheet,
-                get_cashflow,
-                get_income_statement,
-                get_insider_sentiment,
-                get_insider_transactions,
-                get_earnings_estimates,
-            ]),
+            "fundamentals": ToolNode(
+                [
+                    get_fundamentals,
+                    get_balance_sheet,
+                    get_cashflow,
+                    get_income_statement,
+                    get_insider_sentiment,
+                    get_insider_transactions,
+                    get_earnings_estimates,
+                ]
+            ),
         }
 
     def propagate(self, company_name, trade_date):
@@ -155,9 +164,7 @@ class TradingAgentsGraph:
         self.ticker = company_name
 
         # Initialize state
-        init_agent_state = self.propagator.create_initial_state(
-            company_name, trade_date
-        )
+        init_agent_state = self.propagator.create_initial_state(company_name, trade_date)
         # Pass asset class into state for downstream branching
         init_agent_state["asset_class"] = self.config.get("asset_class", "equity")
         args = self.propagator.get_graph_args()
@@ -199,12 +206,8 @@ class TradingAgentsGraph:
                 "bull_history": final_state["investment_debate_state"]["bull_history"],
                 "bear_history": final_state["investment_debate_state"]["bear_history"],
                 "history": final_state["investment_debate_state"]["history"],
-                "current_response": final_state["investment_debate_state"][
-                    "current_response"
-                ],
-                "judge_decision": final_state["investment_debate_state"][
-                    "judge_decision"
-                ],
+                "current_response": final_state["investment_debate_state"]["current_response"],
+                "judge_decision": final_state["investment_debate_state"]["judge_decision"],
             },
             "trader_investment_decision": final_state["trader_investment_plan"],
             "risk_debate_state": {
@@ -230,21 +233,11 @@ class TradingAgentsGraph:
 
     def reflect_and_remember(self, returns_losses):
         """Reflect on decisions and update memory based on returns."""
-        self.reflector.reflect_bull_researcher(
-            self.curr_state, returns_losses, self.bull_memory
-        )
-        self.reflector.reflect_bear_researcher(
-            self.curr_state, returns_losses, self.bear_memory
-        )
-        self.reflector.reflect_trader(
-            self.curr_state, returns_losses, self.trader_memory
-        )
-        self.reflector.reflect_invest_judge(
-            self.curr_state, returns_losses, self.invest_judge_memory
-        )
-        self.reflector.reflect_risk_manager(
-            self.curr_state, returns_losses, self.risk_manager_memory
-        )
+        self.reflector.reflect_bull_researcher(self.curr_state, returns_losses, self.bull_memory)
+        self.reflector.reflect_bear_researcher(self.curr_state, returns_losses, self.bear_memory)
+        self.reflector.reflect_trader(self.curr_state, returns_losses, self.trader_memory)
+        self.reflector.reflect_invest_judge(self.curr_state, returns_losses, self.invest_judge_memory)
+        self.reflector.reflect_risk_manager(self.curr_state, returns_losses, self.risk_manager_memory)
 
     def process_signal(self, full_signal):
         """Process a signal to extract the core decision."""
@@ -254,7 +247,7 @@ class TradingAgentsGraph:
         """Clean up ChromaDB collections for this analysis to prevent memory leaks."""
         if not self.analysis_id:
             return  # Only cleanup if we have a specific analysis_id
-        
+
         try:
             memory_suffix = f"_{self.analysis_id}"
             collections_to_delete = [
@@ -264,14 +257,14 @@ class TradingAgentsGraph:
                 f"invest_judge_memory{memory_suffix}",
                 f"risk_manager_memory{memory_suffix}",
             ]
-            
+
             # Get the chroma client from one of the memories
             chroma_client = self.bull_memory.chroma_client
-            
+
             for collection_name in collections_to_delete:
                 try:
                     chroma_client.delete_collection(name=collection_name)
-                except Exception as e:
+                except Exception:
                     # Ignore errors if collection doesn't exist
                     pass
         except Exception as e:

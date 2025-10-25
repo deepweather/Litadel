@@ -1,30 +1,31 @@
 """Macro Economic Analyst - Analyzes macroeconomic indicators for trading context."""
 
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+
 from litadel.agents.utils.agent_utils import get_economic_indicators
 
 
 def create_macro_analyst(llm):
     """
     Create a macro economic analyst node that analyzes economic indicators.
-    
+
     The analyst provides macroeconomic context (GDP, CPI, unemployment, interest rates)
     tailored to the specific asset class being analyzed.
-    
+
     Args:
         llm: Language model to use for analysis
-        
+
     Returns:
         Callable node function for use in LangGraph workflow
     """
-    
+
     def macro_analyst_node(state):
         current_date = state["trade_date"]
         ticker = state["company_of_interest"]
         asset_class = state.get("asset_class", "equity")
-        
+
         tools = [get_economic_indicators]
-        
+
         # Asset-class-specific system messages
         if asset_class == "equity":
             system_message = (
@@ -43,7 +44,7 @@ def create_macro_analyst(llm):
                 "Provide a comprehensive macroeconomic backdrop with clear, actionable implications for equity trading. "
                 "Explain whether the current environment favors growth vs value stocks, cyclical vs defensive sectors. "
                 "Do not simply list the data - provide insightful analysis of trends and trading implications."
-                + " Make sure to append a Markdown table at the end of the report to organize key points, well-structured and easy to read."
+                 " Make sure to append a Markdown table at the end of the report to organize key points, well-structured and easy to read."
             )
         elif asset_class == "commodity":
             system_message = (
@@ -63,7 +64,7 @@ def create_macro_analyst(llm):
                 "Provide comprehensive analysis of how the economic environment affects commodity supply, demand, and pricing. "
                 "Explain which economic trends support bullish vs bearish commodity outlooks. "
                 "Do not simply list the data - provide insightful analysis of trends and trading implications."
-                + " Make sure to append a Markdown table at the end of the report to organize key points, well-structured and easy to read."
+                 " Make sure to append a Markdown table at the end of the report to organize key points, well-structured and easy to read."
             )
         else:  # crypto
             system_message = (
@@ -83,9 +84,9 @@ def create_macro_analyst(llm):
                 "Provide comprehensive analysis of how the macroeconomic environment affects crypto market sentiment, adoption, "
                 "and investment flows. Explain whether economic conditions favor crypto speculation or risk-off behavior. "
                 "Do not simply list the data - provide insightful analysis of trends and trading implications."
-                + " Make sure to append a Markdown table at the end of the report to organize key points, well-structured and easy to read."
+                 " Make sure to append a Markdown table at the end of the report to organize key points, well-structured and easy to read."
             )
-        
+
         prompt = ChatPromptTemplate.from_messages(
             [
                 (
@@ -102,25 +103,24 @@ def create_macro_analyst(llm):
                 MessagesPlaceholder(variable_name="messages"),
             ]
         )
-        
+
         prompt = prompt.partial(system_message=system_message)
         prompt = prompt.partial(tool_names=", ".join([tool.name for tool in tools]))
         prompt = prompt.partial(current_date=current_date)
         prompt = prompt.partial(ticker=ticker)
         prompt = prompt.partial(asset_class=asset_class.upper())
-        
+
         chain = prompt | llm.bind_tools(tools)
         result = chain.invoke(state["messages"])
-        
+
         report = ""
-        
+
         if len(result.tool_calls) == 0:
             report = result.content
-        
+
         return {
             "messages": [result],
             "macro_report": report,
         }
-    
-    return macro_analyst_node
 
+    return macro_analyst_node

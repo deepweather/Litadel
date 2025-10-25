@@ -1,10 +1,9 @@
 """Report display functions for the Litadel CLI."""
 
-from rich.console import Console
-from rich.panel import Panel
-from rich.markdown import Markdown
 from rich.columns import Columns
-
+from rich.console import Console
+from rich.markdown import Markdown
+from rich.panel import Panel
 
 console = Console()
 
@@ -15,7 +14,7 @@ def display_complete_report(final_state):
 
     # I. Analyst Team Reports
     analyst_reports = []
-    
+
     # Map report keys to analyst names
     analyst_report_map = [
         ("macro_report", "Macro Economic Analyst"),
@@ -24,7 +23,7 @@ def display_complete_report(final_state):
         ("news_report", "News Analyst"),
         ("fundamentals_report", "Fundamentals Analyst"),
     ]
-    
+
     for report_key, analyst_name in analyst_report_map:
         if final_state.get(report_key):
             analyst_reports.append(
@@ -121,7 +120,7 @@ def display_complete_report(final_state):
             ("safe_history", "Conservative Analyst"),
             ("neutral_history", "Neutral Analyst"),
         ]
-        
+
         for history_key, analyst_name in risk_analyst_map:
             if risk_state.get(history_key):
                 risk_reports.append(

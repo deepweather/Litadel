@@ -1,11 +1,11 @@
 """UI display functions for the Litadel CLI using Rich library."""
 
+from rich import box
+from rich.layout import Layout
 from rich.panel import Panel
 from rich.spinner import Spinner
-from rich.layout import Layout
-from rich.text import Text
 from rich.table import Table
-from rich import box
+from rich.text import Text
 
 
 def create_layout():
@@ -16,12 +16,8 @@ def create_layout():
         Layout(name="main"),
         Layout(name="footer", size=3),
     )
-    layout["main"].split_column(
-        Layout(name="upper", ratio=3), Layout(name="analysis", ratio=5)
-    )
-    layout["upper"].split_row(
-        Layout(name="progress", ratio=2), Layout(name="messages", ratio=3)
-    )
+    layout["main"].split_column(Layout(name="upper", ratio=3), Layout(name="analysis", ratio=5))
+    layout["upper"].split_row(Layout(name="progress", ratio=2), Layout(name="messages", ratio=3))
     return layout
 
 
@@ -72,9 +68,7 @@ def update_display(layout, message_buffer, spinner_text=None):
         first_agent = agents[0]
         status = message_buffer.agent_status[first_agent]
         if status == "in_progress":
-            spinner = Spinner(
-                "dots", text="[blue]in_progress[/blue]", style="bold cyan"
-            )
+            spinner = Spinner("dots", text="[blue]in_progress[/blue]", style="bold cyan")
             status_cell = spinner
         else:
             status_color = {
@@ -89,9 +83,7 @@ def update_display(layout, message_buffer, spinner_text=None):
         for agent in agents[1:]:
             status = message_buffer.agent_status[agent]
             if status == "in_progress":
-                spinner = Spinner(
-                    "dots", text="[blue]in_progress[/blue]", style="bold cyan"
-                )
+                spinner = Spinner("dots", text="[blue]in_progress[/blue]", style="bold cyan")
                 status_cell = spinner
             else:
                 status_color = {
@@ -105,9 +97,7 @@ def update_display(layout, message_buffer, spinner_text=None):
         # Add horizontal line after each team
         progress_table.add_row("─" * 20, "─" * 20, "─" * 20, style="dim")
 
-    layout["progress"].update(
-        Panel(progress_table, title="Progress", border_style="cyan", padding=(1, 2))
-    )
+    layout["progress"].update(Panel(progress_table, title="Progress", border_style="cyan", padding=(1, 2)))
 
     # Messages panel showing recent messages and tool calls
     messages_table = Table(
@@ -121,9 +111,7 @@ def update_display(layout, message_buffer, spinner_text=None):
     )
     messages_table.add_column("Time", style="cyan", width=8, justify="center")
     messages_table.add_column("Type", style="green", width=10, justify="center")
-    messages_table.add_column(
-        "Content", style="white", no_wrap=False, ratio=1
-    )  # Make content column expand
+    messages_table.add_column("Content", style="white", no_wrap=False, ratio=1)  # Make content column expand
 
     # Combine tool calls and messages
     all_messages = []
@@ -144,16 +132,16 @@ def update_display(layout, message_buffer, spinner_text=None):
             text_parts = []
             for item in content:
                 if isinstance(item, dict):
-                    if item.get('type') == 'text':
-                        text_parts.append(item.get('text', ''))
-                    elif item.get('type') == 'tool_use':
+                    if item.get("type") == "text":
+                        text_parts.append(item.get("text", ""))
+                    elif item.get("type") == "tool_use":
                         text_parts.append(f"[Tool: {item.get('name', 'unknown')}]")
                 else:
                     text_parts.append(str(item))
-            content_str = ' '.join(text_parts)
+            content_str = " ".join(text_parts)
         elif not isinstance(content_str, str):
             content_str = str(content)
-            
+
         # Truncate message content if too long
         if len(content_str) > 200:
             content_str = content_str[:197] + "..."
@@ -180,9 +168,7 @@ def update_display(layout, message_buffer, spinner_text=None):
 
     # Add a footer to indicate if messages were truncated
     if len(all_messages) > max_messages:
-        messages_table.footer = (
-            f"[dim]Showing last {max_messages} of {len(all_messages)} messages[/dim]"
-        )
+        messages_table.footer = f"[dim]Showing last {max_messages} of {len(all_messages)} messages[/dim]"
 
     layout["messages"].update(
         Panel(
@@ -196,6 +182,7 @@ def update_display(layout, message_buffer, spinner_text=None):
     # Analysis panel showing current report
     if message_buffer.current_report:
         from rich.markdown import Markdown
+
         layout["analysis"].update(
             Panel(
                 Markdown(message_buffer.current_report),
@@ -216,12 +203,8 @@ def update_display(layout, message_buffer, spinner_text=None):
 
     # Footer with statistics
     tool_calls_count = len(message_buffer.tool_calls)
-    llm_calls_count = sum(
-        1 for _, msg_type, _ in message_buffer.messages if msg_type == "Reasoning"
-    )
-    reports_count = sum(
-        1 for content in message_buffer.report_sections.values() if content is not None
-    )
+    llm_calls_count = sum(1 for _, msg_type, _ in message_buffer.messages if msg_type == "Reasoning")
+    reports_count = sum(1 for content in message_buffer.report_sections.values() if content is not None)
 
     stats_table = Table(show_header=False, box=None, padding=(0, 2), expand=True)
     stats_table.add_column("Stats", justify="center")

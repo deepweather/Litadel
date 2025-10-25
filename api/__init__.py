@@ -1,2 +1,1 @@
 """FastAPI Trading Agents API."""
-

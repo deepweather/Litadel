@@ -47,26 +47,26 @@ async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events."""
     import os
     from pathlib import Path
-    
+
     # Startup
     logger.info("Initializing Trading Agents API...")
-    
+
     # Check if this is first run (database doesn't exist)
     db_path = Path(os.getenv("API_DATABASE_URL", "sqlite:///./api_database.db").replace("sqlite:///", ""))
     is_first_run = not db_path.exists()
-    
+
     # Initialize database
     init_db()
-    
+
     # If first run, create a default API key
     if is_first_run:
         from api.auth import create_api_key
         from api.database import SessionLocal
-        
+
         logger.info("=" * 70)
         logger.info("FIRST RUN DETECTED - Setting up Trading Agents API")
         logger.info("=" * 70)
-        
+
         db = SessionLocal()
         try:
             plain_key, db_key = create_api_key(db, "Default API Key")
@@ -88,13 +88,13 @@ async def lifespan(app: FastAPI):
             logger.error(f"Failed to create default API key: {e}")
         finally:
             db.close()
-    
+
     get_executor()
     logger.info("Trading Agents API started successfully")
     logger.info(f"API Documentation: http://localhost:{os.getenv('API_PORT', '8001')}/docs")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down Trading Agents API...")
     shutdown_executor()
@@ -147,17 +147,18 @@ async def health_check():
 
 def run_api():
     """Entry point for running the API via CLI command."""
-    import uvicorn
     import os
-    
+
+    import uvicorn
+
     port = int(os.getenv("API_PORT", "8002"))
     # Reload disabled by default to prevent shutdown issues during analysis
     # Set API_RELOAD=true in environment to enable auto-reload during development
     reload = os.getenv("API_RELOAD", "false").lower() == "true"
-    
+
     if reload:
         logger.warning("Auto-reload is enabled - analyses will be cancelled if code changes are detected")
-    
+
     uvicorn.run(
         "api.main:app",
         host="0.0.0.0",
@@ -169,4 +170,3 @@ def run_api():
 
 if __name__ == "__main__":
     run_api()
-
