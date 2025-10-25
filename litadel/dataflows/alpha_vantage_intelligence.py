@@ -211,7 +211,7 @@ def get_market_movers() -> str:
     return report
 
 
-def get_earnings_call_transcript(ticker: str, quarter: str | None = None) -> str:
+def get_earnings_call_transcript(ticker: str, _quarter: str | None = None) -> str:
     """
     Retrieve earnings call transcript for a ticker (if available).
 
@@ -220,7 +220,7 @@ def get_earnings_call_transcript(ticker: str, quarter: str | None = None) -> str
 
     Args:
         ticker: Stock ticker symbol
-        quarter: Quarter in format YYYY-Q# (e.g., "2024-Q3")
+        _quarter: Quarter in format YYYY-Q# (e.g., "2024-Q3") - currently unused
 
     Returns:
         str: Earnings call transcript or unavailability message
