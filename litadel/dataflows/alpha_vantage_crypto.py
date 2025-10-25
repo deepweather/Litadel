@@ -172,8 +172,8 @@ def get_crypto(
                 )
             return out.getvalue()
 
-        return csv_text
-
     except (json.JSONDecodeError, KeyError, Exception) as e:
         # Fallback: return raw payload for debugging
         return f"Error parsing crypto data: {e!s}\n\nRaw response:\n{raw}"
+    else:
+        return csv_text

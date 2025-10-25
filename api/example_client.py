@@ -3,7 +3,7 @@
 import asyncio
 import json
 import time
-from datetime import date
+from datetime import datetime, timezone
 
 import httpx
 import websockets
@@ -29,7 +29,7 @@ class TradingAgentsAPIClient:
     ):
         """Create a new analysis."""
         if analysis_date is None:
-            analysis_date = date.today().strftime("%Y-%m-%d")
+            analysis_date = datetime.now(tz=timezone.utc).date().strftime("%Y-%m-%d")
 
         if selected_analysts is None:
             selected_analysts = ["market", "news"]

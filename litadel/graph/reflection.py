@@ -58,7 +58,7 @@ Adhere strictly to these instructions, and ensure your output is detailed, accur
 
         return f"{curr_market_report}\n\n{curr_sentiment_report}\n\n{curr_news_report}\n\n{curr_fundamentals_report}"
 
-    def _reflect_on_component(self, component_type: str, report: str, situation: str, returns_losses) -> str:
+    def _reflect_on_component(self, _component_type: str, report: str, situation: str, returns_losses) -> str:
         """Generate reflection for a component."""
         messages = [
             ("system", self.reflection_system_prompt),

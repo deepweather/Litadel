@@ -1,6 +1,8 @@
 """Interactive user prompts for the Litadel CLI."""
 
+import re
 import sys
+from datetime import datetime
 
 import questionary
 
@@ -38,17 +40,16 @@ def get_ticker() -> str:
 
 def get_analysis_date() -> str:
     """Prompt the user to enter a date in YYYY-MM-DD format."""
-    import re
-    from datetime import datetime
 
     def validate_date(date_str: str) -> bool:
         if not re.match(r"^\d{4}-\d{2}-\d{2}$", date_str):
             return False
         try:
             datetime.strptime(date_str, "%Y-%m-%d")
-            return True
         except ValueError:
             return False
+        else:
+            return True
 
     date = questionary.text(
         "Enter the analysis date (YYYY-MM-DD):",

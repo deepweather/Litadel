@@ -3,9 +3,10 @@
 import builtins
 import contextlib
 import csv
+import io
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -40,8 +41,6 @@ def _normalize_ohlcv_rows_from_csv(csv_text: str) -> list[dict[str, str]]:
     """Normalize various vendor CSV formats to standard OHLCV schema.
     Output fields: Date, Close, High, Low, Open, Volume
     """
-    import io
-
     rows: list[dict[str, str]] = []
     if not csv_text:
         return rows
@@ -115,7 +114,7 @@ def _ensure_cached_data(ticker: str, start_date: str | None, end_date: str | Non
     Returns the cache file path if created, else None.
     """
     # Determine date window if not provided: last ~15 years
-    today = datetime.utcnow().date()
+    today = datetime.now(tz=timezone.utc).date()
     default_start = (today - timedelta(days=365 * 15)).strftime("%Y-%m-%d")
     default_end = today.strftime("%Y-%m-%d")
     start = start_date or default_start
@@ -274,7 +273,7 @@ async def get_cached_data(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error reading cache file: {e!s}",
-        )
+        ) from e
 
     return CachedDataResponse(
         ticker=ticker.upper(),

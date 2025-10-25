@@ -15,10 +15,11 @@ def test_litadel_imports():
         from litadel.graph.trading_graph import TradingAgentsGraph
 
         print("✓ Litadel core imports successful")
-        return True
     except ImportError as e:
         print(f"✗ Litadel import failed: {e}")
         return False
+    else:
+        return True
 
 
 def test_api_imports():
@@ -29,10 +30,11 @@ def test_api_imports():
         from api.main import app
 
         print("✓ API imports successful")
-        return True
     except ImportError as e:
         print(f"✗ API import failed: {e}")
         return False
+    else:
+        return True
 
 
 def test_cli_imports():
@@ -42,10 +44,11 @@ def test_cli_imports():
         from cli.main import console
 
         print("✓ CLI imports successful")
-        return True
     except ImportError as e:
         print(f"✗ CLI import failed: {e}")
         return False
+    else:
+        return True
 
 
 def run_all_tests():

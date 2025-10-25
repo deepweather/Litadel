@@ -28,7 +28,7 @@ class YFinanceUtils:
         self: Annotated[str, "ticker symbol"],
         start_date: Annotated[str, "start date for retrieving stock price data, YYYY-mm-dd"],
         end_date: Annotated[str, "end date for retrieving stock price data, YYYY-mm-dd"],
-        save_path: SavePathType = None,
+        _save_path: SavePathType = None,
     ) -> DataFrame:
         """retrieve stock price data for designated ticker symbol"""
         ticker = self

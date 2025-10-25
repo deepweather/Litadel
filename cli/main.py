@@ -39,8 +39,6 @@ message_buffer = MessageBuffer()
 def get_user_selections():
     """Get all user selections before starting the analysis display."""
     # Load config to check for pre-configured values
-    from litadel.default_config import DEFAULT_CONFIG
-
     # Display ASCII art welcome message
     with open("./cli/static/welcome.txt") as f:
         welcome_ascii = f.read()
@@ -177,9 +175,10 @@ def get_analysis_date():
             if analysis_date.date() > datetime.datetime.now().date():
                 console.print("[red]Error: Analysis date cannot be in the future[/red]")
                 continue
-            return date_str
         except ValueError:
             console.print("[red]Error: Invalid date format. Please use YYYY-MM-DD[/red]")
+        else:
+            return date_str
 
 
 def setup_config(selections):

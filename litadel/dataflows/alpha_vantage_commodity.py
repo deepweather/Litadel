@@ -84,7 +84,8 @@ def get_commodity(
             for item in series[:24]:  # last ~2 years monthly
                 out.write(f"{item['date']},{item.get('value')}\n")
             return out.getvalue()
-        return csv_text
     except Exception:
         # Fallback: return raw payload for debugging
         return raw
+    else:
+        return csv_text

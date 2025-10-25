@@ -3,7 +3,7 @@
 import json
 import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -20,6 +20,7 @@ from api.models import (
 )
 from api.state_manager import get_executor
 from api.utils import extract_trading_decision
+from cli.asset_detection import detect_asset_class
 from litadel.default_config import DEFAULT_CONFIG
 
 router = APIRouter(prefix="/api/v1/analyses", tags=["analyses"])
@@ -51,8 +52,6 @@ async def create_analysis(
         config["deep_think_llm"] = request.deep_think_llm
 
     # Auto-detect asset class
-    from cli.asset_detection import detect_asset_class
-
     asset_class = detect_asset_class(request.ticker)
     config["asset_class"] = asset_class
 
@@ -95,7 +94,7 @@ async def create_analysis(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to start analysis: {e!s}",
-        )
+        ) from e
 
     return AnalysisResponse(
         id=analysis.id,
@@ -380,5 +379,5 @@ async def delete_analysis(
     elif analysis.status not in ["cancelled", "failed", "completed"]:
         # Just mark as cancelled
         analysis.status = "cancelled"
-        analysis.updated_at = datetime.utcnow()
+        analysis.updated_at = datetime.now(tz=timezone.utc)
         db.commit()

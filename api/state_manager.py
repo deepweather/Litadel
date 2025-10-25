@@ -494,12 +494,12 @@ class AnalysisExecutor:
             return " ".join(text_parts)
         return str(content)
 
-    def shutdown(self, timeout: int = 10):
+    def shutdown(self, timeout: int = 5):
         """
         Shutdown the executor and cancel all running analyses.
 
         Args:
-            timeout: Maximum seconds to wait for analyses to stop (default: 10)
+            timeout: Maximum seconds to wait for analyses to stop (default: 5)
         """
         logger.info("Shutdown requested - cancelling running analyses...")
 
@@ -531,10 +531,16 @@ class AnalysisExecutor:
             for analysis_id in list(self.active_analyses.keys()):
                 self.cancel_analysis(analysis_id)
 
-        # Shutdown executor with timeout
-        logger.info(f"Waiting up to {timeout} seconds for analyses to stop...")
-        self.executor.shutdown(wait=True, cancel_futures=True)
-        logger.info("Executor shutdown complete")
+        # Shutdown executor - don't wait indefinitely
+        # cancel_futures=True will attempt to cancel pending futures
+        logger.info(f"Shutting down executor (timeout: {timeout}s)...")
+        try:
+            self.executor.shutdown(wait=False, cancel_futures=True)
+            logger.info("Executor shutdown initiated")
+        except Exception as e:
+            logger.warning(f"Error during executor shutdown: {e}")
+
+        logger.info("Shutdown complete")
 
 
 # Global executor instance
