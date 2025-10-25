@@ -9,6 +9,15 @@ import type {
   CreateAnalysisRequest,
   PaginatedResponse,
 } from '../types/api'
+import type {
+  CreatePortfolioRequest,
+  CreatePositionRequest,
+  Portfolio,
+  PortfolioSummary,
+  Position,
+  UpdatePortfolioRequest,
+  UpdatePositionRequest,
+} from '../types/portfolio'
 
 class APIService {
   public client: AxiosInstance
@@ -134,6 +143,104 @@ class APIService {
     is_active: boolean
   }> {
     const response = await this.client.get('/api/v1/auth/me')
+    return response.data
+  }
+
+  // Portfolio endpoints
+  async getPortfolios(): Promise<PortfolioSummary[]> {
+    const response = await this.client.get<PortfolioSummary[]>('/api/v1/portfolios')
+    return response.data
+  }
+
+  async getPortfolio(id: number): Promise<Portfolio> {
+    const response = await this.client.get<Portfolio>(`/api/v1/portfolios/${id}`)
+    return response.data
+  }
+
+  async createPortfolio(data: CreatePortfolioRequest): Promise<Portfolio> {
+    const response = await this.client.post<Portfolio>('/api/v1/portfolios', data)
+    return response.data
+  }
+
+  async updatePortfolio(id: number, data: UpdatePortfolioRequest): Promise<Portfolio> {
+    const response = await this.client.put<Portfolio>(`/api/v1/portfolios/${id}`, data)
+    return response.data
+  }
+
+  async deletePortfolio(id: number): Promise<void> {
+    await this.client.delete(`/api/v1/portfolios/${id}`)
+  }
+
+  async addPosition(portfolioId: number, data: CreatePositionRequest): Promise<Position> {
+    const response = await this.client.post<Position>(
+      `/api/v1/portfolios/${portfolioId}/positions`,
+      data
+    )
+    return response.data
+  }
+
+  async updatePosition(
+    portfolioId: number,
+    positionId: number,
+    data: UpdatePositionRequest
+  ): Promise<Position> {
+    const response = await this.client.put<Position>(
+      `/api/v1/portfolios/${portfolioId}/positions/${positionId}`,
+      data
+    )
+    return response.data
+  }
+
+  async deletePosition(portfolioId: number, positionId: number): Promise<void> {
+    await this.client.delete(`/api/v1/portfolios/${portfolioId}/positions/${positionId}`)
+  }
+
+  // Portfolio helper endpoints
+  async getHistoricalPrice(
+    ticker: string,
+    date: string
+  ): Promise<{ ticker: string; date: string; price: number; note?: string }> {
+    const response = await this.client.get('/api/v1/portfolios/helpers/historical-price', {
+      params: { ticker, date },
+    })
+    return response.data
+  }
+
+  async validateTicker(ticker: string): Promise<{
+    ticker: string
+    valid: boolean
+    asset_class?: string
+    current_price?: number
+    message?: string
+  }> {
+    const response = await this.client.get('/api/v1/portfolios/helpers/validate-ticker', {
+      params: { ticker },
+    })
+    return response.data
+  }
+
+  async bulkImportPositions(
+    portfolioId: number,
+    file: File
+  ): Promise<{
+    success: boolean
+    added_count: number
+    error_count: number
+    added_positions: any[]
+    errors: string[]
+  }> {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await this.client.post(
+      `/api/v1/portfolios/${portfolioId}/positions/bulk-import`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    )
     return response.data
   }
 }

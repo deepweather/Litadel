@@ -7,6 +7,9 @@ import { Dashboard } from './pages/Dashboard'
 import { AnalysisList } from './pages/AnalysisList'
 import { AnalysisDetail } from './pages/AnalysisDetail'
 import { CreateAnalysis } from './pages/CreateAnalysis'
+import { PortfolioList } from './pages/PortfolioList'
+import { PortfolioDetail } from './pages/PortfolioDetail'
+import { CreatePortfolio } from './pages/CreatePortfolio'
 import { Settings } from './pages/Settings'
 import { Login } from './pages/Login'
 import { useAuthStore } from './stores/authStore'
@@ -64,6 +67,30 @@ function App() {
               element={
                 <RequireAuth>
                   <AnalysisDetail />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/portfolio"
+              element={
+                <RequireAuth>
+                  <PortfolioList />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/portfolio/create"
+              element={
+                <RequireAuth>
+                  <CreatePortfolio />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/portfolio/:id"
+              element={
+                <RequireAuth>
+                  <PortfolioDetail />
                 </RequireAuth>
               }
             />

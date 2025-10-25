@@ -8,6 +8,7 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
+    Float,
     ForeignKey,
     Integer,
     String,
@@ -115,6 +116,48 @@ class User(Base):
 
     # Relationships
     analyses = relationship("Analysis", back_populates="owner")
+    portfolios = relationship("Portfolio", back_populates="owner")
+
+
+class Portfolio(Base):
+    """User's portfolio definition."""
+
+    __tablename__ = "portfolios"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+
+    # Relationships
+    positions = relationship("Position", back_populates="portfolio", cascade="all, delete-orphan")
+    owner = relationship("User", back_populates="portfolios")
+
+
+class Position(Base):
+    """Individual position in a portfolio."""
+
+    __tablename__ = "positions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    portfolio_id = Column(Integer, ForeignKey("portfolios.id"), nullable=False, index=True)
+    ticker = Column(String, nullable=False, index=True)
+    asset_class = Column(String, nullable=False)  # stock, crypto, commodity
+    quantity = Column(Float, nullable=False)  # Number of shares/units
+    entry_price = Column(Float, nullable=False)  # Price at entry
+    entry_date = Column(DateTime, nullable=False)  # Date of entry
+    exit_price = Column(Float, nullable=True)  # Price at exit (if closed)
+    exit_date = Column(DateTime, nullable=True)  # Date of exit (if closed)
+    status = Column(String, nullable=False, default="open")  # open, closed
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Relationships
+    portfolio = relationship("Portfolio", back_populates="positions")
 
 
 def init_db():
