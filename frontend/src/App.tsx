@@ -13,6 +13,7 @@ import { CreatePortfolio } from './pages/CreatePortfolio'
 import { BacktestList } from './pages/BacktestList'
 import { BacktestDetail } from './pages/BacktestDetail'
 import { CreateBacktest } from './pages/CreateBacktest'
+import { ChatTradingInterface } from './pages/ChatTradingInterface'
 import { AssetDetail } from './pages/AssetDetail'
 import { Settings } from './pages/Settings'
 import { Login } from './pages/Login'
@@ -111,6 +112,14 @@ function App() {
               element={
                 <RequireAuth>
                   <CreateBacktest />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/backtests/chat"
+              element={
+                <RequireAuth>
+                  <ChatTradingInterface />
                 </RequireAuth>
               }
             />

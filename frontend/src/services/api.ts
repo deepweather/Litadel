@@ -372,6 +372,42 @@ class APIService {
     return response.data
   }
 
+  // Conversational trading interface
+  async extractTradingParameters(data: {
+    user_message: string
+    conversation_history: Array<{ role: string; content: string }>
+  }): Promise<{
+    intent: string
+    extracted: Record<string, any>
+    missing: string[]
+    confidence: Record<string, number>
+    needs_clarification: boolean
+    clarification_questions: Array<{
+      question: string
+      field: string
+      suggestions: any[]
+      field_type: string
+    }>
+    suggested_defaults: Record<string, any>
+  }> {
+    const response = await this.client.post('/api/v1/backtests/extract-parameters', data)
+    return response.data
+  }
+
+  async executeTradingIntent(data: {
+    intent: string
+    parameters: Record<string, any>
+    strategy_dsl_yaml?: string
+  }): Promise<{
+    success: boolean
+    backtest_id?: number
+    analysis_id?: string
+    message: string
+  }> {
+    const response = await this.client.post('/api/v1/backtests/execute-intent', data)
+    return response.data
+  }
+
   async generateStrategyDSL(
     data: {
       strategy_description: string
@@ -380,6 +416,7 @@ class APIService {
       rebalance_frequency: string
       position_sizing: string
       max_positions: number
+      strategy_type?: string
     },
     onChunk?: (chunk: string) => void
   ): Promise<{

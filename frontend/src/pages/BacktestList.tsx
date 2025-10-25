@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Sparkles, Trash2 } from 'lucide-react'
 import { api } from '../services/api'
 import { Button } from '../components/ui/Button'
 
@@ -117,10 +117,23 @@ export const BacktestList: React.FC = () => {
             Manage and analyze your trading strategy backtests
           </p>
         </div>
-        <Button onClick={() => navigate('/backtests/create')}>
-          <Plus size={18} />
-          <span>CREATE BACKTEST</span>
-        </Button>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <Button
+            onClick={() => navigate('/backtests/chat')}
+            style={{
+              backgroundColor: 'rgba(0, 212, 255, 0.2)',
+              borderColor: '#00d4ff',
+              color: '#00d4ff'
+            }}
+          >
+            <Sparkles size={18} />
+            <span>CREATE WITH AI CHAT</span>
+          </Button>
+          <Button onClick={() => navigate('/backtests/create')}>
+            <Plus size={18} />
+            <span>CREATE (CLASSIC)</span>
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -175,10 +188,23 @@ export const BacktestList: React.FC = () => {
           >
             No backtests found
           </p>
-          <Button onClick={() => navigate('/backtests/create')}>
-            <Plus size={18} />
-            <span>CREATE YOUR FIRST BACKTEST</span>
-          </Button>
+          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+            <Button
+              onClick={() => navigate('/backtests/chat')}
+              style={{
+                backgroundColor: 'rgba(0, 212, 255, 0.2)',
+                borderColor: '#00d4ff',
+                color: '#00d4ff'
+              }}
+            >
+              <Sparkles size={18} />
+              <span>CREATE WITH AI CHAT</span>
+            </Button>
+            <Button onClick={() => navigate('/backtests/create')}>
+              <Plus size={18} />
+              <span>CREATE (CLASSIC)</span>
+            </Button>
+          </div>
         </div>
       ) : (
         <div style={{ border: '1px solid rgba(77, 166, 255, 0.3)', overflow: 'auto' }}>

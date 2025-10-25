@@ -23,6 +23,14 @@ def create_strategy_dsl_generator(llm):
 The DSL format should follow this structure:
 
 ```yaml
+# Metadata section (REQUIRED)
+metadata:
+  strategy_type: "agent_managed"  # or "technical_dsl"
+  # agent_managed: High-level preferences, AI makes trading decisions
+  # technical_dsl: Specific rules with indicators and thresholds
+  created_at: "2024-01-01"
+  version: "1.0"
+
 strategy:
   name: "Strategy Name"
   description: "Brief description"
@@ -193,8 +201,13 @@ strategy:
 
 **Examples of Strategy Types:**
 
-Example 1 - FLEXIBLE Strategy (user says: "I like Tesla and want to invest in crypto, I'm aggressive with 50k"):
+Example 1 - AGENT-MANAGED Strategy (user says: "I like Tesla and want to invest in crypto, I'm aggressive with 50k"):
 ```yaml
+metadata:
+  strategy_type: "agent_managed"
+  created_at: "2024-01-01"
+  version: "1.0"
+
 strategy:
   name: "Tech & Crypto Growth Strategy"
   description: "Aggressive growth-focused strategy in tech stocks and crypto"
@@ -216,8 +229,13 @@ strategy:
     risk_tolerance: "aggressive"
 ```
 
-Example 2 - SPECIFIC Strategy (user says: "Buy when RSI < 30 and sell when RSI > 70, use 5% stop loss"):
+Example 2 - TECHNICAL DSL Strategy (user says: "Buy when RSI < 30 and sell when RSI > 70, use 5% stop loss"):
 ```yaml
+metadata:
+  strategy_type: "technical_dsl"
+  created_at: "2024-01-01"
+  version: "1.0"
+
 strategy:
   name: "RSI Mean Reversion Strategy"
   description: "Technical strategy based on RSI oversold/overbought signals"
@@ -243,6 +261,11 @@ strategy:
 
 Example 3 - CONDITIONAL Strategy (user says: "Buy Tesla in stages: 30% at $200, 40% at $180, 30% at $160. Sell half at 25% profit, rest at 50%"):
 ```yaml
+metadata:
+  strategy_type: "technical_dsl"
+  created_at: "2024-01-01"
+  version: "1.0"
+
 strategy:
   name: "Tesla Scaled Entry/Exit Strategy"
   description: "Multi-level conditional entries and profit-taking for TSLA"
@@ -342,17 +365,31 @@ strategy:
             rebalance_frequency: str,
             position_sizing: str,
             max_positions: int,
+            strategy_type: str = "agent_managed",
         ) -> str:
             """Build the context string for the LLM."""
             if ticker_list and len(ticker_list) > 0:
                 universe_text = f"- Universe: {', '.join(ticker_list)}"
                 instruction = ""
             else:
-                universe_text = "- Universe: Not specified - please extract tickers from the strategy description"
-                instruction = "\n\n**IMPORTANT**: The user has not explicitly provided a ticker list. You MUST extract ticker symbols from the strategy description. For example:\n- 'Tesla' or 'tesla' → TSLA\n- 'Apple' or 'apple' → AAPL\n- 'Bitcoin' or 'bitcoin' → BTC-USD\n- 'tech stocks' → [AAPL, MSFT, GOOGL, NVDA, TSLA]\n- If no specific stocks are mentioned, infer appropriate tickers based on the strategy type and sectors mentioned."
+                universe_text = (
+                    "- Universe: Not specified - please extract tickers from the strategy description OR use AI_MANAGED"
+                )
+                if strategy_type == "agent_managed":
+                    instruction = '\n\n**IMPORTANT**: This is an AGENT-MANAGED strategy. The user has not provided specific tickers. You should use `universe: "AI_MANAGED"` so AI agents can dynamically select assets based on the user\'s preferences. Include sector preferences, asset classes, and risk tolerance in the preferences section.'
+                else:
+                    instruction = "\n\n**IMPORTANT**: The user has not explicitly provided a ticker list. You MUST extract ticker symbols from the strategy description. For example:\n- 'Tesla' or 'tesla' → TSLA\n- 'Apple' or 'apple' → AAPL\n- 'Bitcoin' or 'bitcoin' → BTC-USD\n- 'tech stocks' → [AAPL, MSFT, GOOGL, NVDA, TSLA]\n- If no specific stocks are mentioned, infer appropriate tickers based on the strategy type and sectors mentioned."
+
+            strategy_type_instruction = f"\n\n**CRITICAL**: This is a **{strategy_type.upper().replace('_', '-')}** strategy. Set `metadata.strategy_type: \"{strategy_type}\"` in your output."
+
+            if strategy_type == "agent_managed":
+                strategy_type_instruction += "\n- Use FLEXIBLE entry/exit rules (type: 'flexible')\n- Focus on preferences and risk tolerance\n- Let AI agents make intelligent trading decisions\n- Use broad guidelines, not rigid thresholds"
+            else:
+                strategy_type_instruction += "\n- Use SPECIFIC technical indicators and thresholds\n- Define precise entry/exit conditions\n- Include clear numeric values for all rules"
 
             return f"""
 User Configuration:
+- Strategy Type: {strategy_type}
 {universe_text}
 - Initial Capital: ${initial_capital:,.2f}
 - Rebalance Frequency: {rebalance_frequency}
@@ -362,6 +399,7 @@ User Configuration:
 User's Strategy Description:
 {strategy_description}
 {instruction}
+{strategy_type_instruction}
 """
 
         def _clean_yaml_output(self, yaml_output: str) -> str:
@@ -385,6 +423,7 @@ User's Strategy Description:
             rebalance_frequency: str,
             position_sizing: str,
             max_positions: int,
+            strategy_type: str = "agent_managed",
         ) -> str:
             """
             Generate YAML DSL from natural language strategy description.
@@ -396,12 +435,19 @@ User's Strategy Description:
                 rebalance_frequency: How often to rebalance (daily/weekly/monthly)
                 position_sizing: Position sizing method (equal_weight/risk_parity/kelly)
                 max_positions: Maximum number of positions
+                strategy_type: "agent_managed" or "technical_dsl"
 
             Returns:
                 YAML DSL string
             """
             context = self._build_context(
-                strategy_description, ticker_list, initial_capital, rebalance_frequency, position_sizing, max_positions
+                strategy_description,
+                ticker_list,
+                initial_capital,
+                rebalance_frequency,
+                position_sizing,
+                max_positions,
+                strategy_type,
             )
 
             prompt = ChatPromptTemplate.from_messages(
@@ -427,6 +473,7 @@ User's Strategy Description:
             rebalance_frequency: str,
             position_sizing: str,
             max_positions: int,
+            strategy_type: str = "agent_managed",
         ):
             """
             Stream YAML DSL generation in real-time.
@@ -438,7 +485,13 @@ User's Strategy Description:
                 String chunks as they're generated by the LLM
             """
             context = self._build_context(
-                strategy_description, ticker_list, initial_capital, rebalance_frequency, position_sizing, max_positions
+                strategy_description,
+                ticker_list,
+                initial_capital,
+                rebalance_frequency,
+                position_sizing,
+                max_positions,
+                strategy_type,
             )
 
             prompt = ChatPromptTemplate.from_messages(
@@ -475,9 +528,23 @@ def validate_strategy_dsl(yaml_string: str) -> tuple[bool, str]:
 
         parsed = yaml.safe_load(yaml_string)
 
-        # Check for required top-level key
+        # Check for required top-level keys
         if "strategy" not in parsed:
             return False, "Missing 'strategy' top-level key"
+
+        if "metadata" not in parsed:
+            return False, "Missing 'metadata' top-level key"
+
+        # Validate metadata
+        metadata = parsed["metadata"]
+        if "strategy_type" not in metadata:
+            return False, "Missing 'strategy_type' in metadata"
+
+        if metadata["strategy_type"] not in ["agent_managed", "technical_dsl"]:
+            return (
+                False,
+                f"Invalid strategy_type: {metadata['strategy_type']} (must be 'agent_managed' or 'technical_dsl')",
+            )
 
         strategy = parsed["strategy"]
 

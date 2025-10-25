@@ -34,6 +34,7 @@ from api.models.backtest import (
     EquityCurveDataPoint,
     UpdateBacktestRequest,
 )
+from litadel.agents.utils.parameter_extraction_agent import create_parameter_extraction_agent
 from litadel.agents.utils.strategy_dsl_agent import create_strategy_dsl_generator, validate_strategy_dsl
 from litadel.default_config import DEFAULT_CONFIG
 
@@ -53,6 +54,46 @@ class GenerateStrategyDSLRequest(BaseModel):
     rebalance_frequency: str = Field(..., description="Rebalancing frequency")
     position_sizing: str = Field(..., description="Position sizing strategy")
     max_positions: int = Field(..., description="Maximum number of positions")
+    strategy_type: str = Field(default="agent_managed", description="Strategy type: agent_managed or technical_dsl")
+
+
+# Request models for conversational trading interface
+class ClarificationQuestion(BaseModel):
+    """A clarification question for missing parameters."""
+
+    question: str = Field(..., description="The question to ask")
+    field: str = Field(..., description="The field this question is about")
+    suggestions: list = Field(default_factory=list, description="Suggested values")
+    field_type: str = Field(..., description="Input type: text, textarea, number, date, array, select")
+
+
+class ExtractParametersRequest(BaseModel):
+    """Request to extract parameters from natural language."""
+
+    user_message: str = Field(..., description="User's natural language input")
+    conversation_history: list[dict] = Field(default_factory=list, description="Previous messages for context")
+
+
+class ExtractParametersResponse(BaseModel):
+    """Extracted parameters from natural language."""
+
+    intent: str = Field(..., description="Detected intent: backtest, live_trading, analysis, unclear")
+    extracted: dict = Field(..., description="Extracted parameters")
+    missing: list[str] = Field(..., description="Required fields that are missing")
+    confidence: dict = Field(..., description="Confidence scores (0-1) for each extracted field")
+    needs_clarification: bool = Field(..., description="Whether clarification is needed")
+    clarification_questions: list[ClarificationQuestion] = Field(
+        default_factory=list, description="Questions to ask user"
+    )
+    suggested_defaults: dict = Field(default_factory=dict, description="Smart defaults for missing fields")
+
+
+class ExecuteTradingIntentRequest(BaseModel):
+    """Request to execute a trading intent."""
+
+    intent: str = Field(..., description="Intent: backtest, live_trading, analysis")
+    parameters: dict = Field(..., description="All parameters")
+    strategy_dsl_yaml: str | None = Field(None, description="Pre-generated YAML (optional)")
 
 
 def _get_llm_for_strategy_generation():
@@ -575,6 +616,7 @@ async def generate_strategy_dsl(
                 rebalance_frequency=request.rebalance_frequency,
                 position_sizing=request.position_sizing,
                 max_positions=request.max_positions,
+                strategy_type=request.strategy_type,
             ):
                 accumulated_yaml += chunk
                 chunk_count += 1
@@ -682,3 +724,203 @@ async def cancel_backtest(
         logger.info(f"User {user.username} cancelled backtest {backtest_id}")
         return {"message": "Backtest cancelled", "backtest_id": backtest_id}
     return {"message": "Backtest already completed or could not be cancelled", "backtest_id": backtest_id}
+
+
+@router.post("/extract-parameters", response_model=ExtractParametersResponse)
+async def extract_backtest_parameters(
+    request: ExtractParametersRequest,
+    user: User = Depends(get_current_user_jwt),
+):
+    """
+    Extract trading parameters from natural language using LLM.
+
+    This endpoint analyzes the user's message to extract:
+    - Trading intent (backtest, live trading, analysis)
+    - Strategy description
+    - Capital amount
+    - Date range
+    - Other optional parameters
+
+    Returns extracted values, missing fields, confidence scores, and clarification questions.
+    """
+    try:
+        # Initialize LLM and create agent
+        llm = _get_llm_for_strategy_generation()
+        agent = create_parameter_extraction_agent(llm)
+
+        # Extract parameters using the agent
+        result = agent(user_message=request.user_message, conversation_history=request.conversation_history)
+
+        # Structure response
+        response = ExtractParametersResponse(
+            intent=result.get("intent", "unclear"),
+            extracted=result.get("extracted", {}),
+            missing=result.get("missing", []),
+            confidence=result.get("confidence", {}),
+            needs_clarification=result.get("needs_clarification", False),
+            clarification_questions=[ClarificationQuestion(**q) for q in result.get("clarification_questions", [])],
+            suggested_defaults=result.get("suggested_defaults", {}),
+        )
+
+        logger.info(
+            f"User {user.username} extracted parameters - Intent: {response.intent}, Missing: {response.missing}"
+        )
+
+        return response
+
+    except Exception as e:
+        logger.exception(f"Error in parameter extraction: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Extraction failed: {e!s}")
+
+
+@router.post("/execute-intent", status_code=status.HTTP_202_ACCEPTED)
+async def execute_trading_intent(
+    request: ExecuteTradingIntentRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user_jwt),
+):
+    """
+    Execute a trading intent (backtest, live trading, or analysis).
+
+    Based on the detected intent and parameters, this endpoint will:
+    - Backtest: Create and execute a backtest
+    - Live Trading: (Future) Set up live trading strategy
+    - Analysis: Create an analysis request
+    """
+    intent = request.intent
+    params = request.parameters
+
+    logger.info(f"User {user.username} executing intent: {intent}")
+
+    if intent == "backtest":
+        # Validate required parameters for backtest
+        required_fields = ["strategy_description", "capital", "start_date", "end_date"]
+        missing = [f for f in required_fields if f not in params or not params[f]]
+
+        if missing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail=f"Missing required fields for backtest: {missing}"
+            )
+
+        # Parse dates
+        try:
+            start_date = datetime.strptime(params["start_date"], "%Y-%m-%d")
+            end_date = datetime.strptime(params["end_date"], "%Y-%m-%d")
+        except ValueError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid date format (use YYYY-MM-DD): {e}"
+            )
+
+        # Validate date range
+        if end_date <= start_date:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="End date must be after start date")
+
+        # Apply smart defaults
+        ticker_list = params.get("ticker_list", [])
+        rebalance_frequency = params.get("rebalance_frequency", "weekly")
+        position_sizing = params.get("position_sizing", "equal_weight")
+        max_positions = params.get("max_positions", 10)
+
+        # Auto-generate name if not provided
+        strategy_summary = params["strategy_description"][:50]
+        name = params.get("name", f"{strategy_summary} - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+
+        # Use provided YAML or create placeholder
+        dsl_yaml = request.strategy_dsl_yaml
+        if not dsl_yaml:
+            dsl_yaml = f"""# Auto-generated for: {name}
+strategy:
+  name: "{name}"
+  description: "{params['strategy_description']}"
+  universe: {json.dumps(ticker_list) if ticker_list else '"AI_MANAGED"'}
+"""
+
+        # Create backtest
+        backtest = Backtest(
+            user_id=user.id,
+            name=name,
+            description=params.get("description", params["strategy_description"]),
+            strategy_description=params["strategy_description"],
+            strategy_dsl_yaml=dsl_yaml,
+            ticker_list=json.dumps(ticker_list),
+            start_date=start_date,
+            end_date=end_date,
+            initial_capital=params["capital"],
+            rebalance_frequency=rebalance_frequency,
+            position_sizing=position_sizing,
+            max_positions=max_positions,
+            status="pending",
+            progress_percentage=0,
+        )
+
+        db.add(backtest)
+        db.commit()
+        db.refresh(backtest)
+
+        logger.info(f"User {user.username} created backtest {backtest.id} via chat interface")
+
+        # Queue for execution
+        executor = get_backtest_executor()
+        executor.start_backtest(backtest.id)
+
+        return {
+            "success": True,
+            "backtest_id": backtest.id,
+            "message": f"Backtest '{name}' created and queued for execution",
+        }
+
+    if intent == "live_trading":
+        # Future implementation
+        logger.info(f"User {user.username} requested live trading (not yet implemented)")
+        return {
+            "success": False,
+            "message": "Live trading functionality is coming soon! For now, you can run a backtest to test your strategy.",
+        }
+
+    if intent == "analysis":
+        # Create analysis request
+        # Import here to avoid circular dependency
+        from api.database import Analysis
+
+        # Extract ticker from parameters
+        ticker = None
+        if params.get("ticker_list"):
+            ticker = params["ticker_list"][0]  # Use first ticker
+        elif "strategy_description" in params:
+            # Try to extract ticker from description
+            desc = params["strategy_description"].upper()
+            # Simple extraction (could be improved)
+            common_tickers = ["AAPL", "TSLA", "GOOGL", "MSFT", "AMZN", "NVDA", "META", "BTC-USD", "ETH-USD"]
+            for t in common_tickers:
+                if t in desc or t.replace("-USD", "") in desc:
+                    ticker = t
+                    break
+
+        if not ticker:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Could not determine which asset to analyze. Please specify a ticker symbol.",
+            )
+
+        # Create analysis
+        analysis_id = f"{ticker}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        analysis = Analysis(
+            id=analysis_id,
+            user_id=user.id,
+            ticker=ticker,
+            analysis_date=datetime.now(tz=timezone.utc).date(),
+            status="pending",
+        )
+
+        db.add(analysis)
+        db.commit()
+
+        logger.info(f"User {user.username} created analysis {analysis_id} for {ticker} via chat interface")
+
+        return {
+            "success": True,
+            "analysis_id": analysis_id,
+            "message": f"Analysis for {ticker} has been created and will start shortly",
+        }
+
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unknown or unclear intent: {intent}")
