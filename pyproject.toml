@@ -106,10 +106,14 @@ select = [
 # Ignore specific rules that might be too strict for this project
 ignore = [
     "E501",    # line too long (handled by formatter)
+    "ISC001",  # implicit string concatenation (conflicts with formatter)
     "B008",    # do not perform function calls in argument defaults (common in FastAPI)
+    "B904",    # raise without from inside except
+    "E712",    # comparison to True/False
     "PLR0913", # too many arguments
     "PLR2004", # magic value comparison
     "TRY003",  # avoid specifying long messages outside exception class
+    "TRY400",  # use logging.exception instead of logging.error
     "EM101",   # exception must not use string literal
     "EM102",   # exception must not use f-string literal
     "N802",    # function name should be lowercase (conflicts with some LangChain patterns)

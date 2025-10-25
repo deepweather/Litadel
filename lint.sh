@@ -68,24 +68,24 @@ echo ""
 
 if [ -d "frontend" ]; then
     cd frontend
-    
+
     # Check if node_modules exists
     if [ ! -d "node_modules" ]; then
         echo -e "${YELLOW}⚠️  node_modules not found. Installing dependencies...${NC}"
         npm install
     fi
-    
+
     echo "Running ESLint on frontend code..."
     npm run lint
     FRONTEND_STATUS=$?
-    
+
     if [ $FRONTEND_STATUS -eq 0 ]; then
         echo -e "${GREEN}✓ Frontend linting passed!${NC}"
     else
         echo -e "${RED}✗ Frontend linting found issues${NC}"
         OVERALL_STATUS=1
     fi
-    
+
     cd ..
 else
     echo -e "${YELLOW}⚠️  Frontend directory not found, skipping...${NC}"
@@ -108,4 +108,3 @@ echo "Tip: Run ./format.sh to automatically fix many issues"
 echo ""
 
 exit $OVERALL_STATUS
-
