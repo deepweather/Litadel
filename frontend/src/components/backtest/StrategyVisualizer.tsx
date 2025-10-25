@@ -148,7 +148,7 @@ export const StrategyVisualizer: React.FC<StrategyVisualizerProps> = ({ yamlCont
 
         if (trimmed.startsWith('name:')) {
           strategy.name = trimmed.split('name:')[1].trim().replace(/['"]/g, '')
-        } else if (trimmed.startsWith('description:')) {
+        } else if (trimmed.startsWith('description:') && !currentRule) {
           strategy.description = trimmed.split('description:')[1].trim().replace(/['"]/g, '')
         } else if (trimmed.startsWith('universe:')) {
           if (trimmed.includes('AI_MANAGED')) {

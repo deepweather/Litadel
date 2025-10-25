@@ -15,7 +15,10 @@ class CreateBacktestRequest(BaseModel):
     strategy_dsl_yaml: str | None = Field(
         None, description="YAML DSL strategy definition (auto-generated if not provided)"
     )
-    ticker_list: list[str] = Field(..., description="List of tickers to trade", min_length=1)
+    ticker_list: list[str] = Field(
+        default_factory=list,
+        description="List of tickers to trade (optional - random tickers will be selected if empty)",
+    )
     start_date: str = Field(..., description="Backtest start date in YYYY-MM-DD format")
     end_date: str = Field(..., description="Backtest end date in YYYY-MM-DD format")
     initial_capital: float = Field(..., description="Initial capital", gt=0)
@@ -55,8 +58,10 @@ class CreateBacktestRequest(BaseModel):
     @field_validator("ticker_list")
     @classmethod
     def validate_tickers(cls, v: list[str]) -> list[str]:
-        """Convert tickers to uppercase."""
-        return [ticker.upper().strip() for ticker in v]
+        """Convert tickers to uppercase. Empty list is allowed for random strategy."""
+        if not v:
+            return []  # Allow empty list for random strategy
+        return [ticker.upper().strip() for ticker in v if ticker.strip()]
 
 
 class UpdateBacktestRequest(BaseModel):

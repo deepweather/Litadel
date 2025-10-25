@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from api.auth.dependencies import get_current_user_jwt
+from api.backtest_executor import get_backtest_executor
 from api.backtest_metrics import (
     calculate_avg_trade_duration,
     calculate_max_drawdown,
@@ -618,3 +619,66 @@ async def generate_strategy_dsl(
             "X-Accel-Buffering": "no",  # Disable nginx buffering
         },
     )
+
+
+@router.post("/{backtest_id}/execute", status_code=status.HTTP_202_ACCEPTED)
+async def execute_backtest(
+    backtest_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user_jwt),
+):
+    """Start backtest execution in background."""
+    # Verify ownership
+    backtest = _verify_backtest_ownership(backtest_id, user.id, db)
+
+    # Check status (only execute pending backtests)
+    if backtest.status != "pending":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Can only execute pending backtests (current status: {backtest.status})",
+        )
+
+    # Queue for execution
+    executor = get_backtest_executor()
+    executor.start_backtest(backtest_id)
+
+    logger.info(f"User {user.username} queued backtest {backtest_id} for execution")
+
+    return {
+        "message": "Backtest queued for execution",
+        "backtest_id": backtest_id,
+        "status": "running",
+    }
+
+
+@router.post("/{backtest_id}/cancel", status_code=status.HTTP_200_OK)
+async def cancel_backtest(
+    backtest_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user_jwt),
+):
+    """Cancel a running backtest."""
+    # Verify ownership
+    backtest = _verify_backtest_ownership(backtest_id, user.id, db)
+
+    # Check status
+    if backtest.status not in ["pending", "running"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot cancel backtest with status: {backtest.status}",
+        )
+
+    # Attempt to cancel
+    executor = get_backtest_executor()
+    cancelled = executor.cancel_backtest(backtest_id)
+
+    if cancelled or backtest.status == "pending":
+        # Update status if it was pending
+        if backtest.status == "pending":
+            backtest.status = "cancelled"
+            backtest.updated_at = datetime.now(tz=timezone.utc)
+            db.commit()
+
+        logger.info(f"User {user.username} cancelled backtest {backtest_id}")
+        return {"message": "Backtest cancelled", "backtest_id": backtest_id}
+    return {"message": "Backtest already completed or could not be cancelled", "backtest_id": backtest_id}

@@ -44,16 +44,27 @@ def detect_asset_class(symbol: str) -> str:
     Automatically detect if a symbol is a commodity, crypto, or equity.
 
     Args:
-        symbol: The ticker symbol (e.g., "BRENT", "BTC", "AAPL")
+        symbol: The ticker symbol (e.g., "BRENT", "BTC", "BTC-USD", "AAPL")
 
     Returns:
         "commodity", "crypto", or "equity" based on the symbol
     """
     symbol_upper = symbol.upper()
+
+    # Check exact match first
     if symbol_upper in KNOWN_COMMODITIES:
         return "commodity"
     if symbol_upper in KNOWN_CRYPTOS:
         return "crypto"
+
+    # Check if it's crypto with suffix (e.g., BTC-USD, ETH-USD)
+    # Remove common crypto suffixes
+    for suffix in ["-USD", "-USDT", "-EUR", "-GBP"]:
+        if symbol_upper.endswith(suffix):
+            base_symbol = symbol_upper[: -len(suffix)]
+            if base_symbol in KNOWN_CRYPTOS:
+                return "crypto"
+
     return "equity"
 
 

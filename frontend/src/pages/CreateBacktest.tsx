@@ -27,12 +27,40 @@ export const CreateBacktest: React.FC = () => {
 
   const createBacktestMutation = useMutation({
     mutationFn: (data: CreateBacktestRequest) => api.createBacktest(data),
-    onSuccess: (backtest) => {
+    onSuccess: async (backtest) => {
       toast.success('Backtest created successfully')
+
+      // Automatically trigger execution
+      try {
+        await api.executeBacktest(backtest.id)
+        toast.success('Backtest execution started')
+      } catch (error: any) {
+        const errorMsg = error.detail || error.message || 'Failed to start backtest execution'
+        toast.error(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg))
+      }
+
       navigate(`/backtests/${backtest.id}`)
     },
     onError: (error: any) => {
-      toast.error(error.detail || 'Failed to create backtest')
+      console.error('Backtest creation error:', error)
+
+      // Handle validation errors (422)
+      if (error.detail) {
+        if (Array.isArray(error.detail)) {
+          // Pydantic validation errors
+          const messages = error.detail.map((err: any) => {
+            const field = err.loc?.join('.') || 'field'
+            return `${field}: ${err.msg}`
+          }).join(', ')
+          toast.error(`Validation error: ${messages}`)
+        } else if (typeof error.detail === 'string') {
+          toast.error(error.detail)
+        } else {
+          toast.error(JSON.stringify(error.detail))
+        }
+      } else {
+        toast.error(error.message || 'Failed to create backtest')
+      }
     },
   })
 
@@ -180,7 +208,14 @@ export const CreateBacktest: React.FC = () => {
       return
     }
 
-    createBacktestMutation.mutate(formData as CreateBacktestRequest)
+    // Ensure ticker_list is an array (even if empty for AI_MANAGED)
+    const requestData: CreateBacktestRequest = {
+      ...formData,
+      ticker_list: formData.ticker_list || [],
+      strategy_dsl_yaml: formData.strategy_dsl_yaml || '',
+    } as CreateBacktestRequest
+
+    createBacktestMutation.mutate(requestData)
   }
 
   const handleGenerateYAML = () => {
@@ -490,7 +525,7 @@ export const CreateBacktest: React.FC = () => {
 
             <div>
               <label style={labelStyle}>
-                TICKER LIST <span style={{ color: '#ff0000' }}>*</span>
+                TICKER LIST
               </label>
               <input
                 type="text"
@@ -501,12 +536,39 @@ export const CreateBacktest: React.FC = () => {
                     ticker_list: e.target.value.split(',').map((t) => t.trim()).filter(Boolean),
                   })
                 }
-                placeholder="AAPL, TSLA, NVDA (or auto-filled from AI generation)"
+                placeholder="Leave empty for random ticker selection, or enter: AAPL, TSLA, NVDA"
                 style={inputStyle}
               />
-              <p style={{ color: '#2a3e4a', fontSize: '0.75rem', marginTop: '0.5rem' }}>
-                Enter comma-separated ticker symbols, auto-populated from Step 2, or leave empty for AI_MANAGED strategies
-              </p>
+              <div
+                style={{
+                  marginTop: '0.5rem',
+                  padding: '0.75rem',
+                  border: '1px solid rgba(76, 175, 80, 0.3)',
+                  backgroundColor: 'rgba(76, 175, 80, 0.05)',
+                  fontSize: '0.75rem',
+                  color: '#4caf50',
+                }}
+              >
+                <strong>🎲 Random Portfolio Mode:</strong> Leave this field empty to enable random mode. The system will randomly select 3-10 tickers from a curated pool of 50+ stocks, cryptocurrencies, and commodities, generating realistic trades with actual historical prices.
+              </div>
+              <div
+                style={{
+                  marginTop: '0.5rem',
+                  padding: '0.75rem',
+                  border: '1px solid rgba(255, 165, 0, 0.3)',
+                  backgroundColor: 'rgba(255, 165, 0, 0.05)',
+                  fontSize: '0.75rem',
+                  color: '#ff9900',
+                }}
+              >
+                <strong>⚠️ Ticker Format:</strong> Make sure tickers existed during your selected date range.
+                <br />
+                • Stocks: AAPL, TSLA (no suffix)
+                <br />
+                • Crypto: BTC-USD, ETH-USD (with -USD suffix)
+                <br />
+                • Commodities: BRENT, WTI (no suffix)
+              </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>

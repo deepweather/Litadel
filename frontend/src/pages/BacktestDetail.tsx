@@ -1,16 +1,23 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import toast from 'react-hot-toast'
+import { ArrowLeft, ChevronDown, ChevronUp, Play, XCircle } from 'lucide-react'
 import { api } from '../services/api'
 import { Button } from '../components/ui/Button'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { useBacktestWebSocket } from '../hooks/useBacktestWebSocket'
 
 export const BacktestDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [showStrategy, setShowStrategy] = useState(false)
   const backtestId = parseInt(id || '0', 10)
+  const [previousStatus, setPreviousStatus] = useState<string | null>(null)
+
+  // Use WebSocket for real-time status updates
+  const { status: wsStatus } = useBacktestWebSocket(backtestId)
 
   const { data: backtest, isLoading: loadingBacktest } = useQuery({
     queryKey: ['backtest', backtestId],
@@ -18,16 +25,63 @@ export const BacktestDetail: React.FC = () => {
     enabled: backtestId > 0,
   })
 
+  // Watch for WebSocket status updates
+  useEffect(() => {
+    if (wsStatus) {
+      // Update the query cache with WebSocket data
+      queryClient.setQueryData(['backtest', backtestId], (old: any) => {
+        if (!old) return old
+        return {
+          ...old,
+          status: wsStatus.status,
+          progress_percentage: wsStatus.progress_percentage,
+        }
+      })
+
+      // When backtest completes, invalidate all related queries to fetch full results
+      if (wsStatus.status === 'completed' && previousStatus === 'running') {
+        queryClient.invalidateQueries({ queryKey: ['backtest', backtestId] })
+        queryClient.invalidateQueries({ queryKey: ['backtest-trades', backtestId] })
+        queryClient.invalidateQueries({ queryKey: ['backtest-equity-curve', backtestId] })
+        toast.success('Backtest completed successfully!')
+      }
+
+      setPreviousStatus(wsStatus.status)
+    }
+  }, [wsStatus, previousStatus, backtestId, queryClient])
+
+  const executeBacktestMutation = useMutation({
+    mutationFn: (id: number) => api.executeBacktest(id),
+    onSuccess: () => {
+      toast.success('Backtest execution started')
+      queryClient.invalidateQueries({ queryKey: ['backtest', backtestId] })
+    },
+    onError: (error: any) => {
+      toast.error(error.detail || 'Failed to execute backtest')
+    },
+  })
+
+  const cancelBacktestMutation = useMutation({
+    mutationFn: (id: number) => api.cancelBacktest(id),
+    onSuccess: () => {
+      toast.success('Backtest cancelled')
+      queryClient.invalidateQueries({ queryKey: ['backtest', backtestId] })
+    },
+    onError: (error: any) => {
+      toast.error(error.detail || 'Failed to cancel backtest')
+    },
+  })
+
   const { data: trades } = useQuery({
     queryKey: ['backtest-trades', backtestId],
     queryFn: () => api.getBacktestTrades(backtestId),
-    enabled: backtestId > 0,
+    enabled: backtestId > 0 && backtest?.status === 'completed',
   })
 
   const { data: equityCurve } = useQuery({
     queryKey: ['backtest-equity-curve', backtestId],
     queryFn: () => api.getBacktestEquityCurve(backtestId),
-    enabled: backtestId > 0,
+    enabled: backtestId > 0 && backtest?.status === 'completed',
   })
 
   const formatCurrency = (value: number | null | undefined) => {
@@ -130,6 +184,17 @@ export const BacktestDetail: React.FC = () => {
             >
               {backtest.status}
             </span>
+            {backtest.status === 'running' && (
+              <span
+                style={{
+                  color: '#2a3e4a',
+                  fontFamily: 'JetBrains Mono, monospace',
+                  fontSize: '0.875rem',
+                }}
+              >
+                Progress: {backtest.progress_percentage}%
+              </span>
+            )}
           </div>
           {backtest.description && (
             <p
@@ -572,7 +637,7 @@ export const BacktestDetail: React.FC = () => {
         )}
       </div>
 
-      {/* Pending/Running State */}
+      {/* Pending State - Show Execute Button */}
       {backtest.status === 'pending' && (
         <div
           style={{
@@ -586,9 +651,82 @@ export const BacktestDetail: React.FC = () => {
               color: '#2a3e4a',
               fontFamily: 'JetBrains Mono, monospace',
               fontSize: '1rem',
+              marginBottom: '1rem',
             }}
           >
-            Backtest is pending execution. Results will appear once the backtest runs.
+            Backtest is pending execution. Click the button below to start.
+          </p>
+          <Button
+            onClick={() => executeBacktestMutation.mutate(backtestId)}
+            disabled={executeBacktestMutation.isPending}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 auto' }}
+          >
+            <Play size={18} />
+            <span>{executeBacktestMutation.isPending ? 'STARTING...' : 'EXECUTE BACKTEST'}</span>
+          </Button>
+        </div>
+      )}
+
+      {/* Running State - Show Progress */}
+      {backtest.status === 'running' && (
+        <div
+          style={{
+            border: '1px solid rgba(77, 166, 255, 0.3)',
+            padding: '2rem',
+            textAlign: 'center',
+          }}
+        >
+          <p
+            style={{
+              color: '#4da6ff',
+              fontFamily: 'JetBrains Mono, monospace',
+              fontSize: '1rem',
+              marginBottom: '1rem',
+            }}
+          >
+            Backtest is running... Progress: {backtest.progress_percentage}%
+          </p>
+          <div style={{
+            width: '100%',
+            height: '4px',
+            backgroundColor: 'rgba(77, 166, 255, 0.2)',
+            marginBottom: '1rem',
+          }}>
+            <div style={{
+              width: `${backtest.progress_percentage}%`,
+              height: '100%',
+              backgroundColor: '#4da6ff',
+              transition: 'width 0.3s ease',
+            }} />
+          </div>
+          <Button
+            onClick={() => cancelBacktestMutation.mutate(backtestId)}
+            disabled={cancelBacktestMutation.isPending}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 auto', borderColor: '#ff0000', color: '#ff0000' }}
+          >
+            <XCircle size={18} />
+            <span>{cancelBacktestMutation.isPending ? 'CANCELLING...' : 'CANCEL BACKTEST'}</span>
+          </Button>
+        </div>
+      )}
+
+      {/* Failed State */}
+      {backtest.status === 'failed' && (
+        <div
+          style={{
+            border: '1px solid #ff0000',
+            padding: '2rem',
+            textAlign: 'center',
+          }}
+        >
+          <p
+            style={{
+              color: '#ff0000',
+              fontFamily: 'JetBrains Mono, monospace',
+              fontSize: '1rem',
+            }}
+          >
+            Backtest execution failed. Please check the logs or try again.
           </p>
         </div>
       )}

@@ -9,7 +9,7 @@ from jose import JWTError
 
 from api.auth.api_key_auth import verify_api_key_from_db
 from api.auth.jwt_handler import verify_token
-from api.database import Analysis, SessionLocal, User
+from api.database import Analysis, Backtest, SessionLocal, User
 from api.state_manager import get_executor
 
 router = APIRouter()
@@ -169,3 +169,146 @@ async def websocket_analysis_status(
     except Exception as e:
         print(f"WebSocket error: {e}")
         manager.disconnect(analysis_id, websocket)
+
+
+# Backtest Connection Manager
+class BacktestConnectionManager:
+    """Manages WebSocket connections for backtests."""
+
+    def __init__(self):
+        self.active_connections: dict[int, list[WebSocket]] = {}
+        self._main_loop = None
+
+    async def connect(self, backtest_id: int, websocket: WebSocket):
+        """Accept and register a WebSocket connection."""
+        await websocket.accept()
+
+        if self._main_loop is None:
+            self._main_loop = asyncio.get_event_loop()
+
+        if backtest_id not in self.active_connections:
+            self.active_connections[backtest_id] = []
+
+        self.active_connections[backtest_id].append(websocket)
+
+        # Register callback with executor
+        from api.backtest_executor import get_backtest_executor
+
+        executor = get_backtest_executor()
+        executor.register_status_callback(backtest_id, self._create_callback(backtest_id))
+
+    def disconnect(self, backtest_id: int, websocket: WebSocket):
+        """Remove a WebSocket connection."""
+        if backtest_id in self.active_connections:
+            if websocket in self.active_connections[backtest_id]:
+                self.active_connections[backtest_id].remove(websocket)
+
+            if not self.active_connections[backtest_id]:
+                del self.active_connections[backtest_id]
+
+    def _create_callback(self, backtest_id: int):
+        """Create a callback function for status updates."""
+        logger = logging.getLogger(__name__)
+
+        def callback(status_data: dict):
+            if self._main_loop is None:
+                logger.warning(f"No event loop available for WebSocket broadcast to backtest {backtest_id}")
+                return
+
+            try:
+                asyncio.run_coroutine_threadsafe(self.broadcast(backtest_id, status_data), self._main_loop)
+            except Exception as e:
+                logger.exception(f"Failed to schedule WebSocket broadcast for backtest {backtest_id}: {e}")
+
+        return callback
+
+    async def broadcast(self, backtest_id: int, message: dict):
+        """Broadcast a message to all connections for a backtest."""
+        if backtest_id not in self.active_connections:
+            return
+
+        disconnected = []
+        for connection in self.active_connections[backtest_id]:
+            try:
+                await connection.send_json(message)
+            except:
+                disconnected.append(connection)
+
+        for connection in disconnected:
+            self.disconnect(backtest_id, connection)
+
+
+# Global backtest connection manager
+backtest_manager = BacktestConnectionManager()
+
+
+@router.websocket("/api/v1/ws/backtests/{backtest_id}")
+async def websocket_backtest_status(
+    websocket: WebSocket,
+    backtest_id: int,
+    token: str | None = Query(None, description="JWT token or API key for authentication"),
+):
+    """WebSocket endpoint for real-time backtest status updates."""
+    # Authenticate first
+    db = SessionLocal()
+    authenticated = False
+
+    try:
+        if token:
+            # Try JWT first
+            try:
+                token_data = verify_token(token)
+                user = db.query(User).filter(User.id == token_data.user_id).first()
+                if user and user.is_active:
+                    authenticated = True
+            except JWTError:
+                # Try API key
+                key_record = verify_api_key_from_db(db, token)
+                if key_record:
+                    authenticated = True
+
+        if not authenticated:
+            await websocket.close(code=1008, reason="Authentication required")
+            return
+
+        # Verify backtest exists
+        backtest = db.query(Backtest).filter(Backtest.id == backtest_id).first()
+        if not backtest:
+            await websocket.close(code=1008, reason="Backtest not found")
+            return
+    finally:
+        db.close()
+
+    # Connect
+    await backtest_manager.connect(backtest_id, websocket)
+
+    try:
+        # Send initial status
+        db = SessionLocal()
+        try:
+            backtest = db.query(Backtest).filter(Backtest.id == backtest_id).first()
+            if backtest:
+                initial_status = {
+                    "type": "status_update",
+                    "backtest_id": backtest.id,
+                    "status": backtest.status,
+                    "progress_percentage": backtest.progress_percentage,
+                    "timestamp": backtest.updated_at.isoformat(),
+                }
+                await websocket.send_json(initial_status)
+        finally:
+            db.close()
+
+        # Keep connection alive and handle messages
+        while True:
+            data = await websocket.receive_text()
+
+            # Echo back if it's a ping
+            if data == "ping":
+                await websocket.send_text("pong")
+
+    except WebSocketDisconnect:
+        backtest_manager.disconnect(backtest_id, websocket)
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+        backtest_manager.disconnect(backtest_id, websocket)

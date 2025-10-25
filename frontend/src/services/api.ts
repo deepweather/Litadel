@@ -355,6 +355,23 @@ class APIService {
     return response.data
   }
 
+  async executeBacktest(id: number): Promise<{
+    message: string
+    backtest_id: number
+    status: string
+  }> {
+    const response = await this.client.post(`/api/v1/backtests/${id}/execute`)
+    return response.data
+  }
+
+  async cancelBacktest(id: number): Promise<{
+    message: string
+    backtest_id: number
+  }> {
+    const response = await this.client.post(`/api/v1/backtests/${id}/cancel`)
+    return response.data
+  }
+
   async generateStrategyDSL(
     data: {
       strategy_description: string
