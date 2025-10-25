@@ -23,6 +23,7 @@ export interface Analysis {
   completed_at: string | null
   error_message: string | null
   trading_decision?: TradingDecision | null
+  owner_username?: string | null // Username of the owner (if owned by a user)
 }
 
 export interface AnalysisStatusResponse {

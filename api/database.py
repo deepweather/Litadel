@@ -50,9 +50,13 @@ class Analysis(Base):
     progress_percentage = Column(Integer, default=0)
     current_agent = Column(String, nullable=True)
 
+    # User ownership (nullable for backward compatibility with API keys)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+
     # Relationships
     logs = relationship("AnalysisLog", back_populates="analysis", cascade="all, delete-orphan")
     reports = relationship("AnalysisReport", back_populates="analysis", cascade="all, delete-orphan")
+    owner = relationship("User", back_populates="analyses")
 
 
 class AnalysisLog(Base):
@@ -96,6 +100,21 @@ class APIKey(Base):
     name = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
+
+
+class User(Base):
+    """User accounts for username/password authentication."""
+
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, nullable=False, index=True)
+    password_hash = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+
+    # Relationships
+    analyses = relationship("Analysis", back_populates="owner")
 
 
 def init_db():

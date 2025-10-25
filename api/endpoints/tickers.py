@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from api.auth import APIKey, get_current_api_key
+from api.auth import get_current_auth
 from api.database import Analysis, get_db
 from api.endpoints.analyses import get_analysis
 from api.models import AnalysisResponse, AnalysisSummary, TickerInfo
@@ -15,7 +15,7 @@ router = APIRouter(prefix="/api/v1/tickers", tags=["tickers"])
 @router.get("", response_model=list[TickerInfo])
 async def list_tickers(
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(get_current_api_key),
+    auth=Depends(get_current_auth),
 ):
     """List all tickers with analysis count."""
     # Query for ticker stats
@@ -44,7 +44,7 @@ async def list_tickers(
 async def get_ticker_analyses(
     ticker: str,
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(get_current_api_key),
+    auth=Depends(get_current_auth),
 ):
     """Get all analyses for a ticker."""
     analyses = db.query(Analysis).filter(Analysis.ticker == ticker.upper()).order_by(Analysis.created_at.desc()).all()
@@ -67,7 +67,7 @@ async def get_ticker_analyses(
 async def get_ticker_latest_analysis(
     ticker: str,
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(get_current_api_key),
+    auth=Depends(get_current_auth),
 ):
     """Get the most recent analysis for a ticker."""
     analysis = db.query(Analysis).filter(Analysis.ticker == ticker.upper()).order_by(Analysis.created_at.desc()).first()
@@ -79,4 +79,4 @@ async def get_ticker_latest_analysis(
         )
 
     # Use the existing get_analysis function
-    return await get_analysis(analysis.id, db, api_key)
+    return await get_analysis(analysis.id, db, auth)

@@ -1,4 +1,4 @@
-"""Admin CLI tool for API key management."""
+"""Admin CLI tool for API key and user management."""
 
 import sys
 
@@ -6,8 +6,8 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from api.auth import create_api_key
-from api.database import APIKey, SessionLocal, init_db
+from api.auth import create_api_key, hash_password
+from api.database import APIKey, SessionLocal, User, init_db
 
 app = typer.Typer(
     name="api-admin",
@@ -138,6 +138,160 @@ def init_database():
     except Exception as e:
         console.print(f"[red]Error initializing database: {e}[/red]")
         sys.exit(1)
+
+
+# User Management Commands
+
+
+@app.command()
+def create_user(
+    username: str = typer.Argument(..., help="Username for the new user"),
+    password: str = typer.Option(..., prompt=True, hide_input=True, help="Password"),
+):
+    """Create a new user account."""
+    init_db()
+
+    db = SessionLocal()
+    try:
+        # Check if username already exists
+        existing_user = db.query(User).filter(User.username == username).first()
+        if existing_user:
+            console.print(f"[red]Error: User '{username}' already exists.[/red]")
+            sys.exit(1)
+
+        # Create new user
+        password_hash = hash_password(password)
+        user = User(username=username, password_hash=password_hash, is_active=True)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        console.print("\n[green]✓ User created successfully![/green]\n")
+        console.print(f"[bold]Username:[/bold] {user.username}")
+        console.print(f"[bold]Created:[/bold] {user.created_at}")
+        console.print("[bold]Status:[/bold] Active\n")
+    except Exception as e:
+        console.print(f"[red]Error creating user: {e}[/red]")
+        sys.exit(1)
+    finally:
+        db.close()
+
+
+@app.command()
+def list_users():
+    """List all user accounts."""
+    init_db()
+
+    db = SessionLocal()
+    try:
+        users = db.query(User).order_by(User.created_at.desc()).all()
+
+        if not users:
+            console.print("[yellow]No users found.[/yellow]")
+            return
+
+        table = Table(title="Users")
+        table.add_column("ID", style="cyan")
+        table.add_column("Username", style="green")
+        table.add_column("Created", style="blue")
+        table.add_column("Status", style="magenta")
+
+        for user in users:
+            status = "Active" if user.is_active else "Inactive"
+            status_color = "green" if user.is_active else "red"
+            table.add_row(
+                str(user.id),
+                user.username,
+                user.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                f"[{status_color}]{status}[/{status_color}]",
+            )
+
+        console.print(table)
+    finally:
+        db.close()
+
+
+@app.command()
+def deactivate_user(user_id: int = typer.Argument(..., help="User ID to deactivate")):
+    """Deactivate a user account."""
+    init_db()
+
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+
+        if not user:
+            console.print(f"[red]User with ID {user_id} not found.[/red]")
+            sys.exit(1)
+
+        if not user.is_active:
+            console.print(f"[yellow]User '{user.username}' is already inactive.[/yellow]")
+            return
+
+        user.is_active = False
+        db.commit()
+
+        console.print(f"[green]✓ User '{user.username}' has been deactivated.[/green]")
+    except Exception as e:
+        console.print(f"[red]Error deactivating user: {e}[/red]")
+        sys.exit(1)
+    finally:
+        db.close()
+
+
+@app.command()
+def activate_user(user_id: int = typer.Argument(..., help="User ID to activate")):
+    """Activate a user account."""
+    init_db()
+
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+
+        if not user:
+            console.print(f"[red]User with ID {user_id} not found.[/red]")
+            sys.exit(1)
+
+        if user.is_active:
+            console.print(f"[yellow]User '{user.username}' is already active.[/yellow]")
+            return
+
+        user.is_active = True
+        db.commit()
+
+        console.print(f"[green]✓ User '{user.username}' has been activated.[/green]")
+    except Exception as e:
+        console.print(f"[red]Error activating user: {e}[/red]")
+        sys.exit(1)
+    finally:
+        db.close()
+
+
+@app.command()
+def change_password(
+    username: str = typer.Argument(..., help="Username"),
+    password: str = typer.Option(..., prompt=True, hide_input=True, help="New password"),
+):
+    """Change a user's password."""
+    init_db()
+
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.username == username).first()
+
+        if not user:
+            console.print(f"[red]User '{username}' not found.[/red]")
+            sys.exit(1)
+
+        user.password_hash = hash_password(password)
+        db.commit()
+
+        console.print(f"[green]✓ Password changed successfully for user '{username}'.[/green]")
+    except Exception as e:
+        console.print(f"[red]Error changing password: {e}[/red]")
+        sys.exit(1)
+    finally:
+        db.close()
 
 
 if __name__ == "__main__":

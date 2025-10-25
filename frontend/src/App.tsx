@@ -8,6 +8,7 @@ import { AnalysisList } from './pages/AnalysisList'
 import { AnalysisDetail } from './pages/AnalysisDetail'
 import { CreateAnalysis } from './pages/CreateAnalysis'
 import { Settings } from './pages/Settings'
+import { Login } from './pages/Login'
 import { useAuthStore } from './stores/authStore'
 
 // Create QueryClient instance
@@ -23,10 +24,11 @@ const queryClient = new QueryClient({
 
 // Auth guard component
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const apiKey = useAuthStore((state) => state.apiKey)
+  const { apiKey, jwtToken } = useAuthStore()
 
-  if (!apiKey) {
-    return <Navigate to="/settings" replace />
+  // Check if user is authenticated with either method
+  if (!apiKey && !jwtToken) {
+    return <Navigate to="/login" replace />
   }
 
   return <>{children}</>
@@ -39,6 +41,8 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/settings" element={<Settings />} />
             <Route
               path="/analyses"
               element={
@@ -63,7 +67,6 @@ function App() {
                 </RequireAuth>
               }
             />
-            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>

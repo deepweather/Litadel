@@ -59,6 +59,7 @@ class AnalysisSummary(BaseModel):
     completed_at: datetime | None = Field(None, description="Completion timestamp")
     error_message: str | None = Field(None, description="Error message if failed")
     trading_decision: TradingDecision | None = Field(None, description="Extracted trading decision")
+    owner_username: str | None = Field(None, description="Username of the owner (if owned by a user)")
 
 
 class AnalysisResponse(BaseModel):
@@ -78,6 +79,7 @@ class AnalysisResponse(BaseModel):
     completed_at: datetime | None = Field(None, description="Completion timestamp")
     error_message: str | None = Field(None, description="Error message if failed")
     trading_decision: TradingDecision | None = Field(None, description="Extracted trading decision")
+    owner_username: str | None = Field(None, description="Username of the owner (if owned by a user)")
 
 
 class TickerInfo(BaseModel):

@@ -17,9 +17,21 @@ export class WebSocketService {
   }
 
   connect(): void {
-    const { apiUrl, apiKey } = useAuthStore.getState()
+    const { apiUrl, apiKey, jwtToken, authMethod } = useAuthStore.getState()
     const wsUrl = apiUrl.replace('http://', 'ws://').replace('https://', 'wss://')
-    const url = `${wsUrl}/api/v1/ws/analyses/${this.analysisId}`
+
+    // Get authentication token based on method
+    let token = null
+    if (authMethod === 'jwt' && jwtToken) {
+      token = jwtToken
+    } else if (authMethod === 'apikey' && apiKey) {
+      token = apiKey
+    }
+
+    // Add token as query parameter for authentication
+    const url = token
+      ? `${wsUrl}/api/v1/ws/analyses/${this.analysisId}?token=${encodeURIComponent(token)}`
+      : `${wsUrl}/api/v1/ws/analyses/${this.analysisId}`
 
     try {
       // when we (re)connect, allow reconnects on unexpected closes
@@ -28,11 +40,6 @@ export class WebSocketService {
 
       this.ws.onopen = () => {
         this.reconnectAttempts = 0
-
-        // Send API key for authentication
-        if (apiKey) {
-          this.send({ type: 'auth', api_key: apiKey })
-        }
       }
 
       this.ws.onmessage = (event) => {

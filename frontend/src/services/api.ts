@@ -18,12 +18,15 @@ class APIService {
       timeout: 30000,
     })
 
-    // Request interceptor to add API key
+    // Request interceptor to add authentication headers
     this.client.interceptors.request.use((config) => {
-      const { apiKey, apiUrl } = useAuthStore.getState()
+      const { apiKey, jwtToken, apiUrl, authMethod } = useAuthStore.getState()
       config.baseURL = apiUrl
 
-      if (apiKey) {
+      // Add appropriate auth header based on method
+      if (authMethod === 'jwt' && jwtToken) {
+        config.headers['Authorization'] = `Bearer ${jwtToken}`
+      } else if (authMethod === 'apikey' && apiKey) {
         config.headers['X-API-Key'] = apiKey
       }
 
@@ -35,8 +38,12 @@ class APIService {
       (response) => response,
       (error: AxiosError<APIError>) => {
         if (error.response?.status === 401) {
-          // Invalid API key
-          useAuthStore.getState().clearApiKey()
+          // Invalid authentication - clear auth state
+          useAuthStore.getState().clearAuth()
+          // Redirect to login page
+          if (window.location.pathname !== '/login' && window.location.pathname !== '/settings') {
+            window.location.href = '/login'
+          }
         }
 
         const apiError: APIError = {
@@ -104,6 +111,30 @@ class APIService {
     } catch {
       return false
     }
+  }
+
+  // Auth endpoints
+  async login(username: string, password: string): Promise<{
+    access_token: string
+    token_type: string
+    username: string
+    expires_in: number
+  }> {
+    const response = await this.client.post('/api/v1/auth/login', {
+      username,
+      password,
+    })
+    return response.data
+  }
+
+  async getCurrentUser(): Promise<{
+    id: number
+    username: string
+    created_at: string
+    is_active: boolean
+  }> {
+    const response = await this.client.get('/api/v1/auth/me')
+    return response.data
   }
 }
 

@@ -8,8 +8,8 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from api.auth import APIKey, get_current_api_key
-from api.database import Analysis, AnalysisLog, AnalysisReport, get_db
+from api.auth import get_current_auth
+from api.database import Analysis, AnalysisLog, AnalysisReport, User, get_db
 from api.models import (
     AnalysisResponse,
     AnalysisStatusResponse,
@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 async def create_analysis(
     request: CreateAnalysisRequest,
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(get_current_api_key),
+    auth=Depends(get_current_auth),
 ):
     """Create and start a new analysis."""
     # Generate analysis ID
@@ -60,6 +60,11 @@ async def create_analysis(
     if asset_class in ["commodity", "crypto"] and "fundamentals" in selected_analysts:
         selected_analysts = [a for a in selected_analysts if a != "fundamentals"]
 
+    # Determine user_id if authenticated via JWT
+    user_id = None
+    if isinstance(auth, User):
+        user_id = auth.id
+
     # Create database record
     analysis = Analysis(
         id=analysis_id,
@@ -68,6 +73,7 @@ async def create_analysis(
         status="pending",
         config_json=json.dumps(config),
         progress_percentage=0,
+        user_id=user_id,
     )
     db.add(analysis)
     db.commit()
@@ -96,6 +102,13 @@ async def create_analysis(
             detail=f"Failed to start analysis: {e!s}",
         ) from e
 
+    # Get owner username if exists
+    owner_username = None
+    if analysis.user_id:
+        owner = db.query(User).filter(User.id == analysis.user_id).first()
+        if owner:
+            owner_username = owner.username
+
     return AnalysisResponse(
         id=analysis.id,
         ticker=analysis.ticker,
@@ -110,6 +123,7 @@ async def create_analysis(
         updated_at=analysis.updated_at,
         completed_at=analysis.completed_at,
         error_message=analysis.error_message,
+        owner_username=owner_username,
     )
 
 
@@ -119,13 +133,18 @@ async def list_analyses(
     status: str | None = Query(None, description="Filter by status"),
     date_from: str | None = Query(None, description="Filter by date (from)"),
     date_to: str | None = Query(None, description="Filter by date (to)"),
+    my_analyses: bool = Query(False, description="Show only my analyses (JWT users only)"),
     limit: int = Query(100, ge=1, le=1000, description="Max results"),
     offset: int = Query(0, ge=0, description="Offset for pagination"),
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(get_current_api_key),
+    auth=Depends(get_current_auth),
 ):
     """List all analyses with optional filtering."""
     query = db.query(Analysis)
+
+    # Filter by current user if requested and authenticated via JWT
+    if my_analyses and isinstance(auth, User):
+        query = query.filter(Analysis.user_id == auth.id)
 
     if ticker:
         query = query.filter(Analysis.ticker == ticker.upper())
@@ -160,6 +179,13 @@ async def list_analyses(
         except:
             pass
 
+        # Get owner username if exists
+        owner_username = None
+        if a.user_id:
+            owner = db.query(User).filter(User.id == a.user_id).first()
+            if owner:
+                owner_username = owner.username
+
         results.append(
             AnalysisSummary(
                 id=a.id,
@@ -171,6 +197,7 @@ async def list_analyses(
                 completed_at=a.completed_at,
                 error_message=a.error_message,
                 trading_decision=trading_decision,
+                owner_username=owner_username,
             )
         )
 
@@ -181,7 +208,7 @@ async def list_analyses(
 async def get_analysis(
     analysis_id: str,
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(get_current_api_key),
+    auth=Depends(get_current_auth),
 ):
     """Get full analysis details."""
     analysis = db.query(Analysis).filter(Analysis.id == analysis_id).first()
@@ -203,6 +230,13 @@ async def get_analysis(
     # Extract selected_analysts from config
     config = json.loads(analysis.config_json)
     selected_analysts = config.get("selected_analysts", [])
+
+    # Get owner username if exists
+    owner_username = None
+    if analysis.user_id:
+        owner = db.query(User).filter(User.id == analysis.user_id).first()
+        if owner:
+            owner_username = owner.username
 
     return AnalysisResponse(
         id=analysis.id,
@@ -226,6 +260,7 @@ async def get_analysis(
         completed_at=analysis.completed_at,
         error_message=analysis.error_message,
         trading_decision=trading_decision,
+        owner_username=owner_username,
     )
 
 
@@ -233,7 +268,7 @@ async def get_analysis(
 async def get_analysis_status(
     analysis_id: str,
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(get_current_api_key),
+    auth=Depends(get_current_auth),
 ):
     """Get current analysis status."""
     analysis = db.query(Analysis).filter(Analysis.id == analysis_id).first()
@@ -257,7 +292,7 @@ async def get_analysis_status(
 async def get_analysis_reports(
     analysis_id: str,
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(get_current_api_key),
+    auth=Depends(get_current_auth),
 ):
     """Get all reports for an analysis."""
     # Check if analysis exists
@@ -290,7 +325,7 @@ async def get_analysis_report(
     analysis_id: str,
     report_type: str,
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(get_current_api_key),
+    auth=Depends(get_current_auth),
 ):
     """Get a specific report for an analysis."""
     report = (
@@ -322,7 +357,7 @@ async def get_analysis_logs(
     limit: int = Query(100, ge=1, le=1000, description="Max results"),
     offset: int = Query(0, ge=0, description="Offset for pagination"),
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(get_current_api_key),
+    auth=Depends(get_current_auth),
 ):
     """Get execution logs for an analysis."""
     # Check if analysis exists
@@ -356,7 +391,7 @@ async def delete_analysis(
     analysis_id: str,
     permanent: bool = Query(False, description="Permanently delete from database"),
     db: Session = Depends(get_db),
-    api_key: APIKey = Depends(get_current_api_key),
+    auth=Depends(get_current_auth),
 ):
     """Cancel and/or delete an analysis."""
     analysis = db.query(Analysis).filter(Analysis.id == analysis_id).first()

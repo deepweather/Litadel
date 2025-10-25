@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { ASCIIBox } from '../components/ui/ASCIIBox'
 import { Input } from '../components/ui/Input'
@@ -6,7 +7,8 @@ import { Button } from '../components/ui/Button'
 import toast from 'react-hot-toast'
 
 export const Settings: React.FC = () => {
-  const { apiKey, apiUrl, setApiKey, setApiUrl } = useAuthStore()
+  const navigate = useNavigate()
+  const { apiKey, apiUrl, username, authMethod, setApiKey, setApiUrl, clearAuth } = useAuthStore()
   const [tempApiKey, setTempApiKey] = useState(apiKey || '')
   const [tempApiUrl, setTempApiUrl] = useState(apiUrl)
 
@@ -38,6 +40,24 @@ export const Settings: React.FC = () => {
     }
   }
 
+  const handleLogout = () => {
+    clearAuth()
+    toast.success('Logged out successfully', {
+      style: {
+        background: '#1a2a3a',
+        color: '#4da6ff',
+        border: '1px solid #4da6ff',
+        fontFamily: 'JetBrains Mono, monospace',
+      },
+    })
+    navigate('/login')
+  }
+
+  const handleSwitchToLogin = () => {
+    clearAuth()
+    navigate('/login')
+  }
+
   return (
     <div style={{ maxWidth: '900px' }}>
       <h1
@@ -52,6 +72,105 @@ export const Settings: React.FC = () => {
         SETTINGS
       </h1>
 
+      {/* Current Authentication Status */}
+      <div style={{ marginBottom: '2rem' }}>
+        <ASCIIBox title="AUTHENTICATION STATUS">
+          <div style={{ padding: '1rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  paddingBottom: '1rem',
+                  borderBottom: '1px solid rgba(77, 166, 255, 0.2)',
+                }}
+              >
+                <span
+                  style={{
+                    color: '#5a6e7a',
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  Authentication Method
+                </span>
+                <span
+                  style={{
+                    color: '#4da6ff',
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: '0.875rem',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  {authMethod === 'jwt' ? 'USERNAME / PASSWORD' : authMethod === 'apikey' ? 'API KEY' : 'NOT AUTHENTICATED'}
+                </span>
+              </div>
+
+              {authMethod === 'jwt' && username && (
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingBottom: '1rem',
+                    borderBottom: '1px solid rgba(77, 166, 255, 0.2)',
+                  }}
+                >
+                  <span
+                    style={{
+                      color: '#5a6e7a',
+                      fontFamily: 'JetBrains Mono, monospace',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    Logged in as
+                  </span>
+                  <span
+                    style={{
+                      color: '#4da6ff',
+                      fontFamily: 'JetBrains Mono, monospace',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    {username}
+                  </span>
+                </div>
+              )}
+
+              {authMethod && (
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                  <Button onClick={handleLogout}>LOGOUT</Button>
+                  {authMethod === 'apikey' && (
+                    <Button onClick={handleSwitchToLogin}>SWITCH TO USER LOGIN</Button>
+                  )}
+                </div>
+              )}
+
+              {!authMethod && (
+                <div
+                  style={{
+                    color: '#ff6b6b',
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: '0.875rem',
+                    textAlign: 'center',
+                    padding: '1rem',
+                  }}
+                >
+                  You are not authenticated. Please login or configure an API key.
+                </div>
+              )}
+            </div>
+          </div>
+        </ASCIIBox>
+      </div>
+
       {/* API Key Configuration */}
       <div style={{ marginBottom: '2rem' }}>
         <ASCIIBox title="API KEY CONFIGURATION">
@@ -64,7 +183,9 @@ export const Settings: React.FC = () => {
                 marginBottom: '2rem',
               }}
             >
-              Your API key is stored locally in your browser. Never share your API key with others.
+              {authMethod === 'jwt'
+                ? 'You are logged in with a user account. You can optionally configure an API key for direct access.'
+                : 'Your API key is stored locally in your browser. Never share your API key with others.'}
             </div>
 
             <div style={{ marginBottom: '1.5rem' }}>
