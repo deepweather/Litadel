@@ -4,11 +4,13 @@ env/
 __pycache__/
 .DS_Store
 *.csv
-src/
 eval_results/
 eval_data/
 *.egg-info/
 .env
+
+# Include frontend src (override any src/ ignore)
+!frontend/src/
 
 # API Database
 api_database.db

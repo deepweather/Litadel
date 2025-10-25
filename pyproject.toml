@@ -10,7 +10,26 @@ name = "litadel"
 version = "0.1.0"
 description = "Multi-Agents LLM Financial Trading Framework (successor of TradingAgents by TaurusResearch)"
 readme = "README.md"
+authors = [
+    {name = "Marvin Gabler", email = "marvin@deepweather.ai"}
+]
+maintainers = [
+    {name = "Marvin Gabler", email = "marvin@deepweather.ai"}
+]
+license = {text = "Apache-2.0"}
 requires-python = ">=3.10"
+keywords = ["trading", "ai", "multi-agent", "llm", "finance", "algorithmic-trading"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+
 dependencies = [
     "akshare>=1.16.98",
     "backtrader>=1.9.78.123",
@@ -41,6 +60,12 @@ dependencies = [
     "yfinance>=0.2.63",
 ]
 
+[project.urls]
+Homepage = "https://github.com/deepweather/Litadel"
+Documentation = "https://github.com/deepweather/Litadel/blob/main/README.md"
+Repository = "https://github.com/deepweather/Litadel"
+Issues = "https://github.com/deepweather/Litadel/issues"
+
 [project.scripts]
 litadel-cli = "cli.main:app"
 litadel-api = "api.main:run_api"
@@ -49,6 +74,7 @@ litadel-admin = "api.cli_admin:app"
 [project.optional-dependencies]
 dev = [
     "ruff>=0.8.0",
+    "onnxruntime==1.22.0",  # Pin to version with macOS ARM wheels
 ]
 
 [tool.ruff]

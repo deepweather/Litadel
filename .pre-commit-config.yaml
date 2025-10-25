@@ -45,7 +45,7 @@ repos:
 
       - id: test-frontend-build
         name: Test frontend build
-        entry: python tests/test_frontend_build.py
+        entry: uv run python tests/test_frontend_build.py
         language: system
         files: '^frontend/.*\.(ts|tsx|js|jsx|json|html|css)$'
         pass_filenames: false

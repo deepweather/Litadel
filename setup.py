@@ -11,9 +11,9 @@ setup(
     name="litadel",
     version="0.1.0",
     description="Multi-Agents LLM Financial Trading Framework (successor of TradingAgents)",
-    author="Litadel Team",
-    author_email="yijia.xiao@cs.ucla.edu",
-    url="https://github.com/TauricResearch",
+    author="Marvin Gabler",
+    author_email="marvin@deepweather.ai",
+    url="https://github.com/deepweather/Litadel",
     packages=find_packages(),
     install_requires=[
         "langchain>=0.1.0",
