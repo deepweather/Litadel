@@ -103,6 +103,7 @@ async def create_analysis(
         analysis_date=analysis.analysis_date,
         status=analysis.status,
         config=config,
+        selected_analysts=selected_analysts,
         reports=[],
         progress_percentage=analysis.progress_percentage,
         current_agent=analysis.current_agent,
@@ -151,12 +152,22 @@ async def list_analyses(
             if reports:
                 trading_decision = extract_trading_decision(reports)
         
+        # Extract selected_analysts from config
+        selected_analysts = []
+        try:
+            config = json.loads(a.config_json)
+            # Check if selected_analysts was stored in config during analysis execution
+            selected_analysts = config.get("selected_analysts", [])
+        except:
+            pass
+        
         results.append(
             AnalysisSummary(
                 id=a.id,
                 ticker=a.ticker,
                 analysis_date=a.analysis_date,
                 status=a.status,
+                selected_analysts=selected_analysts,
                 created_at=a.created_at,
                 completed_at=a.completed_at,
                 error_message=a.error_message,
@@ -194,12 +205,17 @@ async def get_analysis(
     if analysis.status == "completed" and reports:
         trading_decision = extract_trading_decision(reports)
     
+    # Extract selected_analysts from config
+    config = json.loads(analysis.config_json)
+    selected_analysts = config.get("selected_analysts", [])
+    
     return AnalysisResponse(
         id=analysis.id,
         ticker=analysis.ticker,
         analysis_date=analysis.analysis_date,
         status=analysis.status,
-        config=json.loads(analysis.config_json),
+        config=config,
+        selected_analysts=selected_analysts,
         reports=[
             ReportResponse(
                 report_type=r.report_type,
@@ -331,6 +347,7 @@ async def get_analysis_logs(
     
     return [
         LogEntry(
+            agent_name=log.agent_name,
             timestamp=log.timestamp,
             log_type=log.log_type,
             content=log.content,

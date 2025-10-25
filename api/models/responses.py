@@ -24,6 +24,7 @@ class ReportResponse(BaseModel):
 class LogEntry(BaseModel):
     """Single log entry."""
 
+    agent_name: str = Field(..., description="Agent that generated this log")
     timestamp: datetime = Field(..., description="When the log was created")
     log_type: str = Field(..., description="Type of log (Tool Call, Reasoning, System)")
     content: str = Field(..., description="Log content")
@@ -54,6 +55,7 @@ class AnalysisSummary(BaseModel):
     ticker: str = Field(..., description="Ticker symbol")
     analysis_date: str = Field(..., description="Analysis date")
     status: str = Field(..., description="Current status")
+    selected_analysts: List[str] = Field(default_factory=list, description="Selected analysts for this analysis")
     created_at: datetime = Field(..., description="Creation timestamp")
     completed_at: Optional[datetime] = Field(None, description="Completion timestamp")
     error_message: Optional[str] = Field(None, description="Error message if failed")
@@ -68,6 +70,7 @@ class AnalysisResponse(BaseModel):
     analysis_date: str = Field(..., description="Analysis date")
     status: str = Field(..., description="Current status")
     config: Dict = Field(..., description="Analysis configuration")
+    selected_analysts: List[str] = Field(default_factory=list, description="Selected analysts for this analysis")
     reports: List[ReportResponse] = Field(
         default_factory=list, description="All report sections"
     )

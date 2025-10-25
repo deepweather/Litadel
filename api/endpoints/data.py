@@ -2,6 +2,7 @@
 
 import csv
 import glob
+import logging
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -15,9 +16,10 @@ from api.auth import APIKey, get_current_api_key
 from api.models.responses import CachedDataResponse, CachedTickerInfo
 
 router = APIRouter(prefix="/api/v1/data", tags=["data"])
+logger = logging.getLogger(__name__)
 
-# Data cache directory
-DATA_CACHE_DIR = Path("./tradingagents/dataflows/data_cache")
+# Data cache directory (resolve to absolute path to avoid cwd issues)
+DATA_CACHE_DIR = Path(__file__).parent.parent.parent / "litadel" / "dataflows" / "data_cache"
 
 
 def _parse_date_range(filename: str) -> Optional[Dict[str, str]]:
@@ -54,7 +56,7 @@ def _normalize_ohlcv_rows_from_csv(csv_text: str) -> List[Dict[str, str]]:
                 return d[c]
             # case-insensitive
             for k in d.keys():
-                if k.lower() == c.lower() and d[k] not in (None, ""):
+                if k is not None and k.lower() == c.lower() and d[k] not in (None, ""):
                     return d[k]
         return None
 
@@ -132,11 +134,19 @@ def _ensure_cached_data(ticker: str, start_date: Optional[str], end_date: Option
         else:
             csv_text = route_to_vendor("get_stock_data", ticker.upper(), start, end)
     except Exception as e:
-        # If vendor fetch fails, don't block
+        # Log the error for debugging
+        logger.error(f"Failed to fetch data for {ticker}: {e}")
         return None
 
-    rows = _normalize_ohlcv_rows_from_csv(csv_text)
+    try:
+        rows = _normalize_ohlcv_rows_from_csv(csv_text)
+    except Exception as e:
+        # Log CSV parsing errors
+        logger.error(f"Failed to parse CSV data for {ticker}: {e}")
+        return None
+        
     if not rows:
+        logger.warning(f"No data rows returned for {ticker}")
         return None
 
     # Sort by date to be safe
@@ -185,6 +195,8 @@ async def get_cached_data(
     api_key: APIKey = Depends(get_current_api_key),
 ):
     """Get cached market data for a ticker."""
+    logger.info(f"Fetching cached data for {ticker} from {DATA_CACHE_DIR}")
+    
     # Ensure cache exists (auto-fetches if missing for crypto/commodities/stocks)
     _ensure_cached_data(ticker, start_date, end_date)
 
@@ -192,7 +204,12 @@ async def get_cached_data(
     pattern = f"{ticker.upper()}-YFin-data-*.csv"
     matching_files = list(DATA_CACHE_DIR.glob(pattern))
     
+    logger.info(f"Cache dir exists: {DATA_CACHE_DIR.exists()}, pattern: {pattern}, found: {len(matching_files)} files")
+    
     if not matching_files:
+        # Log available files for debugging
+        all_files = list(DATA_CACHE_DIR.glob("*.csv")) if DATA_CACHE_DIR.exists() else []
+        logger.warning(f"No match for {ticker}. Available files: {[f.name for f in all_files[:5]]}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No cached data found for ticker {ticker}",
