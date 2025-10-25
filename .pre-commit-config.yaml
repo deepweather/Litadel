@@ -32,6 +32,25 @@ repos:
         # Always succeeds (|| true) because we only care about auto-fixes
         # Real errors will be caught by TypeScript compiler
 
+  # Smoke tests to ensure app actually works
+  - repo: local
+    hooks:
+      - id: test-python-imports
+        name: Test Python imports (litadel, api, cli)
+        entry: bash -c 'uv run python -c "from litadel.graph.trading_graph import TradingAgentsGraph; from litadel.default_config import DEFAULT_CONFIG; from api.main import app; from cli.main import console; print(\"✓ All Python imports successful\")"'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+      - id: test-frontend-build
+        name: Test frontend build
+        entry: bash -c 'cd frontend && npm run build > /tmp/frontend-build.log 2>&1 && echo "✓ Frontend build successful" || (echo "✗ Frontend build failed. Check /tmp/frontend-build.log"; exit 1)'
+        language: system
+        files: '^frontend/.*\.(ts|tsx|js|jsx|json|html|css)$'
+        pass_filenames: false
+        # Only runs when frontend files are changed
+
   # Standard pre-commit hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
