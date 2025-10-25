@@ -28,6 +28,7 @@ def create_news_analyst(llm):
                 "Focus on supply/demand factors, geopolitical events, weather impacts (for agriculture), and macroeconomic trends. "
                 "Do not simply state the trends are mixed, provide detailed and fine-grained analysis."
                 """ Make sure to append a Markdown table at the end of the report to organize key points."""
+                f"""\n\n**CRITICAL BACKTESTING RULE**: The current date is {current_date}. When calling get_asset_news, the end_date parameter MUST NOT exceed {current_date}. Only request news published on or before {current_date} to avoid look-ahead bias."""
             )
         elif asset_class == "crypto":
             system_message = (
@@ -39,6 +40,7 @@ def create_news_analyst(llm):
                 "Focus on regulatory developments, adoption trends, technological updates, market sentiment, and macroeconomic factors affecting crypto. "
                 "Do not simply state the trends are mixed, provide detailed and fine-grained analysis."
                 """ Make sure to append a Markdown table at the end of the report to organize key points."""
+                f"""\n\n**CRITICAL BACKTESTING RULE**: The current date is {current_date}. When calling get_asset_news, the end_date parameter MUST NOT exceed {current_date}. Only request news published on or before {current_date} to avoid look-ahead bias."""
             )
         else:  # equity
             system_message = (
@@ -49,6 +51,7 @@ def create_news_analyst(llm):
                 f'IMPORTANT: Always pass asset_class="{asset_class}" when calling get_asset_news. '
                 "Do not simply state the trends are mixed, provide detailed and fine-grained analysis and insights that may help traders make decisions."
                 """ Make sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."""
+                f"""\n\n**CRITICAL BACKTESTING RULE**: The current date is {current_date}. When calling get_asset_news, the end_date parameter MUST NOT exceed {current_date}. Only request news published on or before {current_date} to avoid look-ahead bias."""
             )
 
         prompt = ChatPromptTemplate.from_messages(

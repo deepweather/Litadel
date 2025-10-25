@@ -35,9 +35,15 @@ def create_fundamentals_analyst(llm):
                 "\n\n**IMPORTANT: Analyze analyst earnings estimates** using `get_earnings_estimates(ticker)` to understand market expectations "
                 "and identify potential beat/miss scenarios. Compare historical earnings surprises to gauge the company's track record of "
                 "meeting or exceeding expectations. This forward-looking analysis is critical for trading decisions."
+                "\n\n**CRITICAL FOR BACKTESTING**: When calling `get_balance_sheet`, `get_cashflow`, or `get_income_statement`, "
+                f"you MUST pass curr_date='{current_date}' to ensure you only see financial data available on or before that date. "
+                "This prevents look-ahead bias."
                 "\n\nMake sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."
-                " Use the available tools: `get_fundamentals` for comprehensive company analysis, `get_balance_sheet`, `get_cashflow`, "
-                "`get_income_statement` for specific financial statements, and `get_earnings_estimates` for analyst expectations and consensus.",
+                " Use the available tools: `get_fundamentals(ticker, curr_date)` for comprehensive company analysis, "
+                "`get_balance_sheet(ticker, freq='quarterly', curr_date='{current_date}')`, "
+                "`get_cashflow(ticker, freq='quarterly', curr_date='{current_date}')`, "
+                "`get_income_statement(ticker, freq='quarterly', curr_date='{current_date}')` for specific financial statements, "
+                "and `get_earnings_estimates(ticker)` for analyst expectations and consensus.",
             )
         else:
             # For commodities and crypto, fundamentals analyst doesn't make sense

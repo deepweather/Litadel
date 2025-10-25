@@ -23,6 +23,7 @@ class ReportResponse(BaseModel):
 class LogEntry(BaseModel):
     """Single log entry."""
 
+    id: str = Field(..., description="Unique log identifier")
     agent_name: str = Field(..., description="Agent that generated this log")
     timestamp: datetime = Field(..., description="When the log was created")
     log_type: str = Field(..., description="Type of log (Tool Call, Reasoning, System)")

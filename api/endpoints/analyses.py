@@ -377,6 +377,7 @@ async def get_analysis_logs(
 
     return [
         LogEntry(
+            id=str(log.id),
             agent_name=log.agent_name,
             timestamp=log.timestamp,
             log_type=log.log_type,

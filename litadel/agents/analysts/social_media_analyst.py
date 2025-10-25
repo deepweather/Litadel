@@ -1,8 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-from litadel.agents.utils.agent_utils import (
-    get_asset_news,
-)
+from litadel.agents.utils.agent_utils import get_asset_news
 from litadel.agents.utils.agent_utils import (
     get_global_news_unified as get_global_news,
 )
@@ -27,6 +25,7 @@ def create_social_media_analyst(llm):
                 "Focus on trader sentiment, supply/demand expectations, geopolitical concerns, and market psychology. "
                 "Do not simply state the trends are mixed, provide detailed and fine-grained analysis."
                 """ Make sure to append a Markdown table at the end of the report to organize key points."""
+                f"""\n\n**CRITICAL BACKTESTING RULE**: The current date is {current_date}. When calling get_asset_news, the end_date parameter MUST NOT exceed {current_date}. Only request data published on or before {current_date} to avoid look-ahead bias."""
             )
         elif asset_class == "crypto":
             system_message = (
@@ -37,6 +36,7 @@ def create_social_media_analyst(llm):
                 "Focus on community sentiment, adoption trends, regulatory concerns, developer activity, whale movements, and market psychology. "
                 "Do not simply state the trends are mixed, provide detailed and fine-grained analysis."
                 """ Make sure to append a Markdown table at the end of the report to organize key points."""
+                f"""\n\n**CRITICAL BACKTESTING RULE**: The current date is {current_date}. When calling get_asset_news, the end_date parameter MUST NOT exceed {current_date}. Only request data published on or before {current_date} to avoid look-ahead bias."""
             )
         else:  # equity
             system_message = (
@@ -47,6 +47,7 @@ def create_social_media_analyst(llm):
                 f'IMPORTANT: Always pass asset_class="{asset_class}" when calling get_asset_news. If needed, use get_global_news(curr_date, look_back_days) for broader market context (omit limit). '
                 "Try to look at all sources possible from social media to sentiment to news. Do not simply state the trends are mixed, provide detailed and fine-grained analysis and insights that may help traders make decisions."
                 """ Make sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."""
+                f"""\n\n**CRITICAL BACKTESTING RULE**: The current date is {current_date}. When calling get_asset_news, the end_date parameter MUST NOT exceed {current_date}. Only request data published on or before {current_date} to avoid look-ahead bias."""
             )
 
         prompt = ChatPromptTemplate.from_messages(

@@ -67,11 +67,11 @@ export const LogViewer: React.FC<LogViewerProps> = ({
 
   const getLogTypeColor = (logType: string) => {
     switch (logType) {
-      case 'tool_call':
+      case 'Tool Call':
         return 'text-terminal-accent'
-      case 'reasoning':
+      case 'Reasoning':
         return 'text-terminal-fg'
-      case 'system':
+      case 'System':
         return 'text-terminal-warning'
       default:
         return 'text-terminal-dim'
@@ -84,9 +84,12 @@ export const LogViewer: React.FC<LogViewerProps> = ({
 
   return (
     <div className="space-y-3">
-      {/* Filter buttons */}
-      <div className="flex gap-2">
-        {['all', 'tool_call', 'reasoning', 'system'].map((filterType) => (
+      {/* Filter buttons - sticky at top */}
+      <div
+        className="flex gap-2 bg-[#0a0f1a] pb-2"
+        style={{ position: 'sticky', top: 0, zIndex: 10 }}
+      >
+        {['all', 'Tool Call', 'Reasoning', 'System'].map((filterType) => (
           <button
             key={filterType}
             onClick={() => setFilter(filterType)}
@@ -100,7 +103,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
               }
             `}
           >
-            {filterType.toUpperCase()}
+            {filterType === 'all' ? 'ALL' : filterType.toUpperCase().replace(' ', '_')}
           </button>
         ))}
       </div>

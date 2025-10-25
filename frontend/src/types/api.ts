@@ -49,7 +49,7 @@ export interface AnalysisLog {
   id: string // UUID string
   analysis_id: string // UUID string
   agent_name: string // Agent that generated this log
-  log_type: 'reasoning' | 'tool_call' | 'system'
+  log_type: 'Reasoning' | 'Tool Call' | 'System'
   content: string
   timestamp: string
 }
