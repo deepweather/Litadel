@@ -90,14 +90,13 @@ def get_earnings_estimates(ticker: str) -> str:
 
         # Cache the formatted result
         _intelligence_cache.set_cached(cache_key, formatted, ttl)
-        return formatted
 
     except json.JSONDecodeError:
-        error_msg = f"Error parsing earnings data for {ticker}: {response[:500]}"
-        return error_msg
+        return f"Error parsing earnings data for {ticker}: {response[:500]}"
     except Exception as e:
-        error_msg = f"Error retrieving earnings estimates for {ticker}: {e!s}"
-        return error_msg
+        return f"Error retrieving earnings estimates for {ticker}: {e!s}"
+    else:
+        return formatted
 
 
 def get_top_gainers() -> str:
@@ -212,7 +211,7 @@ def get_market_movers() -> str:
     return report
 
 
-def get_earnings_call_transcript(ticker: str, quarter: str | None = None) -> str:
+def get_earnings_call_transcript(ticker: str, _quarter: str | None = None) -> str:
     """
     Retrieve earnings call transcript for a ticker (if available).
 
@@ -221,7 +220,7 @@ def get_earnings_call_transcript(ticker: str, quarter: str | None = None) -> str
 
     Args:
         ticker: Stock ticker symbol
-        quarter: Quarter in format YYYY-Q# (e.g., "2024-Q3")
+        _quarter: Quarter in format YYYY-Q# (e.g., "2024-Q3") - currently unused
 
     Returns:
         str: Earnings call transcript or unavailability message

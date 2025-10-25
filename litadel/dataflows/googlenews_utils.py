@@ -1,6 +1,6 @@
 import random
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 import requests
 from bs4 import BeautifulSoup
@@ -11,10 +11,13 @@ from tenacity import (
     wait_exponential,
 )
 
+# HTTP Status Codes
+HTTP_TOO_MANY_REQUESTS = 429  # Rate limiting
+
 
 def is_rate_limited(response):
     """Check if the response indicates rate limiting (status code 429)"""
-    return response.status_code == 429
+    return response.status_code == HTTP_TOO_MANY_REQUESTS
 
 
 @retry(
@@ -26,11 +29,10 @@ def make_request(url, headers):
     """Make a request with retry logic for rate limiting"""
     # Random delay before each request to avoid detection
     time.sleep(random.uniform(2, 6))
-    response = requests.get(url, headers=headers)
-    return response
+    return requests.get(url, headers=headers)
 
 
-def getNewsData(query, start_date, end_date):
+def getNewsData(query, start_date, end_date):  # noqa: N802
     """
     Scrape Google News search results for a given query and date range.
     query: str - search query
@@ -38,10 +40,10 @@ def getNewsData(query, start_date, end_date):
     end_date: str - end date in the format yyyy-mm-dd or mm/dd/yyyy
     """
     if "-" in start_date:
-        start_date = datetime.strptime(start_date, "%Y-%m-%d")
+        start_date = datetime.strptime(start_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
         start_date = start_date.strftime("%m/%d/%Y")
     if "-" in end_date:
-        end_date = datetime.strptime(end_date, "%Y-%m-%d")
+        end_date = datetime.strptime(end_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
         end_date = end_date.strftime("%m/%d/%Y")
 
     headers = {

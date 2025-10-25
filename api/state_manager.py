@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class AnalysisExecutor:
     """Manages analysis execution with thread pool and state tracking."""
 
-    def __init__(self, max_workers: int = None):
+    def __init__(self, max_workers: int | None = None):
         """
         Initialize the executor.
 
@@ -335,14 +335,15 @@ class AnalysisExecutor:
                 # Check for shutdown signal
                 if self._shutdown_flag.is_set():
                     logger.info(f"Analysis {analysis_id} interrupted due to shutdown")
-                    raise KeyboardInterrupt("Analysis cancelled due to API shutdown")
+                    msg = "Analysis cancelled due to API shutdown"
+                    raise KeyboardInterrupt(msg)
 
                 if len(chunk.get("messages", [])) == 0:
                     continue
 
                 # Determine current agent from chunk keys (node names)
                 # LangGraph chunks have keys that are node names
-                chunk_keys = [k for k in chunk.keys() if k != "messages"]
+                chunk_keys = [k for k in chunk if k != "messages"]
                 if chunk_keys:
                     # Get the node name (agent name) from the chunk
                     node_name = chunk_keys[0]
@@ -443,8 +444,8 @@ class AnalysisExecutor:
         except Exception as e:
             error_msg = str(e)
             error_trace = traceback.format_exc()
-            logger.error(f"Analysis {analysis_id} failed: {error_msg}")
-            logger.error(f"Traceback:\n{error_trace}")
+            logger.exception(f"Analysis {analysis_id} failed: {error_msg}")
+            logger.exception(f"Traceback:\n{error_trace}")
             self._update_status(analysis_id, status="failed", error_message=error_msg)
             self._store_log(analysis_id, "System", f"Error: {error_msg}\n\nTraceback:\n{error_trace}")
         finally:
@@ -493,12 +494,12 @@ class AnalysisExecutor:
             return " ".join(text_parts)
         return str(content)
 
-    def shutdown(self, timeout: int = 10):
+    def shutdown(self, timeout: int = 5):
         """
         Shutdown the executor and cancel all running analyses.
 
         Args:
-            timeout: Maximum seconds to wait for analyses to stop (default: 10)
+            timeout: Maximum seconds to wait for analyses to stop (default: 5)
         """
         logger.info("Shutdown requested - cancelling running analyses...")
 
@@ -521,7 +522,7 @@ class AnalysisExecutor:
 
             db.commit()
         except Exception as e:
-            logger.error(f"Error marking analyses as cancelled: {e}")
+            logger.exception(f"Error marking analyses as cancelled: {e}")
         finally:
             db.close()
 
@@ -530,10 +531,16 @@ class AnalysisExecutor:
             for analysis_id in list(self.active_analyses.keys()):
                 self.cancel_analysis(analysis_id)
 
-        # Shutdown executor with timeout
-        logger.info(f"Waiting up to {timeout} seconds for analyses to stop...")
-        self.executor.shutdown(wait=True, cancel_futures=True)
-        logger.info("Executor shutdown complete")
+        # Shutdown executor - don't wait indefinitely
+        # cancel_futures=True will attempt to cancel pending futures
+        logger.info(f"Shutting down executor (timeout: {timeout}s)...")
+        try:
+            self.executor.shutdown(wait=False, cancel_futures=True)
+            logger.info("Executor shutdown initiated")
+        except Exception as e:
+            logger.warning(f"Error during executor shutdown: {e}")
+
+        logger.info("Shutdown complete")
 
 
 # Global executor instance

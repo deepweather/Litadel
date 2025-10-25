@@ -51,7 +51,7 @@ class AnalystConfig:
 
         return tools_map.get(self.asset_class, tools_map["equity"]).get(analyst_type, [])
 
-    def get_prompt_config(self, analyst_type: str) -> dict[str, str]:
+    def get_prompt_config(self, _analyst_type: str) -> dict[str, str]:
         """Get prompt configuration for a given analyst based on asset class.
 
         Returns a dict with prompt templates and asset-specific terminology.

@@ -1,6 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from .alpha_vantage_common import _filter_csv_by_date_range, _make_api_request
+
+# Constants
+COMPACT_DATA_DAYS_THRESHOLD = 100  # Alpha Vantage compact size covers latest 100 days
 
 
 def get_stock(symbol: str, start_date: str, end_date: str) -> str:
@@ -17,13 +20,13 @@ def get_stock(symbol: str, start_date: str, end_date: str) -> str:
         CSV string containing the daily adjusted time series data filtered to the date range.
     """
     # Parse dates to determine the range
-    start_dt = datetime.strptime(start_date, "%Y-%m-%d")
-    today = datetime.now()
+    start_dt = datetime.strptime(start_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    today = datetime.now(tz=timezone.utc)
 
     # Choose outputsize based on whether the requested range is within the latest 100 days
     # Compact returns latest 100 data points, so check if start_date is recent enough
     days_from_today_to_start = (today - start_dt).days
-    outputsize = "compact" if days_from_today_to_start < 100 else "full"
+    outputsize = "compact" if days_from_today_to_start < COMPACT_DATA_DAYS_THRESHOLD else "full"
 
     params = {
         "symbol": symbol,

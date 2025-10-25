@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Annotated
 
 import yfinance as yf
@@ -8,13 +8,13 @@ from dateutil.relativedelta import relativedelta
 from .stockstats_utils import StockstatsUtils
 
 
-def get_YFin_data_online(
+def get_YFin_data_online(  # noqa: N802
     symbol: Annotated[str, "ticker symbol of the company"],
     start_date: Annotated[str, "Start date in yyyy-mm-dd format"],
     end_date: Annotated[str, "End date in yyyy-mm-dd format"],
 ):
-    datetime.strptime(start_date, "%Y-%m-%d")
-    datetime.strptime(end_date, "%Y-%m-%d")
+    datetime.strptime(start_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    datetime.strptime(end_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
 
     # Create ticker object
     ticker = yf.Ticker(symbol.upper())
@@ -42,7 +42,7 @@ def get_YFin_data_online(
     # Add header information
     header = f"# Stock data for {symbol.upper()} from {start_date} to {end_date}\n"
     header += f"# Total records: {len(data)}\n"
-    header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+    header += f"# Data retrieved on: {datetime.now(tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}\n\n"
 
     return header + csv_string
 
@@ -127,10 +127,11 @@ def get_stock_stats_indicators_window(
     }
 
     if indicator not in best_ind_params:
-        raise ValueError(f"Indicator {indicator} is not supported. Please choose from: {list(best_ind_params.keys())}")
+        msg = f"Indicator {indicator} is not supported. Please choose from: {list(best_ind_params.keys())}"
+        raise ValueError(msg)
 
     end_date = curr_date
-    curr_date_dt = datetime.strptime(curr_date, "%Y-%m-%d")
+    curr_date_dt = datetime.strptime(curr_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
     before = curr_date_dt - relativedelta(days=look_back_days)
 
     # Optimized: Get stock data once and calculate indicators for all dates
@@ -162,20 +163,18 @@ def get_stock_stats_indicators_window(
         print(f"Error getting bulk stockstats data: {e}")
         # Fallback to original implementation if bulk method fails
         ind_string = ""
-        curr_date_dt = datetime.strptime(curr_date, "%Y-%m-%d")
+        curr_date_dt = datetime.strptime(curr_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
         while curr_date_dt >= before:
             indicator_value = get_stockstats_indicator(symbol, indicator, curr_date_dt.strftime("%Y-%m-%d"))
             ind_string += f"{curr_date_dt.strftime('%Y-%m-%d')}: {indicator_value}\n"
             curr_date_dt = curr_date_dt - relativedelta(days=1)
 
-    result_str = (
+    return (
         f"## {indicator} values from {before.strftime('%Y-%m-%d')} to {end_date}:\n\n"
         + ind_string
         + "\n\n"
         + best_ind_params.get(indicator, "No description available.")
     )
-
-    return result_str
 
 
 def _get_stock_stats_bulk(
@@ -207,11 +206,12 @@ def _get_stock_stats_bulk(
             )
             df = wrap(data)
         except FileNotFoundError:
-            raise Exception("Stockstats fail: Yahoo Finance data not fetched yet!")
+            msg = "Stockstats fail: Yahoo Finance data not fetched yet!"
+            raise Exception(msg)
     else:
         # Online data fetching with caching
         today_date = pd.Timestamp.today()
-        curr_date_dt = pd.to_datetime(curr_date)
+        pd.to_datetime(curr_date)
 
         end_date = today_date
         start_date = today_date - pd.DateOffset(years=15)
@@ -266,7 +266,7 @@ def get_stockstats_indicator(
     indicator: Annotated[str, "technical indicator to get the analysis and report of"],
     curr_date: Annotated[str, "The current trading date you are trading on, YYYY-mm-dd"],
 ) -> str:
-    curr_date_dt = datetime.strptime(curr_date, "%Y-%m-%d")
+    curr_date_dt = datetime.strptime(curr_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
     curr_date = curr_date_dt.strftime("%Y-%m-%d")
 
     try:
@@ -285,16 +285,13 @@ def get_stockstats_indicator(
 def get_balance_sheet(
     ticker: Annotated[str, "ticker symbol of the company"],
     freq: Annotated[str, "frequency of data: 'annual' or 'quarterly'"] = "quarterly",
-    curr_date: Annotated[str, "current date (not used for yfinance)"] = None,
+    _curr_date: Annotated[str | None, "current date (not used for yfinance)"] = None,
 ):
     """Get balance sheet data from yfinance."""
     try:
         ticker_obj = yf.Ticker(ticker.upper())
 
-        if freq.lower() == "quarterly":
-            data = ticker_obj.quarterly_balance_sheet
-        else:
-            data = ticker_obj.balance_sheet
+        data = ticker_obj.quarterly_balance_sheet if freq.lower() == "quarterly" else ticker_obj.balance_sheet
 
         if data.empty:
             return f"No balance sheet data found for symbol '{ticker}'"
@@ -304,7 +301,7 @@ def get_balance_sheet(
 
         # Add header information
         header = f"# Balance Sheet data for {ticker.upper()} ({freq})\n"
-        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        header += f"# Data retrieved on: {datetime.now(tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}\n\n"
 
         return header + csv_string
 
@@ -315,16 +312,13 @@ def get_balance_sheet(
 def get_cashflow(
     ticker: Annotated[str, "ticker symbol of the company"],
     freq: Annotated[str, "frequency of data: 'annual' or 'quarterly'"] = "quarterly",
-    curr_date: Annotated[str, "current date (not used for yfinance)"] = None,
+    _curr_date: Annotated[str | None, "current date (not used for yfinance)"] = None,
 ):
     """Get cash flow data from yfinance."""
     try:
         ticker_obj = yf.Ticker(ticker.upper())
 
-        if freq.lower() == "quarterly":
-            data = ticker_obj.quarterly_cashflow
-        else:
-            data = ticker_obj.cashflow
+        data = ticker_obj.quarterly_cashflow if freq.lower() == "quarterly" else ticker_obj.cashflow
 
         if data.empty:
             return f"No cash flow data found for symbol '{ticker}'"
@@ -334,7 +328,7 @@ def get_cashflow(
 
         # Add header information
         header = f"# Cash Flow data for {ticker.upper()} ({freq})\n"
-        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        header += f"# Data retrieved on: {datetime.now(tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}\n\n"
 
         return header + csv_string
 
@@ -345,16 +339,13 @@ def get_cashflow(
 def get_income_statement(
     ticker: Annotated[str, "ticker symbol of the company"],
     freq: Annotated[str, "frequency of data: 'annual' or 'quarterly'"] = "quarterly",
-    curr_date: Annotated[str, "current date (not used for yfinance)"] = None,
+    _curr_date: Annotated[str | None, "current date (not used for yfinance)"] = None,
 ):
     """Get income statement data from yfinance."""
     try:
         ticker_obj = yf.Ticker(ticker.upper())
 
-        if freq.lower() == "quarterly":
-            data = ticker_obj.quarterly_income_stmt
-        else:
-            data = ticker_obj.income_stmt
+        data = ticker_obj.quarterly_income_stmt if freq.lower() == "quarterly" else ticker_obj.income_stmt
 
         if data.empty:
             return f"No income statement data found for symbol '{ticker}'"
@@ -364,7 +355,7 @@ def get_income_statement(
 
         # Add header information
         header = f"# Income Statement data for {ticker.upper()} ({freq})\n"
-        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        header += f"# Data retrieved on: {datetime.now(tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}\n\n"
 
         return header + csv_string
 
@@ -386,7 +377,7 @@ def get_insider_transactions(ticker: Annotated[str, "ticker symbol of the compan
 
         # Add header information
         header = f"# Insider Transactions data for {ticker.upper()}\n"
-        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        header += f"# Data retrieved on: {datetime.now(tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}\n\n"
 
         return header + csv_string
 

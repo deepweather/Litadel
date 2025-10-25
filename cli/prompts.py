@@ -1,5 +1,9 @@
 """Interactive user prompts for the Litadel CLI."""
 
+import re
+import sys
+from datetime import datetime
+
 import questionary
 
 from cli.helpers import AnalystType
@@ -29,24 +33,23 @@ def get_ticker() -> str:
 
     if not ticker:
         console.print("\n[red]No ticker symbol provided. Exiting...[/red]")
-        exit(1)
+        sys.exit(1)
 
     return ticker.strip().upper()
 
 
 def get_analysis_date() -> str:
     """Prompt the user to enter a date in YYYY-MM-DD format."""
-    import re
-    from datetime import datetime
 
     def validate_date(date_str: str) -> bool:
         if not re.match(r"^\d{4}-\d{2}-\d{2}$", date_str):
             return False
         try:
             datetime.strptime(date_str, "%Y-%m-%d")
-            return True
         except ValueError:
             return False
+        else:
+            return True
 
     date = questionary.text(
         "Enter the analysis date (YYYY-MM-DD):",
@@ -61,7 +64,7 @@ def get_analysis_date() -> str:
 
     if not date:
         console.print("\n[red]No date provided. Exiting...[/red]")
-        exit(1)
+        sys.exit(1)
 
     return date.strip()
 
@@ -92,7 +95,7 @@ def select_analysts(asset_class: str | None = None) -> list[AnalystType]:
 
     if not choices:
         console.print("\n[red]No analysts selected. Exiting...[/red]")
-        exit(1)
+        sys.exit(1)
 
     return choices
 
@@ -122,7 +125,7 @@ def select_research_depth() -> int:
 
     if choice is None:
         console.print("\n[red]No research depth selected. Exiting...[/red]")
-        exit(1)
+        sys.exit(1)
 
     return choice
 
@@ -146,7 +149,7 @@ def select_shallow_thinking_agent(provider) -> str:
 
     if choice is None:
         console.print("\n[red]No shallow thinking llm engine selected. Exiting...[/red]")
-        exit(1)
+        sys.exit(1)
 
     return choice
 
@@ -168,7 +171,7 @@ def select_deep_thinking_agent(provider) -> str:
 
     if choice is None:
         console.print("\n[red]No deep thinking llm engine selected. Exiting...[/red]")
-        exit(1)
+        sys.exit(1)
 
     return choice
 
@@ -190,7 +193,7 @@ def select_llm_provider() -> tuple[str, str]:
 
     if choice is None:
         console.print("\n[red]no OpenAI backend selected. Exiting...[/red]")
-        exit(1)
+        sys.exit(1)
 
     display_name, url = choice
     print(f"You selected: {display_name}\tURL: {url}")

@@ -36,8 +36,7 @@ def get_earnings_estimates(ticker: str) -> str:
         >>> # Returns quarterly earnings, estimates, surprises, beat rate
     """
     try:
-        result = get_earnings_estimates_impl(ticker)
-        return result
+        return get_earnings_estimates_impl(ticker)
     except Exception as e:
         return f"Error retrieving earnings estimates for {ticker}: {e!s}"
 
@@ -63,7 +62,6 @@ def get_market_movers() -> str:
         >>> # Returns tables of top gainers and losers with current stats
     """
     try:
-        result = get_market_movers_impl()
-        return result
+        return get_market_movers_impl()
     except Exception as e:
         return f"Error retrieving market movers: {e!s}"

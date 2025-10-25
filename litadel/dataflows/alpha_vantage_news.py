@@ -1,4 +1,7 @@
+import json
+
 from .alpha_vantage_common import _make_api_request, format_datetime_for_api
+from .config import get_config
 
 # Map commodity symbols to Alpha Vantage NEWS_SENTIMENT topics
 COMMODITY_TOPIC_MAP = {
@@ -125,8 +128,6 @@ def get_commodity_news(commodity: str, start_date: str, end_date: str) -> dict[s
     keyword = COMMODITY_KEYWORDS.get(commodity_upper, commodity)
 
     # Use topics parameter instead of tickers for commodities
-    from .config import get_config
-
     limit = get_config().get("commodity_news_limit", 50)
 
     params = {
@@ -140,8 +141,6 @@ def get_commodity_news(commodity: str, start_date: str, end_date: str) -> dict[s
     result = _make_api_request("NEWS_SENTIMENT", params)
 
     # Add metadata to help the LLM understand this is commodity-filtered news
-    import json
-
     try:
         data = json.loads(result) if isinstance(result, str) else result
         if isinstance(data, dict) and "feed" in data:
@@ -177,8 +176,6 @@ def get_crypto_news(crypto: str, start_date: str, end_date: str) -> dict[str, st
     # Use CRYPTO:XXX ticker format
     ticker = f"CRYPTO:{crypto_upper}"
 
-    from .config import get_config
-
     limit = get_config().get("commodity_news_limit", 50)
 
     params = {
@@ -192,8 +189,6 @@ def get_crypto_news(crypto: str, start_date: str, end_date: str) -> dict[str, st
     result = _make_api_request("NEWS_SENTIMENT", params)
 
     # Add metadata to help the LLM understand this is crypto-filtered news
-    import json
-
     try:
         data = json.loads(result) if isinstance(result, str) else result
         if isinstance(data, dict) and "feed" in data:

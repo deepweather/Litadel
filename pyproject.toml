@@ -10,13 +10,34 @@ name = "litadel"
 version = "0.1.0"
 description = "Multi-Agents LLM Financial Trading Framework (successor of TradingAgents by TaurusResearch)"
 readme = "README.md"
+authors = [
+    {name = "Marvin Gabler", email = "marvin@deepweather.ai"}
+]
+maintainers = [
+    {name = "Marvin Gabler", email = "marvin@deepweather.ai"}
+]
+license = {text = "Apache-2.0"}
 requires-python = ">=3.10"
+keywords = ["trading", "ai", "multi-agent", "llm", "finance", "algorithmic-trading"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+
 dependencies = [
     "akshare>=1.16.98",
     "backtrader>=1.9.78.123",
+    "bcrypt>=4.0.0,<5.0.0",
     "chainlit>=2.5.5",
     "chromadb>=1.0.12",
     "eodhd>=1.0.32",
+    "fastapi>=0.116.1",
     "feedparser>=6.0.11",
     "finnhub-python>=2.4.23",
     "grip>=4.6.2",
@@ -25,21 +46,35 @@ dependencies = [
     "langchain-google-genai>=2.1.5",
     "langchain-openai>=0.3.23",
     "langgraph>=0.4.8",
+    "onnxruntime==1.22.0",
     "pandas>=2.3.0",
     "parsel>=1.10.0",
+    "passlib[bcrypt]>=1.7.4",
+    "pre-commit>=3.5.0",
     "praw>=7.8.1",
+    "python-multipart>=0.0.18",
     "pytz>=2025.2",
     "questionary>=2.1.0",
     "redis>=6.2.0",
     "requests>=2.32.4",
     "rich>=14.0.0",
+    "ruff>=0.8.0",
     "setuptools>=80.9.0",
+    "sqlalchemy==2.0.25",
     "stockstats>=0.6.5",
     "tqdm>=4.67.1",
     "tushare>=1.4.21",
     "typing-extensions>=4.14.0",
+    "uvicorn[standard]>=0.35.0",
+    "websockets>=12.0",
     "yfinance>=0.2.63",
 ]
+
+[project.urls]
+Homepage = "https://github.com/deepweather/Litadel"
+Documentation = "https://github.com/deepweather/Litadel/blob/main/README.md"
+Repository = "https://github.com/deepweather/Litadel"
+Issues = "https://github.com/deepweather/Litadel/issues"
 
 [project.scripts]
 litadel-cli = "cli.main:app"
@@ -47,9 +82,7 @@ litadel-api = "api.main:run_api"
 litadel-admin = "api.cli_admin:app"
 
 [project.optional-dependencies]
-dev = [
-    "ruff>=0.8.0",
-]
+dev = []
 
 [tool.ruff]
 # Ruff configuration for linting and formatting
@@ -97,33 +130,15 @@ select = [
     "TID",    # flake8-tidy-imports
     "TCH",    # flake8-type-checking
     "ARG",    # flake8-unused-arguments
-    "PTH",    # flake8-use-pathlib
     "PL",     # pylint
     "TRY",    # tryceratops
     "RUF",    # ruff-specific rules
 ]
 
-# Ignore specific rules that might be too strict for this project
+# Ignore only rules that break functionality
 ignore = [
     "E501",    # line too long (handled by formatter)
     "ISC001",  # implicit string concatenation (conflicts with formatter)
-    "B008",    # do not perform function calls in argument defaults (common in FastAPI)
-    "B904",    # raise without from inside except
-    "E712",    # comparison to True/False
-    "PLR0913", # too many arguments
-    "PLR2004", # magic value comparison
-    "TRY003",  # avoid specifying long messages outside exception class
-    "TRY400",  # use logging.exception instead of logging.error
-    "EM101",   # exception must not use string literal
-    "EM102",   # exception must not use f-string literal
-    "N802",    # function name should be lowercase (conflicts with some LangChain patterns)
-    "N803",    # argument name should be lowercase
-    "N806",    # variable in function should be lowercase
-    "ARG001",  # unused function argument (common in callbacks)
-    "ARG002",  # unused method argument
-    "PLR0912", # too many branches
-    "PLR0915", # too many statements
-    "C901",    # too complex
 ]
 
 # Allow autofix for all enabled rules
@@ -134,16 +149,14 @@ unfixable = []
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.per-file-ignores]
-# Ignore specific rules in test files
-"test_*.py" = ["PLR2004", "S101", "TID252", "T201", "F401", "PLC0415", "TRY300"]
-"**/tests/**" = ["PLR2004", "S101", "TID252", "T201", "F401", "PLC0415", "TRY300"]  # Allow print, unused imports, non-top-level imports in tests
-# Ignore import errors in __init__.py files and re-export modules
+# Critical: These files re-export modules and need unused import exceptions
 "__init__.py" = ["F401", "F403"]
-"**/agent_utils.py" = ["F401"]  # Re-exports utilities for agents
-"**/alpha_vantage.py" = ["F401"]  # Re-exports from specialized alpha vantage modules
-# Config files can have lots of settings
-"**/config.py" = ["PLR0913"]
-"**/default_config.py" = ["PLR0913"]
+"**/agent_utils.py" = ["F401", "F403"]
+"**/alpha_vantage.py" = ["F401"]
+"**/setup.py" = ["F403", "F405"]  # Uses star imports from agents
+"**/trading_graph.py" = ["F403"]  # Uses star imports from agents
+# Tests can have unused imports for testing imports work
+"**/tests/**" = ["F401", "T201"]
 
 [tool.ruff.lint.isort]
 # Import sorting configuration

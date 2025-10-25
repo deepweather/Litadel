@@ -25,9 +25,12 @@ def get_indicator(
     Returns:
         String containing indicator values and description
     """
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     from dateutil.relativedelta import relativedelta
+
+    # Constants
+    MIN_DATA_LINES = 2  # Minimum lines needed (header + at least one data row)
 
     supported_indicators = {
         "close_50_sma": ("50 SMA", "close"),
@@ -60,11 +63,10 @@ def get_indicator(
     }
 
     if indicator not in supported_indicators:
-        raise ValueError(
-            f"Indicator {indicator} is not supported. Please choose from: {list(supported_indicators.keys())}"
-        )
+        msg = f"Indicator {indicator} is not supported. Please choose from: {list(supported_indicators.keys())}"
+        raise ValueError(msg)
 
-    curr_date_dt = datetime.strptime(curr_date, "%Y-%m-%d")
+    curr_date_dt = datetime.strptime(curr_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
     before = curr_date_dt - relativedelta(days=look_back_days)
 
     # Get the full data for the period instead of making individual calls
@@ -109,7 +111,7 @@ def get_indicator(
                     "datatype": "csv",
                 },
             )
-        elif indicator == "macd" or indicator == "macds" or indicator == "macdh":
+        elif indicator in {"macd", "macds", "macdh"}:
             data = _make_api_request(
                 "MACD", {"symbol": symbol, "interval": interval, "series_type": series_type, "datatype": "csv"}
             )
@@ -148,7 +150,7 @@ def get_indicator(
 
         # Parse CSV data and extract values for the date range
         lines = data.strip().split("\n")
-        if len(lines) < 2:
+        if len(lines) < MIN_DATA_LINES:
             return f"Error: No data returned for {indicator}"
 
         # Parse header and data
@@ -193,7 +195,7 @@ def get_indicator(
                 try:
                     date_str = values[date_col_idx].strip()
                     # Parse the date
-                    date_dt = datetime.strptime(date_str, "%Y-%m-%d")
+                    date_dt = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
 
                     # Check if date is in our range
                     if before <= date_dt <= curr_date_dt:
@@ -212,14 +214,12 @@ def get_indicator(
         if not ind_string:
             ind_string = "No data available for the specified date range.\n"
 
-        result_str = (
+        return (
             f"## {indicator.upper()} values from {before.strftime('%Y-%m-%d')} to {curr_date}:\n\n"
             + ind_string
             + "\n\n"
             + indicator_descriptions.get(indicator, "No description available.")
         )
-
-        return result_str
 
     except Exception as e:
         print(f"Error getting Alpha Vantage indicator data for {indicator}: {e}")

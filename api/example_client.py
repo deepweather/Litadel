@@ -3,7 +3,7 @@
 import asyncio
 import json
 import time
-from datetime import date
+from datetime import datetime, timezone
 
 import httpx
 import websockets
@@ -23,13 +23,13 @@ class TradingAgentsAPIClient:
     async def create_analysis(
         self,
         ticker: str,
-        analysis_date: str = None,
-        selected_analysts: list = None,
+        analysis_date: str | None = None,
+        selected_analysts: list | None = None,
         research_depth: int = 1,
     ):
         """Create a new analysis."""
         if analysis_date is None:
-            analysis_date = date.today().strftime("%Y-%m-%d")
+            analysis_date = datetime.now(tz=timezone.utc).date().strftime("%Y-%m-%d")
 
         if selected_analysts is None:
             selected_analysts = ["market", "news"]
@@ -68,7 +68,7 @@ class TradingAgentsAPIClient:
             response.raise_for_status()
             return response.json()
 
-    async def list_analyses(self, ticker: str = None):
+    async def list_analyses(self, ticker: str | None = None):
         """List all analyses."""
         params = {}
         if ticker:

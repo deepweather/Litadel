@@ -1,9 +1,12 @@
 """Cached data access endpoints."""
 
+import builtins
+import contextlib
 import csv
+import io
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -38,8 +41,6 @@ def _normalize_ohlcv_rows_from_csv(csv_text: str) -> list[dict[str, str]]:
     """Normalize various vendor CSV formats to standard OHLCV schema.
     Output fields: Date, Close, High, Low, Open, Volume
     """
-    import io
-
     rows: list[dict[str, str]] = []
     if not csv_text:
         return rows
@@ -113,7 +114,7 @@ def _ensure_cached_data(ticker: str, start_date: str | None, end_date: str | Non
     Returns the cache file path if created, else None.
     """
     # Determine date window if not provided: last ~15 years
-    today = datetime.utcnow().date()
+    today = datetime.now(tz=timezone.utc).date()
     default_start = (today - timedelta(days=365 * 15)).strftime("%Y-%m-%d")
     default_end = today.strftime("%Y-%m-%d")
     start = start_date or default_start
@@ -135,14 +136,14 @@ def _ensure_cached_data(ticker: str, start_date: str | None, end_date: str | Non
             csv_text = route_to_vendor("get_stock_data", ticker.upper(), start, end)
     except Exception as e:
         # Log the error for debugging
-        logger.error(f"Failed to fetch data for {ticker}: {e}")
+        logger.exception(f"Failed to fetch data for {ticker}: {e}")
         return None
 
     try:
         rows = _normalize_ohlcv_rows_from_csv(csv_text)
     except Exception as e:
         # Log CSV parsing errors
-        logger.error(f"Failed to parse CSV data for {ticker}: {e}")
+        logger.exception(f"Failed to parse CSV data for {ticker}: {e}")
         return None
 
     if not rows:
@@ -240,10 +241,8 @@ async def get_cached_data(
                     continue
                 for field in ["Close", "High", "Low", "Open", "Volume"]:
                     if row.get(field):
-                        try:
+                        with contextlib.suppress(builtins.BaseException):
                             row[field] = float(row[field])
-                        except:
-                            pass
                 rows.append(row)
         return rows
 
@@ -255,10 +254,8 @@ async def get_cached_data(
         )
         if not has_any_price:
             # Delete and regenerate cache
-            try:
+            with contextlib.suppress(Exception):
                 os.remove(csv_file)
-            except Exception:
-                pass
             # Recreate
             _ensure_cached_data(ticker, start_date, end_date)
             # Re-discover and re-read
@@ -276,7 +273,7 @@ async def get_cached_data(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error reading cache file: {e!s}",
-        )
+        ) from e
 
     return CachedDataResponse(
         ticker=ticker.upper(),

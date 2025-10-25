@@ -1,10 +1,12 @@
 """FastAPI Trading Agents API application."""
 
 import logging
-import signal
+import os
 import sys
 from contextlib import asynccontextmanager
+from pathlib import Path
 
+import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,7 +14,8 @@ from fastapi.middleware.cors import CORSMiddleware
 # Load environment variables from .env file
 load_dotenv()
 
-from api.database import init_db
+from api.auth import create_api_key
+from api.database import SessionLocal, init_db
 from api.endpoints import analyses, data, tickers
 from api.state_manager import get_executor, shutdown_executor
 from api.websockets import status
@@ -28,26 +31,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# Signal handler for graceful shutdown
-def signal_handler(signum, frame):
-    """Handle shutdown signals gracefully."""
-    sig_name = signal.Signals(signum).name
-    logger.info(f"Received {sig_name} signal - initiating graceful shutdown...")
-    shutdown_executor()
-    sys.exit(0)
-
-
-# Register signal handlers
-signal.signal(signal.SIGTERM, signal_handler)
-signal.signal(signal.SIGINT, signal_handler)
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events."""
-    import os
-    from pathlib import Path
-
     # Startup
     logger.info("Initializing Trading Agents API...")
 
@@ -60,16 +46,13 @@ async def lifespan(app: FastAPI):
 
     # If first run, create a default API key
     if is_first_run:
-        from api.auth import create_api_key
-        from api.database import SessionLocal
-
         logger.info("=" * 70)
         logger.info("FIRST RUN DETECTED - Setting up Trading Agents API")
         logger.info("=" * 70)
 
         db = SessionLocal()
         try:
-            plain_key, db_key = create_api_key(db, "Default API Key")
+            plain_key, _db_key = create_api_key(db, "Default API Key")
             logger.info("")
             logger.info("✓ Database initialized successfully!")
             logger.info("✓ Default API key created!")
@@ -85,7 +68,7 @@ async def lifespan(app: FastAPI):
             logger.info("=" * 70)
             logger.info("")
         except Exception as e:
-            logger.error(f"Failed to create default API key: {e}")
+            logger.exception(f"Failed to create default API key: {e}")
         finally:
             db.close()
 
@@ -147,10 +130,6 @@ async def health_check():
 
 def run_api():
     """Entry point for running the API via CLI command."""
-    import os
-
-    import uvicorn
-
     port = int(os.getenv("API_PORT", "8002"))
     # Reload disabled by default to prevent shutdown issues during analysis
     # Set API_RELOAD=true in environment to enable auto-reload during development

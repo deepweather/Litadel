@@ -28,7 +28,7 @@ def get_news(
 def get_global_news(
     curr_date: Annotated[str, "Current date in yyyy-mm-dd format"],
     look_back_days: Annotated[int, "Number of days to look back"] = 7,
-    limit: Annotated[int, "Number of articles (leave unset to use configured default, typically 15-20)"] = None,
+    limit: Annotated[int | None, "Number of articles (leave unset to use configured default, typically 15-20)"] = None,
 ) -> str:
     """
     Retrieve global news data.

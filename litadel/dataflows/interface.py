@@ -201,10 +201,11 @@ def get_category_for_method(method: str) -> str:
     for category, info in TOOLS_CATEGORIES.items():
         if method in info["tools"]:
             return category
-    raise ValueError(f"Method '{method}' not found in any category")
+    msg = f"Method '{method}' not found in any category"
+    raise ValueError(msg)
 
 
-def get_vendor(category: str, method: str = None) -> str:
+def get_vendor(category: str, method: str | None = None) -> str:
     """Get the configured vendor for a data category or specific tool method.
     Tool-level configuration takes precedence over category-level.
     """
@@ -229,7 +230,8 @@ def route_to_vendor(method: str, *args, **kwargs):
     primary_vendors = [v.strip() for v in vendor_config.split(",")]
 
     if method not in VENDOR_METHODS:
-        raise ValueError(f"Method '{method}' not supported")
+        msg = f"Method '{method}' not supported"
+        raise ValueError(msg)
 
     # Get all available vendors for this method for fallback
     all_available_vendors = list(VENDOR_METHODS[method].keys())
@@ -248,8 +250,6 @@ def route_to_vendor(method: str, *args, **kwargs):
     # Track results and execution state
     results = []
     vendor_attempt_count = 0
-    any_primary_vendor_attempted = False
-    successful_vendor = None
 
     for vendor in fallback_vendors:
         if vendor not in VENDOR_METHODS[method]:
@@ -263,7 +263,7 @@ def route_to_vendor(method: str, *args, **kwargs):
 
         # Track if we attempted any primary vendor
         if is_primary_vendor:
-            any_primary_vendor_attempted = True
+            pass
 
         # Debug: Print current attempt
         vendor_type = "PRIMARY" if is_primary_vendor else "FALLBACK"
@@ -299,7 +299,6 @@ def route_to_vendor(method: str, *args, **kwargs):
         # Add this vendor's results
         if vendor_results:
             results.extend(vendor_results)
-            successful_vendor = vendor
             result_summary = f"Got {len(vendor_results)} result(s)"
             print(f"SUCCESS: Vendor '{vendor}' succeeded - {result_summary}")
 
@@ -314,7 +313,8 @@ def route_to_vendor(method: str, *args, **kwargs):
     # Final result summary
     if not results:
         print(f"FAILURE: All {vendor_attempt_count} vendor attempts failed for method '{method}'")
-        raise RuntimeError(f"All vendor implementations failed for method '{method}'")
+        msg = f"All vendor implementations failed for method '{method}'"
+        raise RuntimeError(msg)
     print(
         f"FINAL: Method '{method}' completed with {len(results)} result(s) from {vendor_attempt_count} vendor attempt(s)"
     )

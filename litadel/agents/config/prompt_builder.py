@@ -25,7 +25,7 @@ def build_news_analyst_prompt(asset_class: str, ticker: str) -> str:
 
     config = get_analyst_config(asset_class)
     prompt_cfg = config.get_prompt_config("news")
-    asset_term = prompt_cfg["asset_term"]
+    prompt_cfg["asset_term"]
 
     if asset_class.lower() == "commodity":
         return (

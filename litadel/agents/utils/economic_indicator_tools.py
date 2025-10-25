@@ -25,7 +25,6 @@ def get_economic_indicators(current_date: str) -> str:
         >>> # Returns GDP growth, inflation, unemployment, interest rates, etc.
     """
     try:
-        result = get_all_economic_indicators()
-        return result
+        return get_all_economic_indicators()
     except Exception as e:
         return f"Error retrieving economic indicators: {e!s}"

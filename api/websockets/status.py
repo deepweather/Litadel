@@ -1,5 +1,9 @@
 """WebSocket status streaming."""
 
+import asyncio
+import json
+import logging
+
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from api.database import Analysis, SessionLocal
@@ -17,8 +21,6 @@ class ConnectionManager:
 
     async def connect(self, analysis_id: str, websocket: WebSocket):
         """Accept and register a WebSocket connection."""
-        import asyncio
-
         await websocket.accept()
 
         # Capture the main event loop on first connection
@@ -46,9 +48,6 @@ class ConnectionManager:
 
     def _create_callback(self, analysis_id: str):
         """Create a callback function for status updates."""
-        import asyncio
-        import logging
-
         logger = logging.getLogger(__name__)
 
         def callback(status_data: dict):
@@ -61,7 +60,7 @@ class ConnectionManager:
                 # Schedule the broadcast coroutine on the main event loop from this thread
                 asyncio.run_coroutine_threadsafe(self.broadcast(analysis_id, status_data), self._main_loop)
             except Exception as e:
-                logger.error(f"Failed to schedule WebSocket broadcast for {analysis_id}: {e}")
+                logger.exception(f"Failed to schedule WebSocket broadcast for {analysis_id}: {e}")
 
         return callback
 
@@ -111,8 +110,6 @@ async def websocket_analysis_status(websocket: WebSocket, analysis_id: str):
                 # Extract selected_analysts from config
                 selected_analysts = []
                 try:
-                    import json
-
                     config = json.loads(analysis.config_json)
                     selected_analysts = config.get("selected_analysts", [])
                 except:
