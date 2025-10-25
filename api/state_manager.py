@@ -13,8 +13,8 @@ from typing import Any, Callable, Dict, List, Optional
 from sqlalchemy.orm import Session
 
 from api.database import Analysis, AnalysisLog, AnalysisReport, SessionLocal
-from tradingagents.default_config import DEFAULT_CONFIG
-from tradingagents.graph.trading_graph import TradingAgentsGraph
+from litadel.default_config import DEFAULT_CONFIG
+from litadel.graph.trading_graph import TradingAgentsGraph
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +36,8 @@ class AnalysisExecutor:
         self.active_analyses: Dict[str, Future] = {}
         self.status_callbacks: Dict[str, List[Callable]] = {}
         self._lock = threading.Lock()
+        self._shutdown_flag = threading.Event()  # Flag to signal shutdown
+        self._running_analysis_ids: set = set()  # Track running analyses
 
     def register_status_callback(self, analysis_id: str, callback: Callable):
         """Register a callback for status updates."""
@@ -183,6 +185,14 @@ class AnalysisExecutor:
             db.commit()
             db.refresh(analysis)
             
+            # Extract selected_analysts from config for WebSocket updates
+            selected_analysts = []
+            try:
+                config = json.loads(analysis.config_json)
+                selected_analysts = config.get("selected_analysts", [])
+            except:
+                pass
+            
             # Notify callbacks
             status_data = {
                 "type": "status_update",
@@ -190,6 +200,7 @@ class AnalysisExecutor:
                 "status": analysis.status,
                 "progress_percentage": analysis.progress_percentage,
                 "current_agent": analysis.current_agent,
+                "selected_analysts": selected_analysts,
                 "timestamp": analysis.updated_at.isoformat(),
             }
             self._notify_callbacks(analysis_id, status_data)
@@ -197,12 +208,13 @@ class AnalysisExecutor:
         finally:
             db.close()
 
-    def _store_log(self, analysis_id: str, log_type: str, content: str):
+    def _store_log(self, analysis_id: str, log_type: str, content: str, agent_name: str = "System"):
         """Store a log entry."""
         db = SessionLocal()
         try:
             log = AnalysisLog(
                 analysis_id=analysis_id,
+                agent_name=agent_name,
                 log_type=log_type,
                 content=content,
                 timestamp=datetime.utcnow(),
@@ -226,12 +238,14 @@ class AnalysisExecutor:
                 .first()
             )
             
+            is_new_report = report is None
+            
             if report:
-                # Update existing
+                # Update existing (silent update, no broadcast)
                 report.content = content
                 report.created_at = datetime.utcnow()
             else:
-                # Create new
+                # Create new report
                 report = AnalysisReport(
                     analysis_id=analysis_id,
                     report_type=report_type,
@@ -240,6 +254,24 @@ class AnalysisExecutor:
                 db.add(report)
             
             db.commit()
+            db.refresh(report)
+            
+            # Only broadcast for NEW reports, not updates
+            # This prevents duplicate toasts and excessive refetches during streaming
+            if is_new_report:
+                report_data = {
+                    "type": "report_update",
+                    "analysis_id": analysis_id,
+                    "report": {
+                        "id": str(report.id),
+                        "analysis_id": analysis_id,
+                        "report_type": report_type,
+                        "created_at": report.created_at.isoformat(),
+                    },
+                    "timestamp": datetime.utcnow().isoformat(),
+                }
+                self._notify_callbacks(analysis_id, report_data)
+            
         finally:
             db.close()
 
@@ -253,7 +285,30 @@ class AnalysisExecutor:
     ):
         """Execute the analysis (runs in thread pool)."""
         logger.info(f"Starting analysis {analysis_id} for {ticker} on {analysis_date}")
+        
+        # Register this analysis as running
+        with self._lock:
+            self._running_analysis_ids.add(analysis_id)
+        
         try:
+            # Check if shutdown was requested before starting
+            if self._shutdown_flag.is_set():
+                logger.info(f"Analysis {analysis_id} cancelled before start due to shutdown")
+                self._update_status(analysis_id, status="cancelled", error_message="Cancelled due to API shutdown")
+                return
+            # Store selected_analysts in config for later retrieval
+            config["selected_analysts"] = selected_analysts
+            
+            # Update config in database
+            db = SessionLocal()
+            try:
+                analysis = db.query(Analysis).filter(Analysis.id == analysis_id).first()
+                if analysis:
+                    analysis.config_json = json.dumps(config)
+                    db.commit()
+            finally:
+                db.close()
+            
             # Update status to running
             self._update_status(analysis_id, status="running", progress=0)
             logger.info(f"Analysis {analysis_id}: Initializing trading graph...")
@@ -275,12 +330,28 @@ class AnalysisExecutor:
             agent_order = self._get_agent_order(selected_analysts)
             total_agents = len(agent_order)
             current_agent_index = 0
+            current_agent_name = "System"  # Track current agent name
             
             # Stream the analysis
             trace = []
             for chunk in graph.graph.stream(init_agent_state, **args):
+                # Check for shutdown signal
+                if self._shutdown_flag.is_set():
+                    logger.info(f"Analysis {analysis_id} interrupted due to shutdown")
+                    raise KeyboardInterrupt("Analysis cancelled due to API shutdown")
+                
                 if len(chunk.get("messages", [])) == 0:
                     continue
+                
+                # Determine current agent from chunk keys (node names)
+                # LangGraph chunks have keys that are node names
+                chunk_keys = [k for k in chunk.keys() if k != "messages"]
+                if chunk_keys:
+                    # Get the node name (agent name) from the chunk
+                    node_name = chunk_keys[0]
+                    # Some nodes have specific names, map them to agent names
+                    if "Analyst" in node_name or "Researcher" in node_name or "Trader" in node_name or "Manager" in node_name:
+                        current_agent_name = node_name
                 
                 # Process the chunk
                 last_message = chunk["messages"][-1]
@@ -290,8 +361,8 @@ class AnalysisExecutor:
                     content = self._extract_content(last_message.content)
                     msg_type = "Reasoning"
                     
-                    # Store log
-                    self._store_log(analysis_id, msg_type, content)
+                    # Store log with current agent name
+                    self._store_log(analysis_id, msg_type, content, current_agent_name)
                     
                 # Handle tool calls
                 if hasattr(last_message, "tool_calls") and last_message.tool_calls:
@@ -305,11 +376,12 @@ class AnalysisExecutor:
                         
                         args_str = ", ".join(f"{k}={v}" for k, v in tool_args.items())
                         self._store_log(
-                            analysis_id, "Tool Call", f"{tool_name}({args_str})"
+                            analysis_id, "Tool Call", f"{tool_name}({args_str})", current_agent_name
                         )
                 
                 # Check for completed reports
                 for report_type in [
+                    "macro_report",
                     "market_report",
                     "sentiment_report",
                     "news_report",
@@ -372,6 +444,12 @@ class AnalysisExecutor:
             logger.info(f"Analysis {analysis_id} completed successfully")
             self._update_status(analysis_id, status="completed", progress=100)
             
+        except KeyboardInterrupt:
+            # Shutdown requested
+            logger.info(f"Analysis {analysis_id} cancelled due to shutdown")
+            self._update_status(
+                analysis_id, status="cancelled", error_message="Cancelled due to API shutdown"
+            )
         except Exception as e:
             error_msg = str(e)
             error_trace = traceback.format_exc()
@@ -382,6 +460,9 @@ class AnalysisExecutor:
             )
             self._store_log(analysis_id, "System", f"Error: {error_msg}\n\nTraceback:\n{error_trace}")
         finally:
+            # Unregister this analysis from running set
+            with self._lock:
+                self._running_analysis_ids.discard(analysis_id)
             # Clean up ChromaDB collections to prevent memory leaks
             try:
                 if 'graph' in locals():
@@ -399,6 +480,7 @@ class AnalysisExecutor:
     def _get_agent_name(self, report_type: str) -> str:
         """Get human-readable agent name from report type."""
         mapping = {
+            "macro_report": "Macro Analyst",
             "market_report": "Market Analyst",
             "sentiment_report": "Social Analyst",
             "news_report": "News Analyst",
@@ -424,15 +506,47 @@ class AnalysisExecutor:
         else:
             return str(content)
 
-    def shutdown(self):
-        """Shutdown the executor and cancel all running analyses."""
+    def shutdown(self, timeout: int = 10):
+        """
+        Shutdown the executor and cancel all running analyses.
+        
+        Args:
+            timeout: Maximum seconds to wait for analyses to stop (default: 10)
+        """
+        logger.info("Shutdown requested - cancelling running analyses...")
+        
+        # Set shutdown flag to signal running analyses
+        self._shutdown_flag.set()
+        
+        # Mark all running analyses as cancelled in database
+        db = SessionLocal()
+        try:
+            with self._lock:
+                running_ids = list(self._running_analysis_ids)
+            
+            for analysis_id in running_ids:
+                analysis = db.query(Analysis).filter(Analysis.id == analysis_id).first()
+                if analysis and analysis.status == "running":
+                    analysis.status = "cancelled"
+                    analysis.error_message = "Cancelled due to API shutdown"
+                    analysis.updated_at = datetime.utcnow()
+                    logger.info(f"Marked analysis {analysis_id} as cancelled")
+            
+            db.commit()
+        except Exception as e:
+            logger.error(f"Error marking analyses as cancelled: {e}")
+        finally:
+            db.close()
+        
+        # Try to cancel futures (only works for tasks not yet started)
         with self._lock:
-            # Cancel all active analyses
             for analysis_id in list(self.active_analyses.keys()):
                 self.cancel_analysis(analysis_id)
         
-        # Shutdown executor
-        self.executor.shutdown(wait=True)
+        # Shutdown executor with timeout
+        logger.info(f"Waiting up to {timeout} seconds for analyses to stop...")
+        self.executor.shutdown(wait=True, cancel_futures=True)
+        logger.info("Executor shutdown complete")
 
 
 # Global executor instance

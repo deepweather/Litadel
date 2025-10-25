@@ -18,6 +18,7 @@ def display_complete_report(final_state):
     
     # Map report keys to analyst names
     analyst_report_map = [
+        ("macro_report", "Macro Economic Analyst"),
         ("market_report", "Market Analyst"),
         ("sentiment_report", "Social Analyst"),
         ("news_report", "News Analyst"),

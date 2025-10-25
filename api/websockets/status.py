@@ -17,10 +17,17 @@ class ConnectionManager:
 
     def __init__(self):
         self.active_connections: Dict[str, List[WebSocket]] = {}
+        self._main_loop = None  # Will store the main event loop
 
     async def connect(self, analysis_id: str, websocket: WebSocket):
         """Accept and register a WebSocket connection."""
+        import asyncio
+        
         await websocket.accept()
+        
+        # Capture the main event loop on first connection
+        if self._main_loop is None:
+            self._main_loop = asyncio.get_event_loop()
         
         if analysis_id not in self.active_connections:
             self.active_connections[analysis_id] = []
@@ -43,19 +50,25 @@ class ConnectionManager:
 
     def _create_callback(self, analysis_id: str):
         """Create a callback function for status updates."""
+        import asyncio
+        import logging
+        logger = logging.getLogger(__name__)
+        
         def callback(status_data: dict):
-            # Note: This is called from a thread, so we can't use async here
-            # The actual broadcasting happens via the websocket event loop
-            import asyncio
+            # This is called from a worker thread, so we need thread-safe scheduling
+            if self._main_loop is None:
+                logger.warning(f"No event loop available for WebSocket broadcast to {analysis_id}")
+                return
+            
             try:
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    asyncio.create_task(self.broadcast(analysis_id, status_data))
-                else:
-                    loop.run_until_complete(self.broadcast(analysis_id, status_data))
-            except:
-                # If no loop, we can't broadcast (connection will poll status instead)
-                pass
+                # Schedule the broadcast coroutine on the main event loop from this thread
+                asyncio.run_coroutine_threadsafe(
+                    self.broadcast(analysis_id, status_data),
+                    self._main_loop
+                )
+            except Exception as e:
+                logger.error(f"Failed to schedule WebSocket broadcast for {analysis_id}: {e}")
+        
         return callback
 
     async def broadcast(self, analysis_id: str, message: dict):
@@ -101,12 +114,22 @@ async def websocket_analysis_status(websocket: WebSocket, analysis_id: str):
         try:
             analysis = db.query(Analysis).filter(Analysis.id == analysis_id).first()
             if analysis:
+                # Extract selected_analysts from config
+                selected_analysts = []
+                try:
+                    import json
+                    config = json.loads(analysis.config_json)
+                    selected_analysts = config.get("selected_analysts", [])
+                except:
+                    pass
+                
                 initial_status = {
                     "type": "status_update",
                     "analysis_id": analysis.id,
                     "status": analysis.status,
                     "progress_percentage": analysis.progress_percentage,
                     "current_agent": analysis.current_agent,
+                    "selected_analysts": selected_analysts,
                     "timestamp": analysis.updated_at.isoformat(),
                 }
                 await websocket.send_json(initial_status)

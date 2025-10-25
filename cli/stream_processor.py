@@ -51,6 +51,7 @@ def process_analyst_reports(chunk, message_buffer, selected_analysts):
     """
     # Mapping of report keys to analyst info
     analyst_mappings = [
+        ("macro_report", "Macro Analyst", "market", "Market Analyst"),
         ("market_report", "Market Analyst", "social", "Social Analyst"),
         ("sentiment_report", "Social Analyst", "news", "News Analyst"),
         ("news_report", "News Analyst", "fundamentals", "Fundamentals Analyst"),

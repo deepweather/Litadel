@@ -64,6 +64,7 @@ class AnalysisLog(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     analysis_id = Column(String, ForeignKey("analyses.id"), nullable=False)
+    agent_name = Column(String, nullable=False, index=True)  # NEW: Agent that generated this log
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
     log_type = Column(String, nullable=False)  # Tool Call, Reasoning, System
     content = Column(Text, nullable=False)

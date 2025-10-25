@@ -12,7 +12,7 @@ class CreateAnalysisRequest(BaseModel):
     analysis_date: str = Field(..., description="Analysis date in YYYY-MM-DD format")
     selected_analysts: List[str] = Field(
         default=["market", "news", "social", "fundamentals"],
-        description="List of analysts to run (market, news, social, fundamentals)",
+        description="List of analysts to run (macro, market, news, social, fundamentals)",
     )
     research_depth: int = Field(
         default=1,
@@ -47,7 +47,7 @@ class CreateAnalysisRequest(BaseModel):
     @classmethod
     def validate_analysts(cls, v: List[str]) -> List[str]:
         """Validate analyst selections."""
-        valid_analysts = {"market", "news", "social", "fundamentals"}
+        valid_analysts = {"macro", "market", "news", "social", "fundamentals"}
         for analyst in v:
             if analyst not in valid_analysts:
                 raise ValueError(

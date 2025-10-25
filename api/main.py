@@ -1,6 +1,7 @@
 """FastAPI Trading Agents API application."""
 
 import logging
+import signal
 import sys
 from contextlib import asynccontextmanager
 
@@ -25,6 +26,20 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger(__name__)
+
+
+# Signal handler for graceful shutdown
+def signal_handler(signum, frame):
+    """Handle shutdown signals gracefully."""
+    sig_name = signal.Signals(signum).name
+    logger.info(f"Received {sig_name} signal - initiating graceful shutdown...")
+    shutdown_executor()
+    sys.exit(0)
+
+
+# Register signal handlers
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
 
 
 @asynccontextmanager
@@ -130,17 +145,28 @@ async def health_check():
     return {"status": "healthy"}
 
 
-if __name__ == "__main__":
+def run_api():
+    """Entry point for running the API via CLI command."""
     import uvicorn
     import os
     
     port = int(os.getenv("API_PORT", "8002"))
+    # Reload disabled by default to prevent shutdown issues during analysis
+    # Set API_RELOAD=true in environment to enable auto-reload during development
+    reload = os.getenv("API_RELOAD", "false").lower() == "true"
+    
+    if reload:
+        logger.warning("Auto-reload is enabled - analyses will be cancelled if code changes are detected")
     
     uvicorn.run(
         "api.main:app",
         host="0.0.0.0",
         port=port,
-        reload=True,
+        reload=reload,
         log_level="info",
     )
+
+
+if __name__ == "__main__":
+    run_api()
 

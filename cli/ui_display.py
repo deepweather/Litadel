@@ -55,6 +55,7 @@ def update_display(layout, message_buffer, spinner_text=None):
     # Group agents by team
     teams = {
         "Analyst Team": [
+            "Macro Analyst",
             "Market Analyst",
             "Social Analyst",
             "News Analyst",
