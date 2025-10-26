@@ -3,7 +3,8 @@ export interface Backtest {
   name: string
   description: string | null
   strategy_description: string
-  strategy_dsl_yaml: string
+  strategy_code_python: string
+  strategy_type: string
   ticker_list: string[]
   start_date: string
   end_date: string
@@ -106,7 +107,8 @@ export interface CreateBacktestRequest {
   name: string
   description?: string
   strategy_description: string
-  strategy_dsl_yaml?: string  // Optional - will be auto-generated if not provided
+  strategy_code_python: string  // Python strategy code (required)
+  strategy_type?: string  // "single_ticker" or "portfolio" (default: "single_ticker")
   ticker_list: string[]
   start_date: string
   end_date: string
@@ -120,7 +122,8 @@ export interface UpdateBacktestRequest {
   name?: string
   description?: string
   strategy_description?: string
-  strategy_dsl_yaml?: string
+  strategy_code_python?: string
+  strategy_type?: string
   ticker_list?: string[]
   start_date?: string
   end_date?: string

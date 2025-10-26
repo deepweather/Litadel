@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, Check, Sparkles } from 'lucide-react'
 import { api } from '../services/api'
 import { Button } from '@/components/ui/button'
 import { KeyValueRow } from '../components/common/KeyValueRow'
-import { StrategyVisualizer } from '../components/backtest/StrategyVisualizer'
+import { PythonCodeEditor } from '../components/backtest/PythonCodeEditor'
 import { DateInput, FormField, NumberInput, TextArea, TextInput } from '../components/ui/Form'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import type { CreateBacktestRequest } from '../types/backtest'
@@ -18,7 +18,8 @@ export const CreateBacktest: React.FC = () => {
     name: '',
     description: '',
     strategy_description: '',
-    strategy_dsl_yaml: '',
+    strategy_code_python: '',
+    strategy_type: 'single_ticker',
     ticker_list: [],
     start_date: '',
     end_date: '',
@@ -31,17 +32,7 @@ export const CreateBacktest: React.FC = () => {
   const createBacktestMutation = useMutation({
     mutationFn: (data: CreateBacktestRequest) => api.createBacktest(data),
     onSuccess: async (backtest) => {
-      toast.success('Backtest created successfully')
-
-      // Automatically trigger execution
-      try {
-        await api.executeBacktest(backtest.id)
-        toast.success('Backtest execution started')
-      } catch (error: any) {
-        const errorMsg = error.detail || error.message || 'Failed to start backtest execution'
-        toast.error(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg))
-      }
-
+      toast.success('Backtest created successfully (execution engine not available)')
       navigate(`/backtests/${backtest.id}`)
     },
     onError: (error: any) => {
@@ -68,107 +59,59 @@ export const CreateBacktest: React.FC = () => {
   })
 
   const [isGenerating, setIsGenerating] = React.useState(false)
-  const accumulatedYamlRef = React.useRef('')
+  const accumulatedCodeRef = React.useRef('')
 
-  const handleGenerateYAMLStream = async (data: {
-    strategy_description: string
-    ticker_list: string[]
-    initial_capital: number
-    rebalance_frequency: string
-    position_sizing: string
-    max_positions: number
-  }) => {
+  const handleGenerateCodeStream = async (ticker: string, description: string) => {
     setIsGenerating(true)
 
     try {
-      toast('🤖 AI is generating your strategy YAML...', {
+      toast('🤖 AI is generating your strategy code...', {
         icon: '✨',
         duration: 3000,
       })
 
-      // Clear previous YAML and start streaming
-      accumulatedYamlRef.current = ''
-      setFormData(prev => ({ ...prev, strategy_dsl_yaml: '' }))
+      // Clear previous code and start streaming
+      accumulatedCodeRef.current = ''
+      setFormData(prev => ({ ...prev, strategy_code_python: '' }))
 
-      console.log('🎬 Starting YAML generation...')
+      console.log('🎬 Starting code generation...')
 
-      const result = await api.generateStrategyDSL(data, (chunk) => {
+      const result = await api.generateStrategyCode({
+        strategy_description: description,
+        ticker: ticker,
+        indicators: [],
+        entry_conditions: {},
+        exit_conditions: {},
+        risk_params: {},
+      }, (chunk) => {
         // Real-time update as chunks arrive
         console.log('📝 Received chunk:', chunk.substring(0, 50))
-        accumulatedYamlRef.current += chunk
+        accumulatedCodeRef.current += chunk
         setFormData(prev => ({
           ...prev,
-          strategy_dsl_yaml: accumulatedYamlRef.current
+          strategy_code_python: accumulatedCodeRef.current
         }))
       })
 
       if (result.success) {
-        // Parse the YAML to extract tickers and auto-populate ticker_list
-        const extractedTickers = extractTickersFromYAML(result.yaml_dsl)
-
         setFormData(prev => ({
           ...prev,
-          strategy_dsl_yaml: result.yaml_dsl,
-          // Auto-populate ticker list from generated YAML if user hasn't specified any
-          ticker_list: data.ticker_list && data.ticker_list.length > 0
-            ? data.ticker_list
-            : extractedTickers
+          strategy_code_python: result.code,
         }))
 
-        if (extractedTickers.length > 0) {
-          toast.success(`✨ Strategy YAML generated! Auto-detected tickers: ${extractedTickers.join(', ')}`)
-        } else if (result.yaml_dsl.includes('AI_MANAGED')) {
-          toast.success('✨ Strategy YAML generated! AI will manage asset selection 🤖')
-        } else if (result.valid) {
-          toast.success('✨ Strategy YAML generated successfully!')
+        if (result.valid) {
+          toast.success('✨ Strategy code generated successfully!')
         } else {
-          toast.success(`✨ Strategy YAML generated (${result.validation_message})`)
+          toast.success(`✨ Strategy code generated (${result.validation_message})`)
         }
       } else {
-        toast.error('Failed to generate strategy YAML')
+        toast.error('Failed to generate strategy code')
       }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to generate strategy YAML')
+      toast.error(error.message || 'Failed to generate strategy code')
       console.error('Generation error:', error)
     } finally {
       setIsGenerating(false)
-    }
-  }
-
-  const extractTickersFromYAML = (yamlString: string): string[] => {
-    try {
-      // Check for AI_MANAGED universe first
-      const aiManagedMatch = yamlString.match(/universe:\s*["']?AI_MANAGED["']?/i)
-      if (aiManagedMatch) {
-        console.log('🤖 AI-managed universe detected - no specific tickers')
-        return [] // AI will select assets dynamically
-      }
-
-      // Simple regex-based extraction of tickers from universe field
-      // Matches patterns like: universe: [AAPL, TSLA] or universe:\n  - AAPL
-      const universeMatch = yamlString.match(/universe:\s*\[(.*?)\]/s)
-      if (universeMatch) {
-        // Array format: [AAPL, TSLA, ...]
-        return universeMatch[1]
-          .split(',')
-          .map(ticker => ticker.trim().replace(/['"]/g, ''))
-          .filter(Boolean)
-      }
-
-      // Try list format: universe:\n  - AAPL\n  - TSLA
-      const listMatches = yamlString.match(/universe:\s*\n((?:\s*-\s*[A-Z0-9-]+\s*\n)+)/i)
-      if (listMatches) {
-        const tickers = listMatches[1]
-          .split('\n')
-          .map(line => line.trim().replace(/^-\s*/, '').replace(/['"]/g, ''))
-          .filter(Boolean)
-        return tickers
-      }
-
-      return []
-    } catch (e) {
-      console.error('Failed to extract tickers from YAML:', e)
-      return []
     }
   }
 
@@ -196,7 +139,7 @@ export const CreateBacktest: React.FC = () => {
     }
 
     // Check if this is an AI-managed strategy
-    const isAIManaged = formData.strategy_dsl_yaml?.includes('AI_MANAGED')
+    const isAIManaged = false  // No longer using AI_MANAGED universe in Python code
 
     if (!isAIManaged && (!formData.ticker_list || formData.ticker_list.length === 0)) {
       toast.error('Please specify at least one ticker, or use AI_MANAGED universe. Tip: Generate YAML in Step 2 to auto-extract tickers!')
@@ -211,33 +154,48 @@ export const CreateBacktest: React.FC = () => {
       return
     }
 
-    // Ensure ticker_list is an array (even if empty for AI_MANAGED)
+    // Ensure ticker_list is an array
     const requestData: CreateBacktestRequest = {
       ...formData,
       ticker_list: formData.ticker_list || [],
-      strategy_dsl_yaml: formData.strategy_dsl_yaml || '',
+      strategy_code_python: formData.strategy_code_python || '',
+      strategy_type: formData.strategy_type || 'single_ticker',
     } as CreateBacktestRequest
 
     createBacktestMutation.mutate(requestData)
   }
 
-  const handleGenerateYAML = () => {
+  const handleGenerateCode = () => {
     // Validate required fields before generation
     if (!formData.strategy_description) {
       toast.error('Please provide a strategy description first')
       return
     }
 
-    // Generate the YAML using the LLM agent (with streaming!)
-    // If tickers aren't specified yet, the LLM will extract them from the description
-    handleGenerateYAMLStream({
-      strategy_description: formData.strategy_description,
-      ticker_list: formData.ticker_list && formData.ticker_list.length > 0 ? formData.ticker_list : [],
-      initial_capital: formData.initial_capital || 100000,
-      rebalance_frequency: formData.rebalance_frequency || 'weekly',
-      position_sizing: formData.position_sizing || 'equal_weight',
-      max_positions: formData.max_positions || 10,
-    })
+    // Try to extract ticker from description, or use a generic placeholder
+    // Common patterns: "AAPL", "Apple", "Tesla", "TSLA", etc.
+    let ticker = 'AAPL'  // Default
+    const tickerPatterns = [
+      { pattern: /\b(tsla|tesla)\b/i, ticker: 'TSLA' },
+      { pattern: /\b(aapl|apple)\b/i, ticker: 'AAPL' },
+      { pattern: /\b(msft|microsoft)\b/i, ticker: 'MSFT' },
+      { pattern: /\b(googl|google|alphabet)\b/i, ticker: 'GOOGL' },
+      { pattern: /\b(amzn|amazon)\b/i, ticker: 'AMZN' },
+      { pattern: /\b(nvda|nvidia)\b/i, ticker: 'NVDA' },
+      { pattern: /\b(meta|facebook)\b/i, ticker: 'META' },
+      { pattern: /\b(btc|bitcoin)\b/i, ticker: 'BTC-USD' },
+      { pattern: /\b(eth|ethereum)\b/i, ticker: 'ETH-USD' },
+    ]
+
+    for (const { pattern, ticker: t } of tickerPatterns) {
+      if (pattern.test(formData.strategy_description)) {
+        ticker = t
+        break
+      }
+    }
+
+    // Generate code with detected or default ticker
+    handleGenerateCodeStream(ticker, formData.strategy_description)
   }
 
 
@@ -322,22 +280,21 @@ export const CreateBacktest: React.FC = () => {
 
             <div>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-                <button
-                  onClick={handleGenerateYAML}
-                  disabled={isGenerating}
-                  className="flex items-center gap-2 p-3 px-6 border-2 border-accent bg-accent/10 text-accent text-base font-bold font-mono cursor-pointer rounded-lg hover:bg-accent/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                  style={{
-                    fontWeight: 'bold',
-                    cursor: isGenerating ? 'not-allowed' : 'pointer',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    opacity: isGenerating ? 0.6 : 1,
-                    borderRadius: '8px',
-                  }}
+                <Button
+                  onClick={handleGenerateCode}
+                  disabled={isGenerating || !formData.strategy_description}
+                  size="lg"
+                  className="flex items-center gap-2 font-mono font-bold"
                 >
                   <Sparkles size={20} />
-                  <span>{isGenerating ? 'GENERATING STRATEGY... 🔄' : 'GENERATE STRATEGY ✨'}</span>
-                </button>
+                  <span>{isGenerating ? 'GENERATING CODE... 🔄' : 'GENERATE CODE ✨'}</span>
+                </Button>
               </div>
+              {!formData.strategy_description && (
+                <div className="text-center text-sm text-muted-foreground mb-4">
+                  👆 Fill in strategy description above to enable code generation
+                </div>
+              )}
 
               {/* Loading indicator overlay */}
               {isGenerating && (
@@ -345,30 +302,29 @@ export const CreateBacktest: React.FC = () => {
                   <div className="w-5 h-5 border-[3px] border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
                   <div className="flex-1">
                     <div className="text-blue-500 font-bold mb-1">
-                      🤖 AI is generating your strategy...
+                      🤖 AI is generating your Python strategy code...
                     </div>
                     <div className="text-muted-foreground text-xs">
-                      Watch the YAML appear in real-time below
+                      Watch the code appear in real-time below
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Strategy Visualization - Real-time streaming preview */}
-              {formData.strategy_dsl_yaml && formData.strategy_dsl_yaml.trim().length > 0 ? (
+              {/* Strategy Code - Real-time streaming preview */}
+              {formData.strategy_code_python && formData.strategy_code_python.trim().length > 0 ? (
                 <div style={{ marginTop: '1rem' }}>
-                  <h3 className="text-accent text-base"
-                    style={{
-                    fontWeight: 'bold',
-                    marginBottom: '1rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                  }}>
-                    <Sparkles size={20} />
-                    {isGenerating ? 'Generating Strategy... 🔄' : 'Generated Strategy ✨'}
-                  </h3>
-                  <StrategyVisualizer yamlContent={formData.strategy_dsl_yaml} />
+                  <div className="flex items-center gap-2 mb-4">
+                    <Sparkles size={20} className="text-primary" />
+                    <h3 className="text-primary text-lg font-bold font-mono">
+                      {isGenerating ? 'Generating Strategy Code... 🔄' : 'Generated Strategy Code ✨'}
+                    </h3>
+                  </div>
+                  <PythonCodeEditor
+                    code={formData.strategy_code_python}
+                    onChange={(code) => setFormData(prev => ({ ...prev, strategy_code_python: code || '' }))}
+                    height="500px"
+                  />
                 </div>
               ) : (
                 <div style={{
@@ -381,10 +337,10 @@ export const CreateBacktest: React.FC = () => {
                 }}>
                   <Sparkles size={48} className="text-accent mx-auto mb-4" />
                   <p className="text-accent text-base font-bold mb-2">
-                    No Strategy Generated Yet
+                    No Strategy Code Generated Yet
                   </p>
                   <p className="text-muted-foreground text-sm">
-                    Click the "GENERATE YAML ✨" button above to create your strategy from your description
+                    Click the "GENERATE CODE ✨" button above to create your Python strategy from your description
                   </p>
                 </div>
               )}

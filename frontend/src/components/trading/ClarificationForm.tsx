@@ -76,13 +76,14 @@ export const ClarificationForm: React.FC<ClarificationFormProps> = ({
           <div className="flex flex-col gap-3">
             <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2">
               {suggestions.map((preset) => (
-                <button
+                <Button
                   key={String(preset)}
                   onClick={() => handleDatePresetSelect(String(preset))}
-                  className="p-3 border border-primary bg-primary/10 text-primary text-sm font-mono cursor-pointer rounded transition-all hover:bg-primary/20"
+                  variant="outline"
+                  className="text-sm font-mono"
                 >
                   {String(preset)}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -91,17 +92,18 @@ export const ClarificationForm: React.FC<ClarificationFormProps> = ({
 
       if (hasDateSelection && !showDatePicker) {
         return (
-          <div className="p-4 border border-blue-500 bg-blue-500/10 rounded">
+          <div className="p-4 border border-border rounded bg-muted/30">
             <div className="flex justify-between items-center mb-2">
-              <div className="text-blue-500 text-sm font-mono font-bold">
+              <div className="text-foreground text-sm font-mono font-bold">
                 Selected Date Range:
               </div>
-              <button
+              <Button
                 onClick={() => setShowDatePicker(true)}
-                className="px-3 py-1 border border-primary bg-transparent text-primary text-xs font-mono cursor-pointer rounded hover:bg-primary/10"
+                variant="outline"
+                size="sm"
               >
                 Change
-              </button>
+              </Button>
             </div>
             <div className="text-foreground text-sm font-mono">
               {new Date(answers.start_date).toLocaleDateString('en-US')} to {new Date(answers.end_date).toLocaleDateString('en-US')}
@@ -153,15 +155,15 @@ export const ClarificationForm: React.FC<ClarificationFormProps> = ({
             {suggestions.map((amount) => {
               const numAmount = typeof amount === 'number' ? amount : Number(amount)
               return (
-                <button
+                <Button
                   key={numAmount}
                   onClick={() => setAnswers(prev => ({ ...prev, [field]: numAmount }))}
-                  className={`px-4 py-2 border border-primary font-mono text-sm cursor-pointer rounded ${
-                    answers[field] === numAmount ? 'bg-primary/30' : 'bg-primary/10'
-                  } hover:bg-primary/20`}
+                  variant={answers[field] === numAmount ? "default" : "outline"}
+                  size="sm"
+                  className="font-mono"
                 >
                   ${(numAmount / 1000).toFixed(0)}k
-                </button>
+                </Button>
               )
             })}
           </div>
@@ -174,15 +176,14 @@ export const ClarificationForm: React.FC<ClarificationFormProps> = ({
       return (
         <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2">
           {suggestions.map((option) => (
-            <button
+            <Button
               key={String(option)}
               onClick={() => setAnswers(prev => ({ ...prev, [field]: option }))}
-              className={`p-3 border border-primary font-mono text-sm cursor-pointer rounded ${
-                answers[field] === option ? 'bg-primary/30' : 'bg-primary/10'
-              } hover:bg-primary/20`}
+              variant={answers[field] === option ? "default" : "outline"}
+              className="font-mono text-sm"
             >
               {String(option)}
-            </button>
+            </Button>
           ))}
         </div>
       )
@@ -244,8 +245,8 @@ export const ClarificationForm: React.FC<ClarificationFormProps> = ({
   }
 
   return (
-    <Card className="p-6 border-2 border-orange-500 bg-orange-500/5 font-mono">
-      <div className="flex items-center gap-2 mb-6 text-orange-500 text-base font-bold">
+    <Card className="p-6 font-mono">
+      <div className="flex items-center gap-2 mb-6 text-foreground text-base font-bold">
         <AlertCircle size={20} />
         <span>Need more information:</span>
       </div>
@@ -253,7 +254,7 @@ export const ClarificationForm: React.FC<ClarificationFormProps> = ({
       <div className="flex flex-col gap-6">
         {questions.map((question, index) => (
           <div key={index}>
-            <Label className="block mb-3 text-orange-500 text-sm font-bold">
+            <Label className="block mb-3 text-sm font-bold">
               {question.question}
             </Label>
             {renderInput(question)}
@@ -265,11 +266,7 @@ export const ClarificationForm: React.FC<ClarificationFormProps> = ({
         <Button
           onClick={handleSubmit}
           disabled={Object.keys(answers).length === 0}
-          className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 text-sm font-bold font-mono rounded-lg ${
-            Object.keys(answers).length === 0
-              ? 'bg-muted/5 border-muted-foreground/50 text-muted-foreground/50 cursor-not-allowed'
-              : 'bg-blue-500/20 border-blue-500 text-blue-500 hover:bg-blue-500/30'
-          }`}
+          className="flex-1 flex items-center justify-center gap-2"
         >
           <Send size={16} />
           <span>Submit</span>
@@ -279,7 +276,6 @@ export const ClarificationForm: React.FC<ClarificationFormProps> = ({
           <Button
             onClick={onSkip}
             variant="outline"
-            className="px-6 py-3 border-2 border-muted-foreground/50 text-muted-foreground/50 text-sm font-bold font-mono rounded-lg hover:border-red-500 hover:text-red-500"
           >
             Skip
           </Button>

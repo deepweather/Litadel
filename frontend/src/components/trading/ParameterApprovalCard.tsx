@@ -22,9 +22,9 @@ export const ParameterApprovalCard: React.FC<ParameterApprovalCardProps> = ({
   const [showAdvanced, setShowAdvanced] = useState(false)
 
   const getConfidenceColorClass = (score: number) => {
-    if (score >= 0.8) return 'text-blue-500' // High
-    if (score >= 0.6) return 'text-orange-500' // Medium
-    return 'text-red-500' // Low
+    if (score >= 0.8) return 'text-primary' // High
+    if (score >= 0.6) return 'text-muted-foreground' // Medium
+    return 'text-destructive' // Low
   }
 
   const getConfidenceIcon = (score: number) => {
@@ -34,9 +34,9 @@ export const ParameterApprovalCard: React.FC<ParameterApprovalCardProps> = ({
 
   const getIntentBadge = (intent?: string) => {
     const badgeStyles: Record<string, { className: string; emoji: string }> = {
-      backtest: { className: 'bg-primary/20 border-primary text-primary', emoji: '🧪' },
-      live_trading: { className: 'bg-red-500/20 border-red-500 text-red-500', emoji: '🔴' },
-      analysis: { className: 'bg-green-500/20 border-green-500 text-green-500', emoji: '📊' }
+      backtest: { className: 'bg-primary/10 border-primary text-primary', emoji: '🧪' },
+      live_trading: { className: 'bg-destructive/10 border-destructive text-destructive', emoji: '🔴' },
+      analysis: { className: 'bg-accent/10 border-accent text-accent-foreground', emoji: '📊' }
     }
 
     const config = badgeStyles[intent || 'backtest'] || badgeStyles.backtest
@@ -53,8 +53,8 @@ export const ParameterApprovalCard: React.FC<ParameterApprovalCardProps> = ({
     if (!strategyType) return null
 
     const badgeStyles: Record<string, { className: string; emoji: string; label: string }> = {
-      agent_managed: { className: 'bg-purple-500/20 border-purple-400 text-purple-400', emoji: '🤖', label: 'AI-Managed' },
-      technical_dsl: { className: 'bg-blue-500/20 border-blue-500 text-blue-500', emoji: '📊', label: 'Technical DSL' }
+      agent_managed: { className: 'bg-secondary/50 border-secondary text-secondary-foreground', emoji: '🤖', label: 'AI-Managed' },
+      technical_strategy: { className: 'bg-accent/10 border-accent text-accent-foreground', emoji: '📊', label: 'Technical Strategy' }
     }
 
     const config = badgeStyles[strategyType] || badgeStyles.agent_managed
@@ -92,10 +92,10 @@ export const ParameterApprovalCard: React.FC<ParameterApprovalCardProps> = ({
   })
 
   return (
-    <Card className="p-6 border-2 border-blue-500 bg-blue-500/5 font-mono">
+    <Card className="p-6 font-mono">
       {/* Header */}
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <h3 className="text-blue-500 text-base font-bold m-0">
+        <h3 className="text-primary text-base font-bold m-0">
           ✓ I've extracted these parameters:
         </h3>
         <div className="flex gap-2 flex-wrap">
@@ -113,7 +113,7 @@ export const ParameterApprovalCard: React.FC<ParameterApprovalCardProps> = ({
           return (
             <div
               key={key}
-              className="flex items-start gap-3 p-3 bg-blue-500/5 border border-blue-500/20 rounded"
+              className="flex items-start gap-3 p-3 bg-muted/50 border border-border rounded"
             >
               <div className={`mt-0.5 ${getConfidenceColorClass(confidenceScore)}`}>
                 {getConfidenceIcon(confidenceScore)}
@@ -137,25 +137,26 @@ export const ParameterApprovalCard: React.FC<ParameterApprovalCardProps> = ({
       {/* Advanced Options Toggle */}
       {Object.keys(suggestedDefaults).length > 0 && (
         <div className="mb-6">
-          <button
+          <Button
+            variant="outline"
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="w-full flex items-center justify-between p-3 bg-primary/5 border border-border rounded text-primary text-sm cursor-pointer font-mono hover:bg-primary/10"
+            className="w-full flex items-center justify-between"
           >
             <span>Advanced Options (Auto-Defaults)</span>
             {showAdvanced ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          </button>
+          </Button>
 
           {showAdvanced && (
-            <div className="mt-3 p-4 bg-primary/[0.03] border border-primary/20 rounded">
+            <div className="mt-3 p-4 bg-muted/30 border border-border rounded">
               {Object.entries(suggestedDefaults).map(([key, value]) => (
                 <div
                   key={key}
-                  className="flex justify-between py-2 border-b border-primary/10"
+                  className="flex justify-between py-2 border-b border-border last:border-b-0"
                 >
                   <span className="text-muted-foreground text-xs">
                     {key.replace(/_/g, ' ')}:
                   </span>
-                  <span className="text-primary text-xs font-bold">
+                  <span className="text-foreground text-xs font-bold">
                     {String(value)}
                   </span>
                 </div>
@@ -169,7 +170,8 @@ export const ParameterApprovalCard: React.FC<ParameterApprovalCardProps> = ({
       <div className="flex gap-3">
         <Button
           onClick={onApprove}
-          className="flex-1 flex items-center justify-center gap-2 p-4 bg-blue-500/20 border-2 border-blue-500 text-blue-500 text-base font-bold font-mono rounded-lg hover:bg-blue-500/30 transition-all"
+          className="flex-1 flex items-center justify-center gap-2"
+          size="lg"
         >
           <Check size={20} />
           <span>OK - Looks Good!</span>
@@ -178,7 +180,7 @@ export const ParameterApprovalCard: React.FC<ParameterApprovalCardProps> = ({
         <Button
           onClick={onCancel}
           variant="outline"
-          className="px-6 py-4 border-2 border-muted-foreground/50 text-muted-foreground/50 text-base font-bold font-mono rounded-lg hover:border-red-500 hover:text-red-500 transition-all"
+          size="lg"
         >
           <X size={20} />
         </Button>

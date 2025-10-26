@@ -32,6 +32,7 @@ classifiers = [
 
 dependencies = [
     "akshare>=1.16.98",
+    "backtesting>=0.3.3",
     "backtrader>=1.9.78.123",
     "bcrypt>=4.0.0,<5.0.0",
     "chainlit>=2.5.5",

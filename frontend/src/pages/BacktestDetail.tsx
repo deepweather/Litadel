@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useBacktestWebSocket } from '../hooks/useBacktestWebSocket'
 import { formatCurrency, formatDateShort, formatPercentageWithSign } from '../utils/formatters'
+import { StrategyCodeVisualizer } from '../components/backtest/StrategyCodeVisualizer'
 
 export const BacktestDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -280,11 +281,12 @@ export const BacktestDetail: React.FC = () => {
         </div>
         <div>
           <div className="text-muted-foreground text-xs mb-2 font-bold">
-            DSL YAML
+            PYTHON STRATEGY CODE
           </div>
-          <pre className="bg-secondary border border-primary/30 p-4 overflow-auto text-primary text-xs font-mono leading-relaxed">
-            {backtest.strategy_dsl_yaml}
-          </pre>
+          <StrategyCodeVisualizer
+            codeContent={backtest.strategy_code_python}
+            strategyType={backtest.strategy_type}
+          />
         </div>
       </Collapsible>
 

@@ -376,6 +376,7 @@ class APIService {
   async extractTradingParameters(data: {
     user_message: string
     conversation_history: Array<{ role: string; content: string }>
+    current_form_state?: Record<string, any>
   }): Promise<{
     intent: string
     extracted: Record<string, any>
@@ -397,7 +398,7 @@ class APIService {
   async executeTradingIntent(data: {
     intent: string
     parameters: Record<string, any>
-    strategy_dsl_yaml?: string
+    strategy_code_python?: string
   }): Promise<{
     success: boolean
     backtest_id?: number
@@ -408,20 +409,19 @@ class APIService {
     return response.data
   }
 
-  async generateStrategyDSL(
+  async generateStrategyCode(
     data: {
       strategy_description: string
-      ticker_list: string[]
-      initial_capital: number
-      rebalance_frequency: string
-      position_sizing: string
-      max_positions: number
-      strategy_type?: string
+      ticker: string
+      indicators?: string[]
+      entry_conditions?: Record<string, any>
+      exit_conditions?: Record<string, any>
+      risk_params?: Record<string, any>
     },
     onChunk?: (chunk: string) => void
   ): Promise<{
     success: boolean
-    yaml_dsl: string
+    code: string
     valid: boolean
     validation_message: string
   }> {
@@ -439,7 +439,7 @@ class APIService {
       headers['X-API-Key'] = apiKey
     }
 
-    const response = await fetch(`${apiUrl}/api/v1/backtests/generate-strategy-dsl`, {
+    const response = await fetch(`${apiUrl}/api/v1/backtests/generate-strategy-code`, {
       method: 'POST',
       headers,
       body: JSON.stringify(data),
@@ -447,13 +447,13 @@ class APIService {
 
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.detail || 'Failed to generate strategy DSL')
+      throw new Error(error.detail || 'Failed to generate strategy code')
     }
 
     // Process the stream
     const reader = response.body?.getReader()
     const decoder = new TextDecoder()
-    let accumulatedYAML = ''
+    let accumulatedCode = ''
     let isValid = false
     let validationMessage = ''
 
@@ -485,10 +485,10 @@ class APIService {
             if (data.type === 'start') {
               console.log('🚀 Stream started')
             } else if (data.type === 'chunk') {
-              accumulatedYAML += data.content
+              accumulatedCode += data.content
               onChunk?.(data.content)
             } else if (data.type === 'complete') {
-              accumulatedYAML = data.full_yaml
+              accumulatedCode = data.full_code
               isValid = data.valid
               validationMessage = data.validation_message
               console.log('✨ Generation complete, valid:', isValid)
@@ -505,7 +505,7 @@ class APIService {
 
     return {
       success: true,
-      yaml_dsl: accumulatedYAML,
+      code: accumulatedCode,
       valid: isValid,
       validation_message: validationMessage,
     }

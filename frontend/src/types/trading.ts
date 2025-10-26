@@ -8,7 +8,7 @@ export interface Message {
   timestamp: Date
 }
 
-export type StrategyType = 'agent_managed' | 'technical_dsl'
+export type StrategyType = 'agent_managed' | 'technical_strategy'
 
 export interface ExtractedParameters {
   intent?: TradingIntent
@@ -52,7 +52,7 @@ export interface ExtractParametersRequest {
 export interface ExecuteTradingIntentRequest {
   intent: TradingIntent
   parameters: ExtractedParameters
-  strategy_dsl_yaml?: string
+  strategy_code_python?: string
 }
 
 export interface ExecuteTradingIntentResponse {
@@ -71,6 +71,6 @@ export interface ConversationState {
     currentIndex: number
   } | null
   isProcessing: boolean
-  generatedYaml?: string
+  generatedCode?: string
 }
 

@@ -12,12 +12,12 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
 
   const getMessageClasses = () => {
     if (isUser) {
-      return 'bg-primary/20 border-primary self-end'
+      return 'bg-primary/10 border-primary self-end'
     }
     if (isSystem) {
-      return 'bg-blue-500/10 border-blue-500 self-center'
+      return 'bg-accent/10 border-accent self-center'
     }
-    return 'bg-blue-500/5 border-border self-start'
+    return 'bg-muted border-border self-start'
   }
 
   const getIcon = () => {
@@ -28,8 +28,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
 
   const getIconColorClass = () => {
     if (isUser) return 'text-primary'
-    if (isSystem) return 'text-blue-500'
-    return 'text-blue-500'
+    if (isSystem) return 'text-accent-foreground'
+    return 'text-muted-foreground'
   }
 
   return (

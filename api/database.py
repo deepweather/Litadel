@@ -173,7 +173,8 @@ class Backtest(Base):
 
     # Strategy definition
     strategy_description = Column(Text, nullable=False)  # Natural language description
-    strategy_dsl_yaml = Column(Text, nullable=False)  # YAML DSL strategy definition
+    strategy_code_python = Column(Text, nullable=False)  # Python strategy code using backtesting.py
+    strategy_type = Column(String, nullable=False, default="single_ticker")  # single_ticker or portfolio
     ticker_list = Column(Text, nullable=False)  # JSON array of tickers
 
     # Date range

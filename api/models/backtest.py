@@ -12,12 +12,11 @@ class CreateBacktestRequest(BaseModel):
     name: str = Field(..., description="Backtest name", min_length=1, max_length=200)
     description: str | None = Field(None, description="Backtest description")
     strategy_description: str = Field(..., description="Natural language strategy description", min_length=1)
-    strategy_dsl_yaml: str | None = Field(
-        None, description="YAML DSL strategy definition (auto-generated if not provided)"
-    )
+    strategy_code_python: str = Field(..., description="Python strategy code using backtesting.py library")
+    strategy_type: str = Field(default="single_ticker", description="Strategy type: single_ticker or portfolio")
     ticker_list: list[str] = Field(
         default_factory=list,
-        description="List of tickers to trade (optional - random tickers will be selected if empty)",
+        description="List of tickers to trade",
     )
     start_date: str = Field(..., description="Backtest start date in YYYY-MM-DD format")
     end_date: str = Field(..., description="Backtest end date in YYYY-MM-DD format")
@@ -70,7 +69,8 @@ class UpdateBacktestRequest(BaseModel):
     name: str | None = Field(None, description="Backtest name", min_length=1, max_length=200)
     description: str | None = Field(None, description="Backtest description")
     strategy_description: str | None = Field(None, description="Natural language strategy description")
-    strategy_dsl_yaml: str | None = Field(None, description="YAML DSL strategy definition")
+    strategy_code_python: str | None = Field(None, description="Python strategy code using backtesting.py library")
+    strategy_type: str | None = Field(None, description="Strategy type: single_ticker or portfolio")
     ticker_list: list[str] | None = Field(None, description="List of tickers to trade")
     start_date: str | None = Field(None, description="Backtest start date in YYYY-MM-DD format")
     end_date: str | None = Field(None, description="Backtest end date in YYYY-MM-DD format")
@@ -161,7 +161,8 @@ class BacktestResponse(BaseModel):
     name: str = Field(..., description="Backtest name")
     description: str | None = Field(None, description="Backtest description")
     strategy_description: str = Field(..., description="Natural language strategy description")
-    strategy_dsl_yaml: str = Field(..., description="YAML DSL strategy definition")
+    strategy_code_python: str = Field(..., description="Python strategy code using backtesting.py library")
+    strategy_type: str = Field(..., description="Strategy type: single_ticker or portfolio")
     ticker_list: list[str] = Field(..., description="List of tickers")
     start_date: datetime = Field(..., description="Backtest start date")
     end_date: datetime = Field(..., description="Backtest end date")

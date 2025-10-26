@@ -38,58 +38,59 @@ def create_parameter_extraction_agent(llm):
     # System prompt with properly escaped JSON examples
     system_prompt = f"""You are a parameter extraction agent for a trading platform. Today's date is {today_str}.
 
-Your task is to extract trading parameters from natural language and detect the user's FLOW TYPE FIRST.
+Your task is to extract trading parameters from natural language. DO NOT assume strategy type unless explicitly stated.
 
-**STEP 1: DETECT FLOW TYPE (CRITICAL - DO THIS FIRST!)**
+**FLOW TYPES:**
 
-There are 3 distinct flows:
+There are 3 distinct flows, but ONLY set strategy_type if the user explicitly indicates one:
 
-1. 🤖 **AGENT_MANAGED** - AI agent trades for the user
-   - Triggers: "I like...", "trade for me", "aggressive", "conservative", vague preferences
-   - Examples: "I like crypto", "stonks", "safe investments", "tech stocks"
-   - User gives HIGH-LEVEL preferences, AI makes trading decisions
-   - DEFAULT to this if unclear!
+1. 🤖 **AGENT_MANAGED** (strategy_type: "agent_managed")
+   - Clear triggers: "AI manage for me", "trade for me", "you decide trades", "autonomous"
+   - Examples: "Let AI trade crypto for me", "Manage my portfolio automatically"
+   - User explicitly wants AI to make trading decisions
+   - ⚠️ DO NOT assume this just because user says "I like X"!
 
-2. 📊 **TECHNICAL_DSL** - Execute user's specific trading rules
-   - Triggers: RSI, MACD, SMA, EMA, %, thresholds, "when X then Y", "buy when", "sell when"
+2. 📊 **TECHNICAL_STRATEGY** (strategy_type: "technical_strategy")
+   - Clear triggers: RSI, MACD, SMA, EMA, %, thresholds, "when X then Y", "buy when", "sell when"
    - Examples: "Buy when RSI < 30", "sell at 10% profit", "MACD crosses above signal"
-   - User defines EXACT rules, system executes them
+   - User wants to define EXACT technical rules
+   - ⚠️ DO NOT assume this unless user mentions indicators/rules!
 
-3. 💡 **ANALYSIS** - AI analyzes and gives opinion
+3. 💡 **ANALYSIS** (intent: "analysis")
    - Triggers: "what do you think", "analyze", "opinion on", "thoughts on"
    - Examples: "What do you think about Bitcoin?", "Analyze TSLA"
    - User wants AI's analysis/opinion on an asset
 
-**STEP 2: EXTRACT PARAMETERS BASED ON FLOW TYPE**
+**IMPORTANT: If strategy type is UNCLEAR, leave strategy_type empty and mark it as MISSING!**
+- "I like crypto" → strategy_type: null (could be AI-managed OR technical strategy)
+- "I like TSLA" → strategy_type: null (need to ask!)
+- "Buy AAPL when RSI < 30" → strategy_type: "technical_strategy" (explicit rules)
 
-For AGENT_MANAGED:
-- Required:
-  * strategy_description: User's preferences/style (e.g., "I like crypto, aggressive")
-  * capital: How much money
-  * asset_preferences: What to trade OR "you choose" for AI selection
-  * start_date, end_date: When to backtest (ALWAYS ASK if not specified!)
+**REQUIRED FIELDS:**
 
-For TECHNICAL_DSL:
-- Required:
-  * strategy_description: Detailed technical rules with conditions
-  * capital: How much money
-  * start_date, end_date: Backtest period (ALWAYS ASK if not specified!)
-- Optional:
-  * ticker_list: Specific tickers if mentioned
+For ALL backtest requests (ALWAYS required):
+- strategy_type: "agent_managed" or "technical_strategy" (ASK if unclear!)
+- strategy_description: What the strategy does
+- capital: How much money
+- start_date, end_date: Backtest period (NEVER auto-fill!)
 
-For ANALYSIS:
-- Required:
-  * strategy_description: What to analyze (ticker or topic)
-- Optional: Everything else
+For AGENT_MANAGED (once strategy_type is known):
+- asset_preferences: What to trade OR "you choose" for AI selection
+
+For TECHNICAL_STRATEGY (once strategy_type is known):
+- indicators: List of technical indicators (RSI, SMA, EMA, MACD, BB, etc.) with parameters
+- entry_conditions: Specific entry rules with thresholds
+- exit_conditions: Exit rules (take profit, stop loss, trailing stop)
+
+For ANALYSIS intent:
+- strategy_description: What to analyze (ticker or topic)
+- (capital, dates, strategy_type are optional for analysis)
 
 **IMPORTANT:**
-- ALWAYS ask for asset_preferences if not specified (never default to stocks!)
+- If strategy_type is unclear from user's first message, mark it as MISSING!
 - ALWAYS ask for start_date and end_date if not specified (never auto-fill with defaults!)
-- For agent_managed: Accept SHORT preferences like "I like tech" - don't demand details!
-- For technical_dsl: Demand specific rules with indicators and thresholds
-- Set strategy_type: "agent_managed" or "technical_dsl" based on detected flow
-- REJECT SLANG: If user says just "stonks", "stocks", ask what KIND of stocks/assets (tech? crypto? blue chip? or let AI choose?)
-- Accept "no", "you", "you choose", "doesn't matter" as valid responses meaning AI should choose
+- REJECT SLANG: If user says just "stonks", "stocks", ask what KIND of stocks/assets
+- Accept "you choose", "AI managed", "doesn't matter" as valid responses for asset_preferences
 
 **Optional Parameters (auto-defaulted):**
 - ticker_list: List of ticker symbols (can extract from description)
@@ -158,29 +159,55 @@ Generate specific questions for missing required fields:
 - For capital: Provide suggestions [10000, 50000, 100000]
 - For dates: Provide presets ["Last 2 Years", "Last Year", "YTD", "Last 6 Months", "Custom"]
 - For strategy: Ask for more specifics about entry/exit rules
+- For technical strategies, ask:
+  * "What RSI threshold? (common: 30 for oversold, 70 for overbought)"
+  * "What SMA periods? (common: 20/50 or 50/200 for crossovers)"
+  * "Stop loss percentage? (recommended: 2-5%)"
+  * "Take profit target? (e.g., 10%, 15%, 20%)"
+  * "Position size? (% of capital per trade, e.g., 10%, 20%)"
+  * "Which timeframe? (daily, hourly, 15min for intraday)"
 
 **Output Format (JSON only, no markdown):**
 {{{{
   "intent": "backtest",
   "extracted": {{{{
-    "strategy_description": "momentum strategy for TSLA and AAPL",
+    "strategy_description": "RSI mean reversion strategy for TSLA",
     "capital": 50000,
     "start_date": "2022-01-01",
     "end_date": "2023-12-31",
-    "ticker_list": ["TSLA", "AAPL"]
+    "ticker_list": ["TSLA"],
+    "indicators": [
+      {{{{"name": "RSI", "period": 14}}}},
+      {{{{"name": "SMA", "period": 50}}}}
+    ],
+    "entry_conditions": {{{{
+      "rsi_below": 30,
+      "price_above_sma": true
+    }}}},
+    "exit_conditions": {{{{
+      "rsi_above": 70,
+      "stop_loss_pct": 3.0,
+      "take_profit_pct": 10.0
+    }}}},
+    "risk_params": {{{{
+      "position_size_pct": 10,
+      "max_position_size": 5000
+    }}}}
   }}}},
   "missing": ["field1"],
   "confidence": {{{{
-    "strategy_description": 0.8,
+    "strategy_description": 0.9,
     "capital": 1.0,
-    "start_date": 0.9
+    "start_date": 0.9,
+    "indicators": 0.95,
+    "entry_conditions": 0.8
   }}}},
   "needs_clarification": false,
   "clarification_questions": [
     {{{{
-      "question": "What initial capital would you like to use?",
-      "field": "capital",
-      "suggestions": [10000, 50000, 100000],
+      "question": "What RSI threshold for entry? (common: 30 for oversold)",
+      "field": "entry_conditions.rsi_below",
+      "suggestions": [20, 30, 35],
       "field_type": "number"
     }}}}
   ],
@@ -238,7 +265,19 @@ Generate specific questions for missing required fields:
             questions = []
 
             for field in missing_fields:
-                if field == "strategy_description":
+                if field == "strategy_type":
+                    questions.append(
+                        {
+                            "question": "What type of trading strategy would you like?",
+                            "field": "strategy_type",
+                            "suggestions": [
+                                "AI Managed (I set preferences, AI makes trades)",
+                                "Technical Strategy (I define specific rules)",
+                            ],
+                            "field_type": "select",
+                        }
+                    )
+                elif field == "strategy_description":
                     questions.append(
                         {
                             "question": "Please describe your trading strategy (e.g., 'Momentum strategy for tech stocks' or 'Buy when RSI < 30, sell when RSI > 70')",
@@ -261,8 +300,8 @@ Generate specific questions for missing required fields:
                         {
                             "question": "What would you like to trade? (e.g., 'AAPL, MSFT' or 'tech stocks' or 'crypto' or 'you choose')",
                             "field": "asset_preferences",
-                            "suggestions": ["Tech Stocks", "Crypto", "Blue Chips", "You Choose (AI-Managed)"],
-                            "field_type": "text",
+                            "suggestions": ["Tech Stocks", "Crypto", "Blue Chips", "You Choose"],
+                            "field_type": "select",
                         }
                     )
                 elif field in ["start_date", "end_date", "dates"]:
@@ -415,7 +454,7 @@ Generate specific questions for missing required fields:
             strategy_desc = extracted.get("strategy_description", "")
             strategy_type = extracted.get("strategy_type")
 
-            if strategy_type == "technical_dsl" and strategy_desc:
+            if strategy_type == "technical_strategy" and strategy_desc:
                 # Check if strategy is too vague for technical DSL
                 vague_terms = ["momentum", "value", "growth", "trend", "swing"]
                 if any(term in strategy_desc.lower() for term in vague_terms):
@@ -455,19 +494,37 @@ Generate specific questions for missing required fields:
 
             return result_dict
 
-        def __call__(self, user_message: str, conversation_history: list[dict] | None = None) -> dict:
+        def __call__(
+            self,
+            user_message: str,
+            conversation_history: list[dict] | None = None,
+            current_form_state: dict | None = None,
+        ) -> dict:
             """
             Extract parameters from natural language input.
 
             Args:
                 user_message: The user's natural language input
                 conversation_history: Previous messages for context (optional)
+                current_form_state: Current state of the form to avoid re-extracting already filled fields (optional)
 
             Returns:
                 Dictionary with extracted parameters, intent, missing fields, etc.
             """
             conversation_history = conversation_history or []
+            current_form_state = current_form_state or {}
             conversation_context = self._build_conversation_context(conversation_history)
+
+            # Add form state to context if provided
+            if current_form_state:
+                filled_fields = {k: v for k, v in current_form_state.items() if v is not None and v != "" and v != []}
+                if filled_fields:
+                    conversation_context += "\n\nCurrent form state (already filled by user):\n"
+                    for field, value in filled_fields.items():
+                        conversation_context += f"- {field}: {value}\n"
+                    conversation_context += (
+                        "\nDo NOT re-extract these fields. Only extract NEW information from the user's message.\n"
+                    )
 
             # Create prompt
             prompt = ChatPromptTemplate.from_messages(
@@ -504,10 +561,16 @@ Generate specific questions for missing required fields:
 
                 # Validate strategy_description based on flow type
                 strategy_desc = result_dict["extracted"].get("strategy_description", "")
-                strategy_type = result_dict["extracted"].get("strategy_type", "agent_managed")
+                strategy_type = result_dict["extracted"].get("strategy_type")  # Don't default!
                 intent = result_dict.get("intent", "unclear")
 
-                # Different validation based on flow type
+                # Add strategy_type to missing if not provided and intent is backtest
+                if intent == "backtest" and not strategy_type:
+                    if "strategy_type" not in result_dict["missing"]:
+                        result_dict["missing"].insert(0, "strategy_type")  # Insert at front (ask first!)
+                        result_dict["needs_clarification"] = True
+
+                # Different validation based on flow type (only if strategy_type is known)
                 if strategy_type == "agent_managed":
                     # For agent-managed, even short preferences are OK (e.g., "I like stonks")
                     if not strategy_desc or len(strategy_desc.strip()) < 3:
@@ -537,7 +600,7 @@ Generate specific questions for missing required fields:
                                     },
                                 )
 
-                elif strategy_type == "technical_dsl":
+                elif strategy_type == "technical_strategy":
                     # For technical DSL, demand detailed rules
                     if not strategy_desc or len(strategy_desc.strip()) < 15:
                         if "strategy_description" in result_dict["extracted"]:
