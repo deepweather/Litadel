@@ -7,8 +7,8 @@ import { api } from '../services/api'
 import { PositionTable } from '../components/portfolio/PositionTable'
 import { PositionForm } from '../components/portfolio/PositionForm'
 import { BulkImport } from '../components/portfolio/BulkImport'
-import { Button } from '../components/ui/Button'
-import { Card } from '../components/ui/Card'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { IconButton } from '../components/ui/IconButton'
 import { MetricCard } from '../components/common/MetricCard'
 import { TextArea, TextInput } from '../components/ui/Form'
@@ -210,7 +210,7 @@ export const PortfolioDetail: React.FC = () => {
       </Button>
 
       {/* Portfolio Header */}
-      <Card padding="lg" hoverEffect={false}>
+      <Card className="p-6">
         {isEditingPortfolio ? (
           <div>
             <TextInput

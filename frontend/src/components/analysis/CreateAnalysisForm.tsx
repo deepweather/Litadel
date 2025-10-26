@@ -2,9 +2,9 @@ import React, { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAnalyses, useCreateAnalysis } from '../../hooks/useAnalyses'
 import { ANALYST_TYPES, type AnalystType } from '../../types/analysis'
-import { Button } from '../ui/Button'
-import { Input } from '../ui/Input'
-import { Checkbox } from '../ui/Checkbox'
+import { Button } from '@/components/ui/button'
+import { FormInput as Input } from '@/components/ui/form-input'
+import { FormCheckbox as Checkbox } from '@/components/ui/form-checkbox'
 import { ASCIIBox } from '../ui/ASCIIBox'
 import { Clock, Search, Zap } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -610,13 +610,13 @@ export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialT
         {!showConfirm ? (
           <>
             <Button type="submit">PREVIEW & CONFIRM</Button>
-            <Button type="button" variant="warning" onClick={() => navigate('/analyses')}>
+            <Button type="button" variant="outline" onClick={() => navigate('/analyses')}>
               CANCEL
             </Button>
           </>
         ) : (
           <>
-            <Button type="submit" disabled={createMutation.isPending} variant="success">
+            <Button type="submit" disabled={createMutation.isPending}>
               {createMutation.isPending ? 'STARTING ANALYSIS...' : 'START ANALYSIS'}
             </Button>
             <Button type="button" onClick={() => setShowConfirm(false)}>

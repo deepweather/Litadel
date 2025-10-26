@@ -4,8 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { ArrowLeft, Play, XCircle } from 'lucide-react'
 import { api } from '../services/api'
-import { Button } from '../components/ui/Button'
-import { Card } from '../components/ui/Card'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { MetricCard } from '../components/common/MetricCard'
 import { StatusBadge } from '../components/data-display/StatusBadge'
 import { Collapsible } from '../components/interactive/Collapsible'
@@ -178,7 +178,7 @@ export const BacktestDetail: React.FC = () => {
 
       {/* Performance Metrics */}
       {backtest.status === 'completed' && (
-        <Card padding="lg" hoverEffect={false}>
+        <Card className="p-6">
           <h2
             style={{
               fontSize: '1rem',
@@ -222,7 +222,7 @@ export const BacktestDetail: React.FC = () => {
 
       {/* Equity Curve */}
       {equityCurve && equityCurve.length > 0 && (
-        <Card padding="lg" hoverEffect={false}>
+        <Card className="p-6">
           <h2
             style={{
               fontSize: '1rem',
@@ -266,7 +266,7 @@ export const BacktestDetail: React.FC = () => {
 
       {/* Trades Table */}
       {trades && trades.length > 0 && (
-        <Card padding="sm" hoverEffect={false}>
+        <Card className="p-3">
           <div style={{ padding: '1rem', borderBottom: '1px solid rgba(77, 166, 255, 0.3)' }}>
             <h2
               style={{

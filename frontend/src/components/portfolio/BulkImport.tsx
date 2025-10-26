@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react'
 import { AlertCircle, Check, Download, Upload } from 'lucide-react'
-import { Button } from '../ui/Button'
-import { Modal } from '../ui/Modal'
+import { Button } from '@/components/ui/button'
+import { Modal } from '@/components/ui/modal-wrapper'
 
 interface BulkImportProps {
   onImport: (file: File) => Promise<{

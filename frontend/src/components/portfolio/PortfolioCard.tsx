@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import type { PortfolioSummary } from '../../types/portfolio'
 import { formatCurrency, formatPercentageWithSign } from '../../utils/formatters'
 import { getPnLColor } from '../../utils/colors'
-import { Card } from '../ui/Card'
+import { Card } from '@/components/ui/card'
 
 interface PortfolioCardProps {
   portfolio: PortfolioSummary
@@ -13,7 +13,7 @@ export const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio }) => {
   const navigate = useNavigate()
 
   return (
-    <Card onClick={() => navigate(`/portfolio/${portfolio.id}`)}>
+    <Card onClick={() => navigate(`/portfolio/${portfolio.id}`)} className="cursor-pointer transition-all hover:shadow-md">
       <div
         style={{
           display: 'flex',

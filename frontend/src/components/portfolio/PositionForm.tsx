@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { AlertCircle, Check, Loader } from 'lucide-react'
 import type { CreatePositionRequest, Position, UpdatePositionRequest } from '../../types/portfolio'
-import { Input } from '../ui/Input'
-import { Button } from '../ui/Button'
-import { Modal } from '../ui/Modal'
+import { FormInput as Input } from '@/components/ui/form-input'
+import { Button } from '@/components/ui/button'
+import { Modal } from '@/components/ui/modal-wrapper'
 import { api } from '../../services/api'
 
 interface PositionFormProps {
