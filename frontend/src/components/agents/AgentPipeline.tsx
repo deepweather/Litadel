@@ -1,6 +1,8 @@
 import React from 'react';
 import { AGENT_NAMES, type AgentName } from '../../types/analysis';
 import type { AnalysisLog, AnalysisStatus } from '../../types/api';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface AgentPipelineProps {
   currentAgent: string | null;
@@ -104,9 +106,12 @@ export const AgentPipeline: React.FC<AgentPipelineProps> = ({
   };
 
   return (
-    <div className={`${className}`}>
-      <div className="border border-terminal-border p-2">
-        <div className="space-y-1">
+    <Card className={cn('py-3 gap-3', className)}>
+      <CardHeader className="pb-0 px-4">
+        <CardTitle className="text-sm font-mono">Pipeline</CardTitle>
+      </CardHeader>
+      <CardContent className="px-4 py-0">
+        <div className="space-y-0.5">
           {getActiveAgents.map((agentName, index) => {
             const agentStatus = getAgentStatus(agentName);
             const timing = getAgentTiming(agentName);
@@ -114,45 +119,35 @@ export const AgentPipeline: React.FC<AgentPipelineProps> = ({
 
             return (
               <div key={agentName}>
-                {/* Agent Card - Compact */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  fontSize: '0.7rem'
-                }}>
-                  <div style={{
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    backgroundColor:
-                      agentStatus === 'completed' ? '#00ff00' :
-                      agentStatus === 'running' ? '#00d4ff' :
-                      agentStatus === 'failed' ? '#ff4444' : '#2a3e4a',
-                    flexShrink: 0
-                  }} />
-                  <div style={{
-                    flex: 1,
-                    color:
-                      agentStatus === 'completed' ? '#4da6ff' :
-                      agentStatus === 'running' ? '#00d4ff' :
-                      agentStatus === 'failed' ? '#ff4444' : '#5a6e7a',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}>
+                {/* Agent Row */}
+                <div className="flex items-center gap-1.5 text-[0.7rem] font-mono">
+                  {/* Status Indicator */}
+                  <div
+                    className={cn(
+                      'w-1.5 h-1.5 rounded-full shrink-0 transition-colors',
+                      agentStatus === 'completed' && 'bg-green-500',
+                      agentStatus === 'running' && 'bg-primary animate-pulse',
+                      agentStatus === 'failed' && 'bg-destructive',
+                      agentStatus === 'pending' && 'bg-muted'
+                    )}
+                  />
+
+                  {/* Agent Name */}
+                  <div
+                    className={cn(
+                      'flex-1 truncate transition-colors',
+                      agentStatus === 'completed' && 'text-primary',
+                      agentStatus === 'running' && 'text-primary font-semibold',
+                      agentStatus === 'failed' && 'text-destructive',
+                      agentStatus === 'pending' && 'text-muted-foreground'
+                    )}
+                  >
                     {agentName}
                   </div>
+
+                  {/* Timing */}
                   {timing && agentStatus === 'completed' && (
-                    <div
-                      style={{
-                        fontSize: '0.65rem',
-                        color: '#2a3e4a',
-                        fontFamily: 'JetBrains Mono, monospace',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
+                    <div className="text-[0.65rem] text-muted-foreground shrink-0">
                       {timing}
                     </div>
                   )}
@@ -160,15 +155,7 @@ export const AgentPipeline: React.FC<AgentPipelineProps> = ({
 
                 {/* Connector Line */}
                 {!isLast && (
-                  <div
-                    style={{
-                      fontSize: '0.5rem',
-                      color: 'rgba(77, 166, 255, 0.2)',
-                      fontFamily: 'JetBrains Mono, monospace',
-                      paddingLeft: '0.5rem',
-                      lineHeight: '0.8',
-                    }}
-                  >
+                  <div className="text-[0.5rem] text-border font-mono pl-1.5 leading-tight">
                     │
                   </div>
                 )}
@@ -176,7 +163,7 @@ export const AgentPipeline: React.FC<AgentPipelineProps> = ({
             );
           })}
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };

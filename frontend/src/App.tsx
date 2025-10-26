@@ -1,7 +1,8 @@
 import React from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Toaster } from 'react-hot-toast'
+import { Toaster } from './components/ui/sonner'
+import { ThemeProvider } from './components/theme-provider'
 import { Layout } from './components/layout/Layout'
 import { Dashboard } from './pages/Dashboard'
 import { AnalysisList } from './pages/AnalysisList'
@@ -10,6 +11,11 @@ import { CreateAnalysis } from './pages/CreateAnalysis'
 import { PortfolioList } from './pages/PortfolioList'
 import { PortfolioDetail } from './pages/PortfolioDetail'
 import { CreatePortfolio } from './pages/CreatePortfolio'
+import { BacktestList } from './pages/BacktestList'
+import { BacktestDetail } from './pages/BacktestDetail'
+import { CreateBacktest } from './pages/CreateBacktest'
+// DEPRECATED: ChatTradingInterface removed from routes
+// import { ChatTradingInterface } from './pages/ChatTradingInterface'
 import { AssetDetail } from './pages/AssetDetail'
 import { Settings } from './pages/Settings'
 import { Login } from './pages/Login'
@@ -40,13 +46,14 @@ const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/settings" element={<Settings />} />
+    <ThemeProvider defaultTheme="system" storageKey="litadel-ui-theme">
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/settings" element={<Settings />} />
             <Route
               path="/analyses"
               element={
@@ -96,6 +103,31 @@ function App() {
               }
             />
             <Route
+              path="/backtests"
+              element={
+                <RequireAuth>
+                  <BacktestList />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/backtests/create"
+              element={
+                <RequireAuth>
+                  <CreateBacktest />
+                </RequireAuth>
+              }
+            />
+            {/* DEPRECATED: Chat interface deactivated - use /backtests/create instead */}
+            <Route
+              path="/backtests/:id"
+              element={
+                <RequireAuth>
+                  <BacktestDetail />
+                </RequireAuth>
+              }
+            />
+            <Route
               path="/asset/:ticker"
               element={
                 <RequireAuth>
@@ -107,8 +139,9 @@ function App() {
           </Routes>
         </Layout>
       </BrowserRouter>
-      <Toaster position="top-right" />
+      <Toaster />
     </QueryClientProvider>
+    </ThemeProvider>
   )
 }
 

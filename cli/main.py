@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from pathlib import Path
 
 import typer
@@ -43,14 +43,22 @@ def get_user_selections():
     with open("./cli/static/welcome.txt") as f:
         welcome_ascii = f.read()
 
-    # Create welcome box content
-    welcome_content = f"{welcome_ascii}\n"
-    welcome_content += "[bold green]Litadel: Multi-Agents LLM Financial Trading Framework - CLI[/bold green]\n\n"
-    welcome_content += "[dim]Successor of TradingAgents by TaurusResearch[/dim]\n\n"
-    welcome_content += "[bold]Workflow Steps:[/bold]\n"
-    welcome_content += (
+    # Create centered welcome content using Align
+    from rich.text import Text
+
+    ascii_centered = Align.center(welcome_ascii)
+    title_centered = Align.center(
+        Text("Litadel: Multi-Agents LLM Financial Trading Framework - CLI", style="bold green")
+    )
+    workflow_title = Align.center(Text("Workflow Steps:", style="bold"))
+    workflow_content = Align.center(
         "I. Analyst Team → II. Research Team → III. Trader → IV. Risk Management → V. Portfolio Management"
     )
+
+    # Create welcome box content
+    from rich.console import Group
+
+    welcome_content = Group(ascii_centered, Text(), title_centered, Text(), workflow_title, workflow_content)
 
     # Create and center the welcome box
     welcome_box = Panel(
@@ -80,7 +88,7 @@ def get_user_selections():
     console.print(f"[dim]→ Detected asset class: [bold]{get_asset_class_display_name(asset_class)}[/bold][/dim]\n")
 
     # Step 2: Analysis date
-    default_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    default_date = datetime.now().strftime("%Y-%m-%d")
     console.print(
         create_question_box(
             "Step 2: Analysis Date",
@@ -168,11 +176,11 @@ def get_ticker():
 def get_analysis_date():
     """Get the analysis date from user input."""
     while True:
-        date_str = typer.prompt("", default=datetime.datetime.now().strftime("%Y-%m-%d"))
+        date_str = typer.prompt("", default=datetime.now().strftime("%Y-%m-%d"))
         try:
             # Validate date format and ensure it's not in the future
-            analysis_date = datetime.datetime.strptime(date_str, "%Y-%m-%d")
-            if analysis_date.date() > datetime.datetime.now().date():
+            analysis_date = datetime.strptime(date_str, "%Y-%m-%d")
+            if analysis_date.date() > datetime.now().date():
                 console.print("[red]Error: Analysis date cannot be in the future[/red]")
                 continue
         except ValueError:
@@ -306,9 +314,233 @@ def run_analysis():
         finalize_analysis(trace, graph, selections, layout)
 
 
+@app.callback(invoke_without_command=True)
+def main(ctx: typer.Context):
+    """Litadel CLI - Choose your workflow."""
+    if ctx.invoked_subcommand is not None:
+        return
+
+    # Show welcome and menu
+    with open("./cli/static/welcome.txt") as f:
+        welcome_ascii = f.read()
+
+    from rich.text import Text
+
+    ascii_centered = Align.center(welcome_ascii)
+    title_centered = Align.center(Text("Litadel CLI", style="bold green"))
+    subtitle_centered = Align.center(Text("Multi-Agents LLM Financial Trading Framework", style="dim"))
+
+    from rich.console import Group
+
+    welcome_content = Group(ascii_centered, Text(), title_centered, Text(), subtitle_centered)
+    welcome_box = Panel(welcome_content, border_style="green", padding=(1, 2))
+    console.print(Align.center(welcome_box))
+    console.print()
+
+    # Interactive menu with arrow keys
+    import questionary
+
+    choice = questionary.select(
+        "Choose your workflow:",
+        choices=[
+            questionary.Choice("📊 Analyze - Deep dive analysis with multi-agent LLMs", value="analyze"),
+            questionary.Choice("📈 Backtest - Test trading strategies with historical data", value="backtest"),
+            questionary.Choice("❌ Exit", value="exit"),
+        ],
+        style=questionary.Style(
+            [
+                ("highlighted", "bold fg:cyan"),
+                ("selected", "bold fg:green"),
+            ]
+        ),
+    ).ask()
+
+    console.print()
+
+    if choice == "analyze":
+        run_analysis()
+    elif choice == "backtest":
+        ctx.invoke(backtest)
+    else:
+        console.print("[yellow]Goodbye![/yellow]")
+
+
 @app.command()
 def analyze():
+    """Run a comprehensive analysis on a ticker."""
     run_analysis()
+
+
+@app.command()
+def backtest():
+    """Run an interactive backtest for a trading strategy."""
+    # Show welcome screen
+    with open("./cli/static/welcome.txt") as f:
+        welcome_ascii = f.read()
+
+    from rich.text import Text
+
+    ascii_centered = Align.center(welcome_ascii)
+    title_centered = Align.center(Text("Litadel: Strategy Backtesting", style="bold green"))
+    subtitle_centered = Align.center(Text("Test your trading strategies with historical data", style="dim"))
+
+    from rich.console import Group
+
+    welcome_content = Group(ascii_centered, Text(), title_centered, Text(), subtitle_centered)
+    welcome_box = Panel(welcome_content, border_style="green", padding=(1, 2))
+    console.print(Align.center(welcome_box))
+    console.print()
+
+    def create_question_box(title, prompt, default=None):
+        box_content = f"[bold]{title}[/bold]\n[dim]{prompt}[/dim]"
+        if default:
+            box_content += f"\n[dim]Default: {default}[/dim]"
+        return Panel(box_content, border_style="blue", padding=(1, 2))
+
+    # Step 1: Ticker
+    console.print(create_question_box("Step 1: Ticker Symbol", "Enter ticker to backtest", "AAPL"))
+    symbol = typer.prompt("", default="AAPL")
+
+    from cli.asset_detection import detect_asset_class
+
+    asset_class = detect_asset_class(symbol)
+    console.print(f"[dim]→ Detected asset class: [bold]{get_asset_class_display_name(asset_class)}[/bold][/dim]\n")
+
+    # Step 2: Date range
+    from dateutil.relativedelta import relativedelta
+
+    default_end = datetime.now().strftime("%Y-%m-%d")
+    default_start = (datetime.now() - relativedelta(years=1)).strftime("%Y-%m-%d")
+
+    console.print(create_question_box("Step 2: Start Date", "Enter backtest start date (YYYY-MM-DD)", default_start))
+    start_date = typer.prompt("", default=default_start)
+
+    console.print(create_question_box("Step 3: End Date", "Enter backtest end date (YYYY-MM-DD)", default_end))
+    end_date = typer.prompt("", default=default_end)
+
+    # Step 4: Strategy description
+    console.print(
+        create_question_box(
+            "Step 4: Strategy Description",
+            "Describe your trading strategy in plain English\nExample: 'Buy when RSI below 30, sell when RSI above 70'",
+            None,
+        )
+    )
+    strategy_description = typer.prompt("")
+
+    # Step 5: Capital
+    console.print(create_question_box("Step 5: Initial Capital", "Enter initial capital for backtest", "$100,000"))
+    capital = typer.prompt("", default=100000.0, type=float)
+
+    # Step 6: Commission
+    console.print(create_question_box("Step 6: Commission Rate", "Enter commission rate (0.002 = 0.2%)", "0.002"))
+    commission = typer.prompt("", default=0.002, type=float)
+
+    console.print()
+
+    # Summary
+    console.print(
+        Panel.fit(
+            f"[bold]Backtest Configuration[/bold]\n\n"
+            f"Ticker: {symbol} ({asset_class})\n"
+            f"Period: {start_date} to {end_date}\n"
+            f"Capital: ${capital:,.0f}\n"
+            f"Commission: {commission * 100:.2f}%",
+            border_style="blue",
+        )
+    )
+    console.print()
+
+    # Generate strategy code
+    from langchain_openai import ChatOpenAI
+
+    from litadel.agents.utils.strategy_code_generator_agent import (
+        create_strategy_code_generator,
+        validate_strategy_code,
+    )
+    from litadel.backtest import BacktestConfig, BacktestEngine
+
+    console.print("[yellow]Generating strategy code with LLM...[/yellow]")
+    llm = ChatOpenAI(model="gpt-4o-mini")
+    generator = create_strategy_code_generator(llm)
+
+    strategy_code = generator(
+        strategy_description=strategy_description,
+        ticker=symbol,
+        indicators=[],
+        entry_conditions={},
+        exit_conditions={},
+        risk_params={},
+    )
+
+    # Validate and auto-fix
+    console.print("[yellow]Validating strategy code...[/yellow]")
+    is_valid, message, fixed_code = validate_strategy_code(strategy_code, llm)
+
+    if not is_valid:
+        console.print(f"[red]Validation failed: {message}[/red]")
+        return
+
+    console.print("[green]✓ Strategy validated[/green]\n")
+
+    # Show strategy code
+    from rich.syntax import Syntax
+
+    syntax = Syntax(fixed_code, "python", theme="monokai", line_numbers=True)
+    console.print(Panel(syntax, title="Generated Strategy Code", border_style="green"))
+
+    # Confirm before running
+    console.print()
+    if not typer.confirm("Run backtest with this strategy?", default=True):
+        console.print("[yellow]Backtest cancelled[/yellow]")
+        return
+
+    # Execute backtest
+    console.print("\n[yellow]Running backtest...[/yellow]")
+
+    config = BacktestConfig(
+        symbol=symbol,
+        start_date=start_date,
+        end_date=end_date,
+        strategy_class_code=fixed_code,
+        initial_capital=capital,
+        commission=commission,
+        asset_class=asset_class,
+    )
+
+    engine = BacktestEngine()
+    result = engine.execute(config)
+
+    # Display results
+    console.print("\n" + "=" * 70)
+
+    profit = result.final_value - result.initial_capital
+    profit_color = "green" if profit >= 0 else "red"
+
+    sharpe_str = f"{result.sharpe_ratio:.2f}" if result.sharpe_ratio else "N/A"
+    win_rate_str = f"{result.win_rate:.1f}%" if result.win_rate else "N/A"
+    profit_factor_str = f"{result.profit_factor:.2f}" if result.profit_factor else "N/A"
+
+    results_text = (
+        f"[bold green]Backtest Results[/bold green]\n\n"
+        f"[bold]Capital & Returns:[/bold]\n"
+        f"  Initial Capital: ${result.initial_capital:,.2f}\n"
+        f"  Final Value: ${result.final_value:,.2f}\n"
+        f"  Profit/Loss: [{profit_color}]${profit:+,.2f}[/{profit_color}]\n"
+        f"  Total Return: [bold]{result.total_return_pct:+.2f}%[/bold]\n"
+        f"  Buy & Hold: {result.buy_hold_return_pct:+.2f}%\n\n"
+        f"[bold]Risk Metrics:[/bold]\n"
+        f"  Sharpe Ratio: {sharpe_str}\n"
+        f"  Max Drawdown: {result.max_drawdown_pct:.2f}%\n\n"
+        f"[bold]Trading:[/bold]\n"
+        f"  Total Trades: {result.num_trades}\n"
+        f"  Win Rate: {win_rate_str}\n"
+        f"  Profit Factor: {profit_factor_str}\n"
+        f"  Exposure: {result.exposure_time_pct:.1f}%\n\n"
+        f"Execution Time: {result.execution_time_seconds:.2f}s"
+    )
+
+    console.print(Panel.fit(results_text, border_style=profit_color if profit != 0 else "yellow"))
 
 
 if __name__ == "__main__":

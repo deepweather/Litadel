@@ -78,7 +78,7 @@ _user_config = _load_user_config()
 _base_config = {
     "project_dir": os.path.abspath(os.path.join(os.path.dirname(__file__), ".")),
     "results_dir": "./results",
-    "data_dir": "/Users/yluo/Documents/Code/ScAI/FR1-data",
+    "data_dir": None,  # No default data_dir - users should configure this in config.ini if needed
     "data_cache_dir": os.path.join(
         os.path.abspath(os.path.join(os.path.dirname(__file__), ".")),
         "dataflows/data_cache",
@@ -115,6 +115,7 @@ _base_config = {
     "data_vendors": {
         "core_stock_apis": "yfinance",
         "technical_indicators": "yfinance",
+        "crypto_indicators": "alpha_vantage",
         "fundamental_data": "alpha_vantage",
         "news_data": "alpha_vantage",
         "commodity_data": "alpha_vantage",

@@ -549,12 +549,12 @@ class AnalysisExecutor:
             for analysis_id in list(self.active_analyses.keys()):
                 self.cancel_analysis(analysis_id)
 
-        # Shutdown executor - don't wait indefinitely
+        # Shutdown executor - wait for running threads to finish
         # cancel_futures=True will attempt to cancel pending futures
         logger.info(f"Shutting down executor (timeout: {timeout}s)...")
         try:
-            self.executor.shutdown(wait=False, cancel_futures=True)
-            logger.info("Executor shutdown initiated")
+            self.executor.shutdown(wait=True, cancel_futures=True)
+            logger.info("Executor shutdown complete")
         except Exception as e:
             logger.warning(f"Error during executor shutdown: {e}")
 

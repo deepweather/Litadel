@@ -1,12 +1,15 @@
 """
 Unified tools for market data and news that work across all asset classes.
 These tools automatically route to the correct vendor implementation based on asset class.
+
+IMPORTANT: All tools include date validation to prevent look-ahead bias in backtesting.
 """
 
 from typing import Annotated
 
 from langchain_core.tools import tool
 
+from litadel.dataflows.date_validator import validate_date_bounds
 from litadel.dataflows.interface import route_to_vendor
 
 
@@ -18,10 +21,14 @@ def get_market_data(
     asset_class: Annotated[str, "Asset class: equity, commodity, or crypto"] = "equity",
     interval: Annotated[str, "Data interval: daily, weekly, or monthly (for commodities)"] = "daily",
     market: Annotated[str, "Market currency for crypto (USD, EUR, etc.)"] = "USD",
+    max_date: Annotated[str | None, "Maximum date for backtesting (INTERNAL - set by system)"] = None,
 ) -> str:
     """
     Retrieve price data for any asset: stocks, commodities, or cryptocurrencies.
     Automatically routes to the appropriate data source based on asset class.
+
+    IMPORTANT: Date validation is enforced to prevent look-ahead bias in backtesting.
+    The end_date cannot exceed the current analysis date.
 
     For stocks: Returns OHLCV data (interval is ignored for stocks)
     For commodities: Returns price data from Alpha Vantage commodity API
@@ -34,10 +41,18 @@ def get_market_data(
         asset_class: The type of asset (equity, commodity, crypto)
         interval: Data interval (daily, weekly, monthly) - only used for commodities
         market: Market currency for crypto pairs (default: USD) - only used for crypto
+        max_date: Internal parameter used by the system for date validation
 
     Returns:
         CSV-formatted price data with appropriate columns for the asset type
+
+    Raises:
+        LookAheadBiasError: If end_date exceeds max_date (when max_date is set)
     """
+    # Validate dates to prevent look-ahead bias (if max_date is provided by the system)
+    if max_date:
+        validate_date_bounds(start_date, end_date, max_date, "get_market_data")
+
     if asset_class == "crypto":
         return route_to_vendor("get_crypto_data", symbol, start_date, end_date, market)
     if asset_class == "commodity":
@@ -49,29 +64,48 @@ def get_market_data(
 
 @tool
 def get_indicators(
-    symbol: Annotated[str, "Stock ticker symbol"],
+    symbol: Annotated[str, "Asset symbol (stock ticker, crypto symbol like BTC/ETH)"],
     start_date: Annotated[str, "Start date in YYYY-mm-dd format"],
     end_date: Annotated[str, "End date in YYYY-mm-dd format"],
     indicators: Annotated[str, "Comma-separated list of indicators (sma_20, rsi, macd, etc.)"],
+    asset_class: Annotated[str, "Asset class: equity or crypto"] = "equity",
+    market: Annotated[str, "Market currency for crypto (USD, EUR, etc.)"] = "USD",
+    max_date: Annotated[str | None, "Maximum date for backtesting (INTERNAL - set by system)"] = None,
 ) -> str:
     """
-    Calculate technical indicators for stock data.
-    Note: Currently only supported for equities.
+    Calculate technical indicators for any asset type.
+    Automatically routes to the appropriate calculation method based on asset class.
 
-    Supported indicators: sma_X, ema_X, rsi, macd, boll (Bollinger Bands), adx, cci, stoch
+    IMPORTANT: Date validation is enforced to prevent look-ahead bias in backtesting.
+    The end_date cannot exceed the current analysis date.
+
+    Supported indicators: sma_X, ema_X, rsi, macd, boll (Bollinger Bands), adx, cci, stoch, atr, vwma, mfi
+
+    For stocks: Uses yfinance/Alpha Vantage data
+    For crypto: Uses Alpha Vantage crypto data with local calculation
 
     Args:
-        symbol: Stock ticker symbol
+        symbol: Asset symbol (e.g., "AAPL" for stocks, "BTC" for crypto)
         start_date: Start date in YYYY-mm-dd format
         end_date: End date in YYYY-mm-dd format
         indicators: Comma-separated list of indicator names
+        asset_class: The type of asset (equity or crypto)
+        market: Market currency for crypto pairs (default: USD) - only used for crypto
+        max_date: Internal parameter used by the system for date validation
 
     Returns:
-        CSV-formatted data with requested technical indicators
+        Formatted string with requested technical indicators
+
+    Raises:
+        LookAheadBiasError: If end_date exceeds max_date (when max_date is set)
     """
+    # Validate dates to prevent look-ahead bias (if max_date is provided by the system)
+    if max_date:
+        validate_date_bounds(start_date, end_date, max_date, "get_indicators")
+
     # Adapter: Translate new unified signature to old vendor signature
     # Old signature: (symbol, indicator, curr_date, look_back_days)
-    # New signature: (symbol, start_date, end_date, indicators)
+    # New signature: (symbol, start_date, end_date, indicators, asset_class)
 
     from datetime import datetime
 
@@ -83,11 +117,16 @@ def get_indicators(
     # Parse comma-separated indicators
     indicator_list = [ind.strip() for ind in indicators.split(",")]
 
-    # Call vendor for each indicator and combine results
+    # Route based on asset class
     results = []
     for indicator in indicator_list:
         if indicator:  # Skip empty strings
-            result = route_to_vendor("get_indicators", symbol, indicator, end_date, look_back_days)
+            if asset_class == "crypto":
+                # Use crypto-specific indicator calculation
+                result = route_to_vendor("get_crypto_indicators", symbol, indicator, end_date, look_back_days, market)
+            else:
+                # Use equity indicator calculation
+                result = route_to_vendor("get_indicators", symbol, indicator, end_date, look_back_days)
             results.append(result)
 
     # Combine results with separators
@@ -102,10 +141,14 @@ def get_asset_news(
     start_date: Annotated[str, "Start date in YYYY-mm-dd format"],
     end_date: Annotated[str, "End date in YYYY-mm-dd format"],
     asset_class: Annotated[str, "Asset class: equity, commodity, or crypto"] = "equity",
+    max_date: Annotated[str | None, "Maximum date for backtesting (INTERNAL - set by system)"] = None,
 ) -> str:
     """
     Retrieve news and sentiment data for any asset type.
     Automatically routes to the appropriate news source based on asset class.
+
+    IMPORTANT: Date validation is enforced to prevent look-ahead bias in backtesting.
+    The end_date cannot exceed the current analysis date.
 
     For stocks: Returns ticker-specific news from financial outlets
     For commodities: Returns topic-based news (energy, metals, agriculture)
@@ -116,10 +159,18 @@ def get_asset_news(
         start_date: Start date in YYYY-mm-dd format
         end_date: End date in YYYY-mm-dd format
         asset_class: The type of asset (equity, commodity, crypto)
+        max_date: Internal parameter used by the system for date validation
 
     Returns:
         JSON-formatted news articles with sentiment scores and metadata
+
+    Raises:
+        LookAheadBiasError: If end_date exceeds max_date (when max_date is set)
     """
+    # Validate dates to prevent look-ahead bias (if max_date is provided by the system)
+    if max_date:
+        validate_date_bounds(start_date, end_date, max_date, "get_asset_news")
+
     if asset_class == "crypto":
         return route_to_vendor("get_crypto_news", symbol, start_date, end_date)
     if asset_class == "commodity":

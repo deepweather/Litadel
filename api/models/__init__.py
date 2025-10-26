@@ -1,5 +1,15 @@
 """Pydantic models for API requests and responses."""
 
+from api.models.backtest import (
+    BacktestPerformanceMetrics,
+    BacktestResponse,
+    BacktestSnapshotResponse,
+    BacktestSummary,
+    BacktestTradeResponse,
+    CreateBacktestRequest,
+    EquityCurveDataPoint,
+    UpdateBacktestRequest,
+)
 from api.models.portfolio import (
     CreatePortfolioRequest,
     CreatePositionRequest,
@@ -26,10 +36,17 @@ __all__ = [
     "AnalysisResponse",
     "AnalysisStatusResponse",
     "AnalysisSummary",
+    "BacktestPerformanceMetrics",
+    "BacktestResponse",
+    "BacktestSnapshotResponse",
+    "BacktestSummary",
+    "BacktestTradeResponse",
     "CachedDataResponse",
     "CreateAnalysisRequest",
+    "CreateBacktestRequest",
     "CreatePortfolioRequest",
     "CreatePositionRequest",
+    "EquityCurveDataPoint",
     "ErrorResponse",
     "LogEntry",
     "PortfolioResponse",
@@ -39,6 +56,7 @@ __all__ = [
     "TickerInfo",
     "TradingDecision",
     "UpdateAnalysisRequest",
+    "UpdateBacktestRequest",
     "UpdatePortfolioRequest",
     "UpdatePositionRequest",
 ]

@@ -1,8 +1,8 @@
 #!/bin/bash
-# Auto-formatting script for TradingAgents project
+# Auto-formatting script for Litadel project
 
 echo "╔════════════════════════════════════════════════════════════════╗"
-echo "║           TradingAgents - Auto Formatter                       ║"
+echo "║           Litadel - Auto Formatter                       ║"
 echo "╚════════════════════════════════════════════════════════════════╝"
 echo ""
 

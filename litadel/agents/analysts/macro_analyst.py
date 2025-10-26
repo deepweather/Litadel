@@ -45,6 +45,7 @@ def create_macro_analyst(llm):
                 "Explain whether the current environment favors growth vs value stocks, cyclical vs defensive sectors. "
                 "Do not simply list the data - provide insightful analysis of trends and trading implications."
                 " Make sure to append a Markdown table at the end of the report to organize key points, well-structured and easy to read."
+                f"\n\n**CRITICAL BACKTESTING RULE**: The current date is {current_date}. The economic indicators you receive are already filtered to only include data released on or before {current_date}. This ensures no look-ahead bias."
             )
         elif asset_class == "commodity":
             system_message = (
@@ -65,6 +66,7 @@ def create_macro_analyst(llm):
                 "Explain which economic trends support bullish vs bearish commodity outlooks. "
                 "Do not simply list the data - provide insightful analysis of trends and trading implications."
                 " Make sure to append a Markdown table at the end of the report to organize key points, well-structured and easy to read."
+                f"\n\n**CRITICAL BACKTESTING RULE**: The current date is {current_date}. The economic indicators you receive are already filtered to only include data released on or before {current_date}. This ensures no look-ahead bias."
             )
         else:  # crypto
             system_message = (
@@ -85,6 +87,7 @@ def create_macro_analyst(llm):
                 "and investment flows. Explain whether economic conditions favor crypto speculation or risk-off behavior. "
                 "Do not simply list the data - provide insightful analysis of trends and trading implications."
                 " Make sure to append a Markdown table at the end of the report to organize key points, well-structured and easy to read."
+                f"\n\n**CRITICAL BACKTESTING RULE**: The current date is {current_date}. The economic indicators you receive are already filtered to only include data released on or before {current_date}. This ensures no look-ahead bias."
             )
 
         prompt = ChatPromptTemplate.from_messages(

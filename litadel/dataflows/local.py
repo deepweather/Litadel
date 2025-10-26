@@ -11,11 +11,24 @@ from .config import DATA_DIR
 from .reddit_utils import fetch_top_from_category
 
 
+def _check_data_dir_configured():
+    """Check if DATA_DIR is configured and raise helpful error if not."""
+    if DATA_DIR is None:
+        msg = (
+            "Local data directory (data_dir) is not configured. "
+            "Please set 'data_dir' in your config.ini under the [storage] section, "
+            "or use online data vendors instead of 'local'."
+        )
+        raise FileNotFoundError(msg)
+
+
 def get_YFin_data_window(  # noqa: N802
     symbol: Annotated[str, "ticker symbol of the company"],
     curr_date: Annotated[str, "Start date in yyyy-mm-dd format"],
     look_back_days: Annotated[int, "how many days to look back"],
 ) -> str:
+    _check_data_dir_configured()
+
     # calculate past days
     date_obj = datetime.strptime(curr_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
     before = date_obj - relativedelta(days=look_back_days)
@@ -54,6 +67,8 @@ def get_YFin_data(  # noqa: N802
     start_date: Annotated[str, "Start date in yyyy-mm-dd format"],
     end_date: Annotated[str, "End date in yyyy-mm-dd format"],
 ) -> str:
+    _check_data_dir_configured()
+
     # read in data
     data = pd.read_csv(
         os.path.join(
@@ -95,6 +110,7 @@ def get_finnhub_news(
         str: dataframe containing the news of the company in the time frame
 
     """
+    _check_data_dir_configured()
 
     result = get_data_in_range(query, start_date, end_date, "news_data", DATA_DIR)
 

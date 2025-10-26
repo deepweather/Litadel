@@ -119,7 +119,11 @@ def get_crypto(
                     close_price = find_value(
                         [f"4a. close ({market_upper})", f"4b. close ({market_upper})", "4a. close", "4. close"]
                     )
+                    # Alpha Vantage doesn't provide volume for crypto - leave empty rather than "0"
                     volume = values.get("5. volume", "")
+                    # If volume is "0" or empty, don't include it (will be handled as null/missing)
+                    if volume in ("", "0", "0.0", "0.00"):
+                        volume = ""
 
                     rows.append((date_str, open_price, high_price, low_price, close_price, volume))
             except ValueError:
@@ -137,12 +141,12 @@ def get_crypto(
 
         csv_text = out.getvalue()
 
-        # If still empty after widening, return recent data without filtering
-        if csv_text.strip() == "time,open,high,low,close,volume":
+        # If no data in requested range, fetch ALL data and let caller filter
+        # DON'T just return last 90 days - that breaks historical backtests!
+        if csv_text.strip() == "time,open,high,low,close,volume" or len(rows) == 0:
+            # Return ALL available data - let the caller filter by date
             out = io.StringIO()
             out.write("time,open,high,low,close,volume\n")
-            # Get last 90 days
-            sorted_dates = sorted(time_series.keys(), reverse=True)[:90]
 
             def find_value(vals, patterns):
                 """Try multiple key patterns and return first match."""
@@ -151,7 +155,10 @@ def get_crypto(
                         return vals[pattern]
                 return ""
 
-            for date_str in reversed(sorted_dates):
+            # Get ALL dates, sorted oldest to newest
+            all_dates = sorted(time_series.keys())
+
+            for date_str in all_dates:
                 values = time_series[date_str]
 
                 open_price = find_value(

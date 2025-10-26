@@ -1,6 +1,9 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { PortfolioSummary } from '../../types/portfolio'
+import { formatCurrency, formatPercentageWithSign } from '../../utils/formatters'
+import { Card } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 interface PortfolioCardProps {
   portfolio: PortfolioSummary
@@ -9,163 +12,63 @@ interface PortfolioCardProps {
 export const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio }) => {
   const navigate = useNavigate()
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value)
+  const getPnLColorClass = (value: number) => {
+    return value >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
   }
-
-  const formatPercentage = (value: number) => {
-    const sign = value >= 0 ? '+' : ''
-    return `${sign}${value.toFixed(2)}%`
-  }
-
-  const pnlColor = portfolio.total_pnl >= 0 ? '#00ff00' : '#ff0000'
 
   return (
-    <div
-      onClick={() => navigate(`/portfolio/${portfolio.id}`)}
-      style={{
-        border: '1px solid rgba(77, 166, 255, 0.3)',
-        padding: '1.5rem',
-        cursor: 'pointer',
-        transition: 'all 0.2s',
-        backgroundColor: '#0a0e14',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = '#4da6ff'
-        e.currentTarget.style.backgroundColor = '#1a2a3a'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'rgba(77, 166, 255, 0.3)'
-        e.currentTarget.style.backgroundColor = '#0a0e14'
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          marginBottom: '1rem',
-        }}
-      >
+    <Card onClick={() => navigate(`/portfolio/${portfolio.id}`)} className="cursor-pointer transition-all hover:shadow-md p-4">
+      <div className="flex justify-between items-start mb-4">
         <div>
-          <h3
-            style={{
-              fontSize: '1.125rem',
-              fontWeight: 'bold',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              marginBottom: '0.25rem',
-            }}
-          >
+          <h3 className="text-lg font-bold text-primary font-mono mb-1">
             {portfolio.name}
           </h3>
           {portfolio.description && (
-            <p
-              style={{
-                fontSize: '0.875rem',
-                color: '#2a3e4a',
-                fontFamily: 'JetBrains Mono, monospace',
-              }}
-            >
+            <p className="text-sm text-muted-foreground font-mono">
               {portfolio.description}
             </p>
           )}
         </div>
-        <div
-          style={{
-            fontSize: '0.75rem',
-            color: '#2a3e4a',
-            fontFamily: 'JetBrains Mono, monospace',
-          }}
-        >
+        <div className="text-xs text-muted-foreground font-mono">
           {portfolio.position_count} positions
         </div>
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '1rem',
-          paddingTop: '1rem',
-          borderTop: '1px solid rgba(77, 166, 255, 0.2)',
-        }}
-      >
+      <div className="grid grid-cols-3 gap-4 pt-4 border-t">
         <div>
-          <div
-            style={{
-              fontSize: '0.75rem',
-              color: '#2a3e4a',
-              fontFamily: 'JetBrains Mono, monospace',
-              marginBottom: '0.25rem',
-            }}
-          >
+          <div className="text-xs text-muted-foreground font-mono mb-1">
             VALUE
           </div>
-          <div
-            style={{
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-            }}
-          >
+          <div className="text-base font-bold text-primary font-mono">
             {formatCurrency(portfolio.total_value)}
           </div>
         </div>
 
         <div>
-          <div
-            style={{
-              fontSize: '0.75rem',
-              color: '#2a3e4a',
-              fontFamily: 'JetBrains Mono, monospace',
-              marginBottom: '0.25rem',
-            }}
-          >
+          <div className="text-xs text-muted-foreground font-mono mb-1">
             P&L
           </div>
-          <div
-            style={{
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              color: pnlColor,
-              fontFamily: 'JetBrains Mono, monospace',
-            }}
-          >
+          <div className={cn(
+            "text-base font-bold font-mono",
+            getPnLColorClass(portfolio.total_pnl)
+          )}>
             {formatCurrency(portfolio.total_pnl)}
           </div>
         </div>
 
         <div>
-          <div
-            style={{
-              fontSize: '0.75rem',
-              color: '#2a3e4a',
-              fontFamily: 'JetBrains Mono, monospace',
-              marginBottom: '0.25rem',
-            }}
-          >
+          <div className="text-xs text-muted-foreground font-mono mb-1">
             RETURN
           </div>
-          <div
-            style={{
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              color: pnlColor,
-              fontFamily: 'JetBrains Mono, monospace',
-            }}
-          >
-            {formatPercentage(portfolio.total_pnl_percentage)}
+          <div className={cn(
+            "text-base font-bold font-mono",
+            getPnLColorClass(portfolio.total_pnl)
+          )}>
+            {formatPercentageWithSign(portfolio.total_pnl_percentage)}
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   )
 }
 

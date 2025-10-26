@@ -24,6 +24,15 @@ class StockstatsUtils:
         data = None
 
         if not online:
+            # Check if DATA_DIR is configured
+            if DATA_DIR is None:
+                msg = (
+                    "Local data directory (data_dir) is not configured. "
+                    "Please set 'data_dir' in your config.ini under the [storage] section, "
+                    "or use online data vendors instead of 'local'."
+                )
+                raise FileNotFoundError(msg)
+
             try:
                 data = pd.read_csv(
                     os.path.join(
@@ -36,14 +45,14 @@ class StockstatsUtils:
                 msg = "Stockstats fail: Yahoo Finance data not fetched yet!"
                 raise DataRangeError(msg) from e
         else:
-            # Get today's date as YYYY-mm-dd to add to cache
-            today_date = pd.Timestamp.today()
-            curr_date = pd.to_datetime(curr_date)
+            # CRITICAL: Use curr_date as end_date to prevent look-ahead bias
+            curr_date_dt = pd.to_datetime(curr_date)
 
-            end_date = today_date
-            start_date = today_date - pd.DateOffset(years=15)
+            end_date = curr_date_dt  # Use analysis date, NOT today
+            start_date = curr_date_dt - pd.DateOffset(years=15)
             start_date = start_date.strftime("%Y-%m-%d")
             end_date = end_date.strftime("%Y-%m-%d")
+            curr_date = curr_date_dt.strftime("%Y-%m-%d")
 
             # Get config and ensure cache directory exists
             os.makedirs(config["data_cache_dir"], exist_ok=True)
@@ -70,7 +79,9 @@ class StockstatsUtils:
 
             df = wrap(data)
             df["Date"] = df["Date"].dt.strftime("%Y-%m-%d")
-            curr_date = curr_date.strftime("%Y-%m-%d")
+
+        # CRITICAL: Filter to only include data up to curr_date to prevent look-ahead bias
+        df = df[pd.to_datetime(df["Date"]) <= pd.to_datetime(curr_date)]
 
         df[indicator]  # trigger stockstats to calculate the indicator
         matching_rows = df[df["Date"].str.startswith(curr_date)]

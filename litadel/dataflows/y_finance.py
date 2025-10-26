@@ -186,6 +186,8 @@ def _get_stock_stats_bulk(
     Optimized bulk calculation of stock stats indicators.
     Fetches data once and calculates indicator for all available dates.
     Returns dict mapping date strings to indicator values.
+
+    IMPORTANT: Only fetches data up to curr_date to prevent look-ahead bias.
     """
     import pandas as pd
     from stockstats import wrap
@@ -210,11 +212,12 @@ def _get_stock_stats_bulk(
             raise Exception(msg)
     else:
         # Online data fetching with caching
-        today_date = pd.Timestamp.today()
-        pd.to_datetime(curr_date)
+        # CRITICAL: Use curr_date as end_date to prevent look-ahead bias
+        curr_date_dt = pd.to_datetime(curr_date)
 
-        end_date = today_date
-        start_date = today_date - pd.DateOffset(years=15)
+        end_date = curr_date_dt  # Use analysis date, NOT today
+        # Fetch last 5 years for indicators (15 years is excessive)
+        start_date = curr_date_dt - pd.DateOffset(years=5)
         start_date_str = start_date.strftime("%Y-%m-%d")
         end_date_str = end_date.strftime("%Y-%m-%d")
 
@@ -242,6 +245,10 @@ def _get_stock_stats_bulk(
 
         df = wrap(data)
         df["Date"] = df["Date"].dt.strftime("%Y-%m-%d")
+
+    # CRITICAL: Filter data to only include dates up to curr_date
+    # This prevents look-ahead bias in indicator calculations
+    df = df[pd.to_datetime(df["Date"]) <= pd.to_datetime(curr_date)]
 
     # Calculate the indicator for all rows at once
     df[indicator]  # This triggers stockstats to calculate the indicator
@@ -285,10 +292,16 @@ def get_stockstats_indicator(
 def get_balance_sheet(
     ticker: Annotated[str, "ticker symbol of the company"],
     freq: Annotated[str, "frequency of data: 'annual' or 'quarterly'"] = "quarterly",
-    _curr_date: Annotated[str | None, "current date (not used for yfinance)"] = None,
+    _curr_date: Annotated[str | None, "current date for filtering"] = None,
 ):
-    """Get balance sheet data from yfinance."""
+    """Get balance sheet data from yfinance.
+
+    IMPORTANT: Filters to only include statements with dates on or before curr_date
+    to prevent look-ahead bias in backtesting.
+    """
     try:
+        import pandas as pd
+
         ticker_obj = yf.Ticker(ticker.upper())
 
         data = ticker_obj.quarterly_balance_sheet if freq.lower() == "quarterly" else ticker_obj.balance_sheet
@@ -296,11 +309,22 @@ def get_balance_sheet(
         if data.empty:
             return f"No balance sheet data found for symbol '{ticker}'"
 
+        # CRITICAL: Filter by date to prevent look-ahead bias
+        if _curr_date:
+            curr_date_dt = pd.to_datetime(_curr_date)
+            # Column headers are the dates (transpose structure)
+            data = data.loc[:, data.columns <= curr_date_dt]
+
+            if data.empty:
+                return f"No balance sheet data available on or before {_curr_date} for symbol '{ticker}'"
+
         # Convert to CSV string for consistency with other functions
         csv_string = data.to_csv()
 
         # Add header information
         header = f"# Balance Sheet data for {ticker.upper()} ({freq})\n"
+        if _curr_date:
+            header += f"# Filtered to dates on or before: {_curr_date}\n"
         header += f"# Data retrieved on: {datetime.now(tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}\n\n"
 
         return header + csv_string
@@ -312,10 +336,16 @@ def get_balance_sheet(
 def get_cashflow(
     ticker: Annotated[str, "ticker symbol of the company"],
     freq: Annotated[str, "frequency of data: 'annual' or 'quarterly'"] = "quarterly",
-    _curr_date: Annotated[str | None, "current date (not used for yfinance)"] = None,
+    _curr_date: Annotated[str | None, "current date for filtering"] = None,
 ):
-    """Get cash flow data from yfinance."""
+    """Get cash flow data from yfinance.
+
+    IMPORTANT: Filters to only include statements with dates on or before curr_date
+    to prevent look-ahead bias in backtesting.
+    """
     try:
+        import pandas as pd
+
         ticker_obj = yf.Ticker(ticker.upper())
 
         data = ticker_obj.quarterly_cashflow if freq.lower() == "quarterly" else ticker_obj.cashflow
@@ -323,11 +353,22 @@ def get_cashflow(
         if data.empty:
             return f"No cash flow data found for symbol '{ticker}'"
 
+        # CRITICAL: Filter by date to prevent look-ahead bias
+        if _curr_date:
+            curr_date_dt = pd.to_datetime(_curr_date)
+            # Column headers are the dates (transpose structure)
+            data = data.loc[:, data.columns <= curr_date_dt]
+
+            if data.empty:
+                return f"No cash flow data available on or before {_curr_date} for symbol '{ticker}'"
+
         # Convert to CSV string for consistency with other functions
         csv_string = data.to_csv()
 
         # Add header information
         header = f"# Cash Flow data for {ticker.upper()} ({freq})\n"
+        if _curr_date:
+            header += f"# Filtered to dates on or before: {_curr_date}\n"
         header += f"# Data retrieved on: {datetime.now(tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}\n\n"
 
         return header + csv_string
@@ -339,10 +380,16 @@ def get_cashflow(
 def get_income_statement(
     ticker: Annotated[str, "ticker symbol of the company"],
     freq: Annotated[str, "frequency of data: 'annual' or 'quarterly'"] = "quarterly",
-    _curr_date: Annotated[str | None, "current date (not used for yfinance)"] = None,
+    _curr_date: Annotated[str | None, "current date for filtering"] = None,
 ):
-    """Get income statement data from yfinance."""
+    """Get income statement data from yfinance.
+
+    IMPORTANT: Filters to only include statements with dates on or before curr_date
+    to prevent look-ahead bias in backtesting.
+    """
     try:
+        import pandas as pd
+
         ticker_obj = yf.Ticker(ticker.upper())
 
         data = ticker_obj.quarterly_income_stmt if freq.lower() == "quarterly" else ticker_obj.income_stmt
@@ -350,11 +397,22 @@ def get_income_statement(
         if data.empty:
             return f"No income statement data found for symbol '{ticker}'"
 
+        # CRITICAL: Filter by date to prevent look-ahead bias
+        if _curr_date:
+            curr_date_dt = pd.to_datetime(_curr_date)
+            # Column headers are the dates (transpose structure)
+            data = data.loc[:, data.columns <= curr_date_dt]
+
+            if data.empty:
+                return f"No income statement data available on or before {_curr_date} for symbol '{ticker}'"
+
         # Convert to CSV string for consistency with other functions
         csv_string = data.to_csv()
 
         # Add header information
         header = f"# Income Statement data for {ticker.upper()} ({freq})\n"
+        if _curr_date:
+            header += f"# Filtered to dates on or before: {_curr_date}\n"
         header += f"# Data retrieved on: {datetime.now(tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}\n\n"
 
         return header + csv_string

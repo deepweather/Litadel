@@ -1,8 +1,5 @@
 """
 Setup script for the Litadel package.
-
-Copyright Notice: Litadel is a successor of TradingAgents by TaurusResearch.
-This project builds upon and extends the original TradingAgents framework.
 """
 
 from setuptools import find_packages, setup

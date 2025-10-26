@@ -1,41 +1,21 @@
 import React, { useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { CreateAnalysisForm } from '../components/analysis/CreateAnalysisForm'
+import { PageHeader } from '../components/layout/PageHeader'
 
 export const CreateAnalysis: React.FC = () => {
   const [searchParams] = useSearchParams()
   const prefilledTicker = useMemo(() => searchParams.get('ticker'), [searchParams])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div
-        style={{
-          paddingBottom: '1rem',
-          borderBottom: '1px solid rgba(77, 166, 255, 0.3)',
-        }}
-      >
-        <h1
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 'bold',
-            color: '#4da6ff',
-            fontFamily: 'JetBrains Mono, monospace',
-            marginBottom: '0.5rem',
-          }}
-        >
-          {prefilledTicker ? `ANALYZE ${prefilledTicker}` : 'CREATE NEW ANALYSIS'}
-        </h1>
-        <p
-          style={{
-            fontSize: '0.875rem',
-            color: '#5a6e7a',
-            fontFamily: 'JetBrains Mono, monospace',
-          }}
-        >
-          Configure your multi-agent trading analysis
-        </p>
+    <div className="flex flex-col gap-6 h-full">
+      <PageHeader
+        title={prefilledTicker ? `ANALYZE ${prefilledTicker}` : 'CREATE NEW ANALYSIS'}
+        subtitle="Configure your multi-agent trading analysis"
+      />
+      <div className="flex-1 overflow-auto">
+        <CreateAnalysisForm initialTicker={prefilledTicker || undefined} />
       </div>
-      <CreateAnalysisForm initialTicker={prefilledTicker || undefined} />
     </div>
   )
 }

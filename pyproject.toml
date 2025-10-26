@@ -32,6 +32,7 @@ classifiers = [
 
 dependencies = [
     "akshare>=1.16.98",
+    "backtesting>=0.3.3",
     "backtrader>=1.9.78.123",
     "bcrypt>=4.0.0,<5.0.0",
     "chainlit>=2.5.5",
@@ -70,6 +71,7 @@ dependencies = [
     "uvicorn[standard]>=0.35.0",
     "websockets>=12.0",
     "yfinance>=0.2.63",
+    "llm-sandbox[docker]>=0.3.23",
 ]
 
 [project.urls]
@@ -82,9 +84,15 @@ Issues = "https://github.com/deepweather/Litadel/issues"
 litadel-cli = "cli.main:app"
 litadel-api = "api.main:run_api"
 litadel-admin = "api.cli_admin:app"
+litadel-backtest = "cli.backtest:main"
 
 [project.optional-dependencies]
 dev = []
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+]
 
 [tool.ruff]
 # Ruff configuration for linting and formatting

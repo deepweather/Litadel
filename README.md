@@ -4,50 +4,56 @@
 
 ---
 
-# Litadel: Multi-Agents LLM Financial Trading Framework
+> **Copyright Notice:** Litadel is a successor of TradingAgents by TaurusResearch. This project builds upon and extends the original TradingAgents framework.
+
+# Litadel: AI-Native Hedge Fund Platform
 
 > *Citadel was built by quants. Litadel was built by vibes.* 🚀
 
-> **About Litadel:** Built on the foundation of TradingAgents, Litadel extends the original framework with production-ready features needed for a fully functional trading platform. While TradingAgents provided an excellent proof-of-concept for multi-agent trading analysis, it lacked critical infrastructure for real-world deployment: multi-asset support (crypto & commodities), a modern web interface, parallel execution capabilities, persistent storage, REST API, and foundations for portfolio management and backtesting. Litadel addresses these gaps while maintaining the powerful multi-agent architecture that made the original framework compelling.
+> **About Litadel:** Built on the foundation of TradingAgents, Litadel is an AI-native hedge fund platform that combines deep market analysis, automated strategy generation, and rigorous backtesting. While TradingAgents provided an excellent proof-of-concept for multi-agent trading analysis, Litadel extends it into a complete trading system with: multi-asset support (stocks, crypto & commodities), AI-powered strategy code generation, secure backtesting engine, modern web interface, parallel execution, persistent storage, REST API, and portfolio management. From research to execution, Litadel handles the entire trading workflow.
 
 <div align="center">
 
-🚀 [Overview](#overview) | 💻 [Dashboard](#dashboard) | ⚡ [Getting Started](#getting-started) | 🎯 [Usage](#usage) | 🤖 [How It Works](#how-it-works) | 📄 [Citation](#citation)
+🚀 [Overview](#overview) | 💻 [Dashboard](#dashboard) | ⚡ [Getting Started](#getting-started) | 🎯 [Usage](#usage) | 📊 [Backtesting](#backtesting) | 🤖 [How It Works](#how-it-works) | 📄 [Citation](#citation)
 
 </div>
 
 ## Overview
 
-Litadel is a comprehensive AI-powered trading analysis platform that delivers professional-grade market insights across **equities, commodities, and cryptocurrencies**. Get actionable BUY/SELL/HOLD recommendations backed by multi-agent analysis covering fundamentals, technicals, news sentiment, and risk assessment.
+Litadel is an AI-native hedge fund platform that delivers the complete trading workflow: from deep market research to strategy generation to rigorous backtesting. Get actionable BUY/SELL/HOLD recommendations backed by multi-agent analysis across **equities, commodities, and cryptocurrencies**, generate trading strategies from natural language, and validate them with historical data before deployment.
 
 > Litadel framework is designed for research and educational purposes. Trading performance may vary based on many factors. [It is not intended as financial, investment, or trading advice.](https://tauric.ai/disclaimer/)
 
 ### What You Get
 
-**Three Ways to Analyze:**
-- 🌐 **Web Dashboard** - Modern, real-time interface with live tracking, interactive charts, and comprehensive reports
-- 💻 **Interactive CLI** - Rich terminal experience with live agent progress and automatic report generation
-- 📦 **Python Package** - Integrate multi-agent analysis directly into your own applications
+**Complete Trading Workflow:**
+- 🔍 **Market Research** - Multi-agent analysis with fundamentals, technicals, news, and sentiment
+- 🤖 **Strategy Generation** - AI creates executable Python trading strategies from natural language
+- 📊 **Backtesting** - Validate strategies with historical data, risk metrics, and performance charts
+- 💼 **Portfolio Management** - Track positions, analyze performance, and manage your investments
+
+**Three Ways to Use Litadel:**
+- 🌐 **Web Dashboard** - Full-featured interface with real-time tracking, professional charts, and complete workflow management
+- 💻 **Interactive CLI** - Rich terminal experience with live progress, arrow-key navigation, and automatic report generation
+- 📦 **Python Package** - Integrate analysis, backtesting, and trading logic directly into your own applications
 
 **Multi-Asset Coverage:**
 - 📈 **Equities** - Full fundamental, technical, and sentiment analysis for stocks
-- 🛢️ **Commodities** - Specialized analysis for oil, metals, agricultural products, and more
-- ₿ **Cryptocurrencies** - Real-time crypto market analysis with sentiment tracking
-
-**Professional Analysis:**
-- Real-time market data with automatic caching
-- Multi-perspective analysis with bull vs. bear debates
-- Comprehensive reports covering all aspects of market conditions
-- Clear trading recommendations with confidence scores
+- 🛢️ **Commodities** - Specialized analysis for oil, metals, agricultural products
+- ₿ **Cryptocurrencies** - Crypto market analysis with fractional share support (μBTC/μETH)
 
 ## Dashboard
 
 ### Your Trading Command Center
 
-The web dashboard provides a complete control center for managing your trading analyses with real-time monitoring, interactive visualizations, and comprehensive reporting.
+The web dashboard provides a complete control center for managing analyses, backtests, and portfolios with real-time monitoring, interactive visualizations, and comprehensive reporting.
 
 <p align="center">
   <img src="assets/dashboard.png" width="100%" style="display: inline-block;">
+</p>
+
+<p align="center">
+  <img src="assets/dasboard_rationale.png" width="100%" style="display: inline-block;">
 </p>
 
 ### Analysis Management
@@ -64,6 +70,12 @@ Watch your analysis unfold in real-time as AI agents collaborate to evaluate mar
 
 <p align="center">
   <img src="assets/btc_single_analysis.png" width="100%" style="display: inline-block;">
+</p>
+
+Monitor execution logs and agent reasoning in real-time:
+
+<p align="center">
+  <img src="assets/execution_logs.png" width="100%" style="display: inline-block;">
 </p>
 
 ### Comprehensive Analysis Reports
@@ -158,13 +170,38 @@ Open your browser to `http://localhost:5173` and enter your API key in Settings.
 
 ### Interactive CLI
 
-For a terminal-based experience with live agent progress tracking:
+For a terminal-based experience with live progress tracking and arrow-key navigation:
 
 ```bash
-python -m cli.main
+# Launch interactive menu
+litadel-cli
+
+# Or run directly
+litadel-cli analyze    # Deep dive market analysis
+litadel-cli backtest   # Strategy backtesting
 ```
 
-The Litadel CLI provides a rich, interactive terminal interface where you can select your ticker, analysis date, analyst team, LLM models, and research depth. Watch as agents collaborate in real-time with live updates showing their reasoning and tool usage.
+The Litadel CLI provides a rich, interactive terminal interface with:
+- **Arrow-key navigation** for all menus and selections
+- **Step-by-step workflows** for analysis and backtesting
+- **Live agent progress** showing reasoning and tool usage in real-time
+- **Syntax-highlighted code** for generated strategies
+- **Formatted results** with colors and panels
+
+**Analysis Workflow:**
+1. Select ticker and date
+2. Choose analyst team
+3. Configure LLM models
+4. Watch agents collaborate
+5. Get trading recommendation
+
+**Backtest Workflow:**
+1. Enter ticker and date range
+2. Describe strategy in plain English
+3. AI generates Python code
+4. Docker sandbox validates (auto-fixes errors)
+5. Run backtest
+6. See performance metrics and profit/loss
 
 <p align="center">
   <img src="assets/litadel_cli.png" width="100%" style="display: inline-block;">
@@ -225,6 +262,127 @@ For testing and development, we recommend using `gpt-4o-mini` and `o1-mini` to m
 
 The default configuration uses YFinance for price/technical data and Alpha Vantage for fundamentals/news. You can switch to OpenAI for web-based data fetching or use local cached data for offline experimentation. See `litadel/default_config.py` for all available options.
 
+## Backtesting
+
+Test your trading strategies with historical data before risking real capital. Litadel's backtesting engine combines AI-powered strategy generation with professional-grade backtesting capabilities.
+
+### Features
+
+**AI Strategy Generation:**
+- Describe your strategy in plain English
+- LLM generates executable Python code using backtesting.py library
+- Automatic validation in Docker sandbox (secure, isolated)
+- Self-healing: Auto-fixes common errors (missing imports, syntax issues)
+
+<p align="center">
+  <img src="assets/backtest_strategy.png" width="100%" style="display: inline-block;">
+</p>
+
+**Professional Backtesting:**
+- Historical data from 2010+ for stocks, 2015+ for crypto
+- Realistic commission and slippage modeling
+- Fractional share support for crypto (μBTC/μETH conversion)
+- Both entry (BUY) and exit (SELL) trades tracked
+
+**Comprehensive Metrics:**
+- **Returns:** Total return %, profit/loss in dollars, vs. buy-and-hold
+- **Risk:** Sharpe ratio, max drawdown, volatility
+- **Trading:** Win rate, profit factor, average trade duration
+- **Exposure:** Time in market, number of trades
+
+**Professional Charts:**
+- Equity curve with baseline
+- Drawdown over time
+- Cumulative P&L
+- Win/loss distribution
+
+### Example Output
+
+<p align="center">
+  <img src="assets/backtest_output.png" width="100%" style="display: inline-block;">
+</p>
+
+### Quick Start
+
+**Web UI:**
+
+Create and execute backtests with an intuitive step-by-step interface:
+
+<p align="center">
+  <img src="assets/backtest_ui.png" width="100%" style="display: inline-block;">
+</p>
+
+1. Navigate to Strategies → Create Backtest
+2. Describe strategy: "Buy when RSI < 30, sell when RSI > 70"
+3. AI generates code → Auto-validates → Create
+4. Strategy validates in background (WebSocket updates)
+5. Click Execute → See results with charts
+
+View detailed results with professional charts and comprehensive metrics:
+
+<p align="center">
+  <img src="assets/backtest_detail.png" width="100%" style="display: inline-block;">
+</p>
+
+**CLI:**
+```bash
+litadel-cli backtest
+
+# Follow prompts:
+# - Ticker: BTC
+# - Dates: 2023-01-01 to 2023-12-31
+# - Strategy: "SMA crossover strategy"
+# - Capital: 50000
+# - Commission: 0.002
+```
+
+**Python API:**
+```python
+from litadel.backtest import BacktestConfig, BacktestEngine
+
+config = BacktestConfig(
+    symbol="AAPL",
+    start_date="2023-01-01",
+    end_date="2023-12-31",
+    strategy_class_code="""
+from backtesting import Strategy
+from backtesting.lib import crossover
+from backtesting.test import SMA
+
+class SmaCross(Strategy):
+    n1 = 10
+    n2 = 20
+
+    def init(self):
+        self.sma1 = self.I(SMA, self.data.Close, self.n1)
+        self.sma2 = self.I(SMA, self.data.Close, self.n2)
+
+    def next(self):
+        if crossover(self.sma1, self.sma2):
+            if not self.position:
+                self.buy()
+        elif crossover(self.sma2, self.sma1):
+            if self.position:
+                self.position.close()
+""",
+    initial_capital=100000,
+    commission=0.002,
+)
+
+engine = BacktestEngine()
+result = engine.execute(config)
+
+print(f"Return: {result.total_return_pct:.2f}%")
+print(f"Sharpe: {result.sharpe_ratio:.2f}")
+print(f"Trades: {result.num_trades}")
+```
+
+### Current Limitations
+
+- **Single-ticker only** - Multi-ticker portfolio strategies coming soon
+- **No live trading** - Backtests only (live execution in development)
+- **Docker required** - For secure strategy validation (falls back to basic checks if unavailable)
+
 ## How It Works
 
 Litadel uses a multi-agent architecture that mirrors the structure of professional trading firms. Specialized AI agents collaborate to provide comprehensive market analysis.
@@ -273,18 +431,34 @@ Evaluates portfolio risk by assessing market volatility, liquidity, and other ri
 ## What's New in Litadel
 
 ### Completed Features
-- ✅ **Web Dashboard** - Full-featured web interface with real-time analysis tracking
+
+**Core Platform:**
+- ✅ **Web Dashboard** - Full-featured interface with real-time tracking and professional charts
 - ✅ **REST API** - Complete API for programmatic access with WebSocket support
+- ✅ **Interactive CLI** - Arrow-key navigation with rich terminal UI
 - ✅ **Multi-Asset Support** - Equities, commodities, and cryptocurrencies
-- ✅ **Interactive Charts** - Real-time candlestick and line charts with market data
+
+**Market Analysis:**
+- ✅ **Multi-Agent Analysis** - 4 specialist analysts + research team + risk management
+- ✅ **Real-Time Tracking** - WebSocket-based live updates
 - ✅ **Analysis History** - Persistent storage and browsing of all analyses
+- ✅ **Interactive Charts** - Professional candlestick and line charts
 - ✅ **Export Capabilities** - Download complete analysis data as JSON
 
-### Roadmap
-- 🚧 **Automated Trading Mode** - Continuous automated trading execution
-- 🚧 **Portfolio Management** - Multi-asset portfolio tracking and optimization
-- 🚧 **Backtesting Engine** - Historical performance analysis with TauricDB
-- 🚧 **OpenAI Agents SDK Migration** - Enhanced parallelization and maintainability
+**Strategy & Backtesting:**
+- ✅ **AI Strategy Generation** - Generate Python trading strategies from natural language descriptions
+- ✅ **Docker Sandbox Validation** - Secure code execution and automatic error fixing (self-healing)
+- ✅ **Historical Backtesting** - Test strategies with real market data
+- ✅ **Performance Metrics** - Sharpe ratio, drawdown, win rate, profit factor, and more
+- ✅ **Professional Charts** - Equity curve, drawdown, cumulative P&L, win/loss distribution
+- ✅ **Crypto Support** - Fractional share trading (μBTC/μETH conversion)
+- ✅ **Single-Ticker Backtests** - Validated execution with both BUY and SELL trades
+
+### In Progress
+- 🚧 **Portfolio Backtesting** - Multi-ticker strategies with rebalancing and position sizing
+- 🚧 **Automated Trading Mode** - Continuous automated execution with live monitoring
+- 🚧 **Portfolio Optimization** - Multi-asset portfolio tracking and optimization
+- 🚧 **Strategy Library** - Save and reuse validated strategies
 
 ## Citation
 

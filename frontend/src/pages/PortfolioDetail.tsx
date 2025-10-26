@@ -1,19 +1,24 @@
 import React, { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
+import { toast } from 'sonner'
 import { ArrowLeft, Edit2, Plus, Trash2, Upload } from 'lucide-react'
 import { api } from '../services/api'
 import { PositionTable } from '../components/portfolio/PositionTable'
 import { PositionForm } from '../components/portfolio/PositionForm'
 import { BulkImport } from '../components/portfolio/BulkImport'
-import { Button } from '../components/ui/Button'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { IconButton } from '../components/ui/IconButton'
+import { MetricCard } from '../components/common/MetricCard'
+import { TextArea, TextInput } from '../components/ui/Form'
 import type {
   CreatePositionRequest,
   Position,
   UpdatePortfolioRequest,
   UpdatePositionRequest,
 } from '../types/portfolio'
+import { formatCurrency, formatPercentageWithSign } from '../utils/formatters'
 
 export const PortfolioDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -165,30 +170,9 @@ export const PortfolioDetail: React.FC = () => {
     return result
   }
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value)
-  }
-
-  const formatPercentage = (value: number) => {
-    const sign = value >= 0 ? '+' : ''
-    return `${sign}${value.toFixed(2)}%`
-  }
-
   if (isLoading) {
     return (
-      <div
-        style={{
-          padding: '2rem',
-          textAlign: 'center',
-          color: '#2a3e4a',
-          fontFamily: 'JetBrains Mono, monospace',
-        }}
-      >
+      <div className="p-8 text-center text-muted-foreground font-mono">
         Loading portfolio...
       </div>
     )
@@ -196,73 +180,39 @@ export const PortfolioDetail: React.FC = () => {
 
   if (error || !portfolio) {
     return (
-      <div
-        style={{
-          padding: '2rem',
-          textAlign: 'center',
-          color: '#ff0000',
-          fontFamily: 'JetBrains Mono, monospace',
-        }}
-      >
+      <div className="p-8 text-center text-destructive font-mono">
         Portfolio not found
       </div>
     )
   }
 
-  const pnlColor = portfolio.total_pnl >= 0 ? '#00ff00' : '#ff0000'
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="flex flex-col gap-6">
       {/* Back Button */}
-      <Button onClick={() => navigate('/portfolio')} style={{ alignSelf: 'flex-start' }}>
+      <Button onClick={() => navigate('/portfolio')} className="self-start">
         <ArrowLeft size={18} />
         <span>BACK TO PORTFOLIOS</span>
       </Button>
 
       {/* Portfolio Header */}
-      <div style={{ border: '1px solid rgba(77, 166, 255, 0.3)', padding: '1.5rem' }}>
+      <Card className="p-6">
         {isEditingPortfolio ? (
           <div>
-            <input
+            <TextInput
               value={portfolioName}
               onChange={(e) => setPortfolioName(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                marginBottom: '1rem',
-                backgroundColor: '#1a2a3a',
-                border: '1px solid #4da6ff',
-                color: '#4da6ff',
-                fontFamily: 'JetBrains Mono, monospace',
-                fontSize: '1.5rem',
-                fontWeight: 'bold',
-              }}
+              className="mb-4 text-primary text-2xl font-bold"
             />
-            <textarea
+            <TextArea
               value={portfolioDescription}
               onChange={(e) => setPortfolioDescription(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                marginBottom: '1rem',
-                backgroundColor: '#1a2a3a',
-                border: '1px solid rgba(77, 166, 255, 0.3)',
-                color: '#fff',
-                fontFamily: 'JetBrains Mono, monospace',
-                fontSize: '0.875rem',
-                resize: 'vertical',
-                minHeight: '60px',
-              }}
+              className="mb-4 min-h-[60px]"
             />
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div className="flex gap-4">
               <Button onClick={handleSavePortfolio}>SAVE</Button>
               <Button
                 onClick={() => setIsEditingPortfolio(false)}
-                style={{
-                  backgroundColor: 'transparent',
-                  color: '#2a3e4a',
-                  borderColor: '#2a3e4a',
-                }}
+                variant="outline"
               >
                 CANCEL
               </Button>
@@ -270,197 +220,63 @@ export const PortfolioDetail: React.FC = () => {
           </div>
         ) : (
           <>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                marginBottom: '1rem',
-              }}
-            >
+            <div className="flex justify-between items-start mb-4">
               <div>
-                <h1
-                  style={{
-                    fontSize: '1.5rem',
-                    fontWeight: 'bold',
-                    color: '#4da6ff',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    marginBottom: '0.5rem',
-                  }}
-                >
+                <h1 className="text-2xl font-bold text-primary font-mono mb-2">
                   {portfolio.name}
                 </h1>
                 {portfolio.description && (
-                  <p
-                    style={{
-                      color: '#2a3e4a',
-                      fontFamily: 'JetBrains Mono, monospace',
-                      fontSize: '0.875rem',
-                    }}
-                  >
+                  <p className="text-muted-foreground font-mono text-sm">
                     {portfolio.description}
                   </p>
                 )}
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
+              <div className="flex gap-2">
+                <IconButton
+                  icon={<Edit2 size={16} />}
                   onClick={handleEditPortfolio}
-                  style={{
-                    padding: '0.5rem',
-                    border: '1px solid #4da6ff',
-                    backgroundColor: 'transparent',
-                    color: '#4da6ff',
-                    cursor: 'pointer',
-                    fontFamily: 'JetBrains Mono, monospace',
-                  }}
+                  variant="primary"
                   title="Edit Portfolio"
-                >
-                  <Edit2 size={16} />
-                </button>
-                <button
+                />
+                <IconButton
+                  icon={<Trash2 size={16} />}
                   onClick={handleDeletePortfolio}
-                  style={{
-                    padding: '0.5rem',
-                    border: '1px solid #ff0000',
-                    backgroundColor: 'transparent',
-                    color: '#ff0000',
-                    cursor: 'pointer',
-                    fontFamily: 'JetBrains Mono, monospace',
-                  }}
+                  variant="danger"
                   title="Delete Portfolio"
-                >
-                  <Trash2 size={16} />
-                </button>
+                />
               </div>
             </div>
 
             {/* Metrics */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: '1.5rem',
-                paddingTop: '1rem',
-                borderTop: '1px solid rgba(77, 166, 255, 0.2)',
-              }}
-            >
-              <div>
-                <div
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#2a3e4a',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    marginBottom: '0.25rem',
-                  }}
-                >
-                  POSITIONS
-                </div>
-                <div
-                  style={{
-                    fontSize: '1.25rem',
-                    fontWeight: 'bold',
-                    color: '#4da6ff',
-                    fontFamily: 'JetBrains Mono, monospace',
-                  }}
-                >
-                  {portfolio.position_count}
-                </div>
-              </div>
-
-              <div>
-                <div
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#2a3e4a',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    marginBottom: '0.25rem',
-                  }}
-                >
-                  TOTAL VALUE
-                </div>
-                <div
-                  style={{
-                    fontSize: '1.25rem',
-                    fontWeight: 'bold',
-                    color: '#4da6ff',
-                    fontFamily: 'JetBrains Mono, monospace',
-                  }}
-                >
-                  {formatCurrency(portfolio.total_value)}
-                </div>
-              </div>
-
-              <div>
-                <div
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#2a3e4a',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    marginBottom: '0.25rem',
-                  }}
-                >
-                  PROFIT/LOSS
-                </div>
-                <div
-                  style={{
-                    fontSize: '1.25rem',
-                    fontWeight: 'bold',
-                    color: pnlColor,
-                    fontFamily: 'JetBrains Mono, monospace',
-                  }}
-                >
-                  {formatCurrency(portfolio.total_pnl)}
-                </div>
-              </div>
-
-              <div>
-                <div
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#2a3e4a',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    marginBottom: '0.25rem',
-                  }}
-                >
-                  RETURN
-                </div>
-                <div
-                  style={{
-                    fontSize: '1.25rem',
-                    fontWeight: 'bold',
-                    color: pnlColor,
-                    fontFamily: 'JetBrains Mono, monospace',
-                  }}
-                >
-                  {formatPercentage(portfolio.total_pnl_percentage)}
-                </div>
-              </div>
+            <div className="grid grid-cols-4 gap-6 pt-4 border-t">
+              <MetricCard
+                label="POSITIONS"
+                value={portfolio.position_count}
+              />
+              <MetricCard
+                label="TOTAL VALUE"
+                value={formatCurrency(portfolio.total_value)}
+              />
+              <MetricCard
+                label="PROFIT/LOSS"
+                value={formatCurrency(portfolio.total_pnl)}
+              />
+              <MetricCard
+                label="RETURN"
+                value={formatPercentageWithSign(portfolio.total_pnl_percentage)}
+              />
             </div>
           </>
         )}
-      </div>
+      </Card>
 
       {/* Positions Section */}
       <div>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '1rem',
-          }}
-        >
-          <h2
-            style={{
-              fontSize: '1.125rem',
-              fontWeight: 'bold',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-            }}
-          >
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-bold text-primary font-mono">
             POSITIONS
           </h2>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div className="flex gap-2">
             <Button onClick={() => setShowBulkImport(true)}>
               <Upload size={18} />
               <span>BULK IMPORT</span>

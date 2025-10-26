@@ -12,4 +12,12 @@ echo "API Documentation: http://localhost:8002/docs"
 echo ""
 
 cd "$(dirname "$0")"
-python -m api.main
+
+# Check if uv is installed
+if ! command -v uv &> /dev/null; then
+    echo "❌ Error: uv not found. Please install uv first."
+    echo "Visit: https://docs.astral.sh/uv/getting-started/installation/"
+    exit 1
+fi
+
+uv run python -m api.main

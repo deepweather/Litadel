@@ -1,8 +1,8 @@
 #!/bin/bash
-# Linting script for TradingAgents project
+# Linting script for Litadel project
 
 echo "╔════════════════════════════════════════════════════════════════╗"
-echo "║           TradingAgents - Code Quality Check                  ║"
+echo "║           Litadel - Code Quality Check                  ║"
 echo "╚════════════════════════════════════════════════════════════════╝"
 echo ""
 

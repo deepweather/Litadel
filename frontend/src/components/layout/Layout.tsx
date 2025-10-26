@@ -1,7 +1,9 @@
 import React from 'react'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+import { AppSidebar } from './Sidebar'
 import { Header } from './Header'
-import { Sidebar } from './Sidebar'
 import { StatusBar } from './StatusBar'
+import { CommandMenu } from './CommandMenu'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -9,35 +11,18 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        backgroundColor: '#0a0e14',
-        color: '#4da6ff',
-      }}
-    >
-      <Header />
-      <div
-        style={{
-          display: 'flex',
-          flex: 1,
-          overflow: 'hidden',
-        }}
-      >
-        <Sidebar />
-        <main
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '1.5rem',
-          }}
-        >
-          {children}
-        </main>
+    <SidebarProvider>
+      <div className="flex h-screen w-full bg-background text-foreground font-mono">
+        <AppSidebar />
+        <SidebarInset className="flex flex-col flex-1 overflow-hidden">
+          <Header />
+          <main className="flex-1 overflow-y-auto p-6">
+            {children}
+          </main>
+          <StatusBar />
+        </SidebarInset>
+        <CommandMenu />
       </div>
-      <StatusBar />
-    </div>
+    </SidebarProvider>
   )
 }

@@ -18,6 +18,16 @@ import type {
   UpdatePortfolioRequest,
   UpdatePositionRequest,
 } from '../types/portfolio'
+import type {
+  Backtest,
+  BacktestPerformanceMetrics,
+  BacktestSnapshot,
+  BacktestSummary,
+  BacktestTrade,
+  CreateBacktestRequest,
+  EquityCurveDataPoint,
+  UpdateBacktestRequest,
+} from '../types/backtest'
 
 class APIService {
   public client: AxiosInstance
@@ -31,6 +41,14 @@ class APIService {
     this.client.interceptors.request.use((config) => {
       const { apiKey, jwtToken, apiUrl, authMethod } = useAuthStore.getState()
       config.baseURL = apiUrl
+
+      console.log('🔐 Auth State:', {
+        authMethod,
+        hasApiKey: !!apiKey,
+        hasJwtToken: !!jwtToken,
+        apiUrl,
+        url: config.url,
+      })
 
       // Add appropriate auth header based on method
       if (authMethod === 'jwt' && jwtToken) {
@@ -68,18 +86,31 @@ class APIService {
   // Analysis endpoints
   async getAnalyses(page = 1, pageSize = 50): Promise<PaginatedResponse<Analysis>> {
     const offset = (page - 1) * pageSize
-    const response = await this.client.get<Analysis[]>('/api/v1/analyses', {
-      params: { limit: pageSize, offset },
-    })
+    console.log('🔍 API: Fetching analyses with params:', { limit: pageSize, offset })
 
-    // API returns a plain array, so we wrap it in pagination structure
-    const items = response.data
-    return {
-      items,
-      total: items.length, // API doesn't provide total, so we use current count
-      page,
-      page_size: pageSize,
-      total_pages: Math.ceil(items.length / pageSize),
+    try {
+      const response = await this.client.get<Analysis[]>('/api/v1/analyses', {
+        params: { limit: pageSize, offset },
+      })
+
+      console.log('✅ API: Received analyses response:', {
+        status: response.status,
+        count: response.data?.length,
+        data: response.data,
+      })
+
+      // API returns a plain array, so we wrap it in pagination structure
+      const items = response.data
+      return {
+        items,
+        total: items.length, // API doesn't provide total, so we use current count
+        page,
+        page_size: pageSize,
+        total_pages: Math.ceil(items.length / pageSize),
+      }
+    } catch (error) {
+      console.error('❌ API: Error fetching analyses:', error)
+      throw error
     }
   }
 
@@ -292,6 +323,251 @@ class APIService {
   async getTickerAnalyses(ticker: string): Promise<Analysis[]> {
     const response = await this.client.get(`/api/v1/tickers/${ticker}/analyses`)
     return response.data
+  }
+
+  // Backtest endpoints
+  async createBacktest(data: CreateBacktestRequest): Promise<Backtest> {
+    const response = await this.client.post<Backtest>('/api/v1/backtests', data)
+    return response.data
+  }
+
+  async getBacktests(): Promise<BacktestSummary[]> {
+    const response = await this.client.get<BacktestSummary[]>('/api/v1/backtests')
+    return response.data
+  }
+
+  async getBacktest(id: number): Promise<Backtest> {
+    const response = await this.client.get<Backtest>(`/api/v1/backtests/${id}`)
+    return response.data
+  }
+
+  async updateBacktest(id: number, data: UpdateBacktestRequest): Promise<Backtest> {
+    const response = await this.client.put<Backtest>(`/api/v1/backtests/${id}`, data)
+    return response.data
+  }
+
+  async deleteBacktest(id: number): Promise<void> {
+    await this.client.delete(`/api/v1/backtests/${id}`)
+  }
+
+  async getBacktestTrades(id: number): Promise<BacktestTrade[]> {
+    const response = await this.client.get<BacktestTrade[]>(`/api/v1/backtests/${id}/trades`)
+    return response.data
+  }
+
+  async getBacktestSnapshots(id: number): Promise<BacktestSnapshot[]> {
+    const response = await this.client.get<BacktestSnapshot[]>(
+      `/api/v1/backtests/${id}/snapshots`
+    )
+    return response.data
+  }
+
+  async getBacktestPerformance(id: number): Promise<BacktestPerformanceMetrics> {
+    const response = await this.client.get<BacktestPerformanceMetrics>(
+      `/api/v1/backtests/${id}/performance`
+    )
+    return response.data
+  }
+
+  async getBacktestEquityCurve(id: number): Promise<EquityCurveDataPoint[]> {
+    const response = await this.client.get<EquityCurveDataPoint[]>(
+      `/api/v1/backtests/${id}/equity-curve`
+    )
+    return response.data
+  }
+
+  async executeBacktest(id: number): Promise<{
+    status: string
+  }> {
+    // Simply pass the backtest ID - backend handles everything
+    const response = await this.client.post('/api/v1/backtest-execution', {
+      backtest_id: id,
+    })
+
+    return {
+      status: response.data.status,
+    }
+  }
+
+  async cancelBacktest(id: number): Promise<{
+    message: string
+    backtest_id: number
+  }> {
+    await this.client.delete(`/api/v1/backtest-execution/${id}`)
+    return {
+      message: 'Backtest cancelled',
+      backtest_id: id,
+    }
+  }
+
+  // New Execution Engine Endpoints
+  async executeBacktestDirect(request: import('../types/backtest').ExecuteBacktestRequest): Promise<import('../types/backtest').BacktestExecutionStatus> {
+    const response = await this.client.post('/api/v1/backtest-execution', request)
+    return response.data
+  }
+
+  async getBacktestExecutionStatus(id: number): Promise<import('../types/backtest').BacktestExecutionStatus> {
+    const response = await this.client.get(`/api/v1/backtest-execution/${id}/status`)
+    return response.data
+  }
+
+  async getBacktestExecutionResults(id: number): Promise<import('../types/backtest').BacktestExecutionResults> {
+    const response = await this.client.get(`/api/v1/backtest-execution/${id}/results`)
+    return response.data
+  }
+
+  async cancelBacktestExecution(id: number, permanent: boolean = false): Promise<void> {
+    await this.client.delete(`/api/v1/backtest-execution/${id}`, {
+      params: { permanent },
+    })
+  }
+
+  // Conversational trading interface
+  async extractTradingParameters(data: {
+    user_message: string
+    conversation_history: Array<{ role: string; content: string }>
+    current_form_state?: Record<string, any>
+  }): Promise<{
+    intent: string
+    extracted: Record<string, any>
+    missing: string[]
+    confidence: Record<string, number>
+    needs_clarification: boolean
+    clarification_questions: Array<{
+      question: string
+      field: string
+      suggestions: any[]
+      field_type: string
+    }>
+    suggested_defaults: Record<string, any>
+  }> {
+    const response = await this.client.post('/api/v1/backtests/extract-parameters', data)
+    return response.data
+  }
+
+  async executeTradingIntent(data: {
+    intent: string
+    parameters: Record<string, any>
+    strategy_code_python?: string
+  }): Promise<{
+    success: boolean
+    backtest_id?: number
+    analysis_id?: string
+    message: string
+  }> {
+    const response = await this.client.post('/api/v1/backtests/execute-intent', data)
+    return response.data
+  }
+
+  async validateStrategyCode(code: string): Promise<{
+    valid: boolean
+    message: string
+    fixed_code: string | null
+  }> {
+    const response = await this.client.post('/api/v1/backtests/validate-strategy-direct', { code })
+    return response.data
+  }
+
+  async generateStrategyCode(
+    data: {
+      strategy_description: string
+      ticker: string
+      indicators?: string[]
+      entry_conditions?: Record<string, any>
+      exit_conditions?: Record<string, any>
+      risk_params?: Record<string, any>
+    },
+    onChunk?: (chunk: string) => void
+  ): Promise<{
+    success: boolean
+    code: string
+    valid: boolean
+    validation_message: string
+  }> {
+    // Use fetch for streaming instead of axios
+    const { apiUrl, jwtToken, apiKey, authMethod } = useAuthStore.getState()
+
+    // Build headers based on auth method
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
+
+    if (authMethod === 'jwt' && jwtToken) {
+      headers['Authorization'] = `Bearer ${jwtToken}`
+    } else if (authMethod === 'apikey' && apiKey) {
+      headers['X-API-Key'] = apiKey
+    }
+
+    const response = await fetch(`${apiUrl}/api/v1/backtests/generate-strategy-code`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.detail || 'Failed to generate strategy code')
+    }
+
+    // Process the stream
+    const reader = response.body?.getReader()
+    const decoder = new TextDecoder()
+    let accumulatedCode = ''
+    let isValid = false
+    let validationMessage = ''
+
+    if (!reader) {
+      throw new Error('No response body')
+    }
+
+    console.log('🔥 Starting stream processing...')
+
+    while (true) {
+      const { done, value } = await reader.read()
+
+      if (done) {
+        console.log('✅ Stream complete')
+        break
+      }
+
+      const chunk = decoder.decode(value, { stream: true })
+      const lines = chunk.split('\n')
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            const jsonStr = line.slice(6)
+            const data = JSON.parse(jsonStr)
+
+            console.log('📦 Received event:', data.type, data.type === 'chunk' ? `(${data.content?.length} chars)` : '')
+
+            if (data.type === 'start') {
+              console.log('🚀 Stream started')
+            } else if (data.type === 'chunk') {
+              accumulatedCode += data.content
+              onChunk?.(data.content)
+            } else if (data.type === 'complete') {
+              accumulatedCode = data.full_code
+              isValid = data.valid
+              validationMessage = data.validation_message
+              console.log('✨ Generation complete, valid:', isValid)
+            } else if (data.type === 'error') {
+              console.error('❌ Stream error:', data.message)
+              throw new Error(data.message)
+            }
+          } catch (e) {
+            console.error('Failed to parse SSE data:', line, e)
+          }
+        }
+      }
+    }
+
+    return {
+      success: true,
+      code: accumulatedCode,
+      valid: isValid,
+      validation_message: validationMessage,
+    }
   }
 }
 

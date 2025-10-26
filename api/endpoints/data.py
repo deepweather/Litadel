@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from api.auth import get_current_auth
 from api.models.responses import CachedDataResponse, CachedTickerInfo
-from cli.asset_detection import detect_asset_class
+from cli.asset_detection import detect_asset_class, normalize_ticker
 from litadel.dataflows.interface import route_to_vendor
 
 router = APIRouter(prefix="/api/v1/data", tags=["data"])
@@ -21,6 +21,37 @@ logger = logging.getLogger(__name__)
 
 # Data cache directory (resolve to absolute path to avoid cwd issues)
 DATA_CACHE_DIR = Path(__file__).parent.parent.parent / "litadel" / "dataflows" / "data_cache"
+
+# In-memory cache to track recent updates (prevents redundant updates in the same session)
+# Format: {ticker: last_update_timestamp}
+_recent_updates: dict[str, datetime] = {}
+
+
+def _was_recently_updated(ticker: str, max_age_minutes: int = 5) -> bool:
+    """Check if a ticker was updated recently in this session.
+
+    This prevents redundant updates when multiple positions use the same ticker
+    in a single page load or API request batch.
+
+    Args:
+        ticker: Ticker symbol
+        max_age_minutes: Consider update "recent" if within this many minutes
+
+    Returns:
+        True if ticker was updated recently
+    """
+    ticker_upper = ticker.upper()
+    if ticker_upper not in _recent_updates:
+        return False
+
+    last_update = _recent_updates[ticker_upper]
+    age = datetime.now(tz=timezone.utc) - last_update
+    return age.total_seconds() < (max_age_minutes * 60)
+
+
+def _mark_as_updated(ticker: str) -> None:
+    """Mark a ticker as recently updated."""
+    _recent_updates[ticker.upper()] = datetime.now(tz=timezone.utc)
 
 
 def _parse_date_range(filename: str) -> dict[str, str] | None:
@@ -45,7 +76,15 @@ def _normalize_ohlcv_rows_from_csv(csv_text: str) -> list[dict[str, str]]:
     if not csv_text:
         return rows
 
-    f = io.StringIO(csv_text)
+    # Remove comment lines (lines starting with #) AND empty lines that some vendors add
+    lines = csv_text.strip().split("\n")
+    clean_lines = [line for line in lines if line.strip() and not line.strip().startswith("#")]
+    clean_csv = "\n".join(clean_lines)
+
+    if not clean_csv.strip():
+        return rows
+
+    f = io.StringIO(clean_csv)
     reader = csv.DictReader(f)
 
     # Map common header variants to our standard fields
@@ -97,6 +136,206 @@ def _normalize_ohlcv_rows_from_csv(csv_text: str) -> list[dict[str, str]]:
     return rows
 
 
+def _get_last_date_from_cache(cache_file: Path) -> str | None:
+    """Get the most recent date from a cache file."""
+    try:
+        with open(cache_file) as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+            if rows:
+                # Return the last date (files should be sorted)
+                return rows[-1].get("Date", "")[:10]
+    except Exception as e:
+        logger.warning(f"Failed to read last date from {cache_file.name}: {e}")
+    return None
+
+
+def _is_cache_stale(cache_file: Path, max_age_days: int = 1) -> bool:
+    """Check if cache needs updating based on the last date in the file.
+
+    This function is smart about weekends and market hours:
+    - If cache has today's date, it's fresh
+    - If today is weekend, checks if cache has Friday's data
+    - Otherwise checks if cache is older than max_age_days trading days
+
+    Args:
+        cache_file: Path to the cache CSV file
+        max_age_days: Maximum age in trading days before cache is considered stale
+
+    Returns:
+        True if cache is stale and needs updating
+    """
+    last_date_str = _get_last_date_from_cache(cache_file)
+    if not last_date_str:
+        return True  # Can't determine, consider stale
+
+    try:
+        last_date = datetime.strptime(last_date_str, "%Y-%m-%d").date()
+        today = datetime.now(tz=timezone.utc).date()
+
+        # If cache has today's data, it's fresh
+        if last_date == today:
+            logger.debug(f"Cache has today's data ({last_date}), considering fresh")
+            return False
+
+        # Get the day of week (0=Monday, 6=Sunday)
+        today_weekday = today.weekday()
+
+        # If today is Saturday (5) or Sunday (6), cache is fresh if it has Friday's data
+        if today_weekday == 5:  # Saturday
+            expected_last_trading_day = today - timedelta(days=1)  # Friday
+            if last_date >= expected_last_trading_day:
+                logger.debug(f"Weekend: cache has Friday data ({last_date}), considering fresh")
+                return False
+            return True
+        if today_weekday == 6:  # Sunday
+            expected_last_trading_day = today - timedelta(days=2)  # Friday
+            if last_date >= expected_last_trading_day:
+                logger.debug(f"Weekend: cache has Friday data ({last_date}), considering fresh")
+                return False
+            return True
+
+        # For weekdays (Monday-Friday), check if we have recent data
+        # Allow some buffer for early morning checks before market opens
+        age_days = (today - last_date).days
+
+        # If it's Monday and we have Friday's data, that's acceptable (3 calendar days)
+        if today_weekday == 0 and age_days <= 3:  # Monday, and last date is Fri/Sat/Sun
+            last_date_weekday = last_date.weekday()
+            if last_date_weekday == 4:  # Last date was Friday
+                logger.debug(f"Monday: cache has Friday data ({last_date}), considering fresh")
+                return False
+
+        # Otherwise, cache is stale if older than max_age_days
+        is_stale = age_days > max_age_days
+        if is_stale:
+            logger.debug(f"Cache is {age_days} days old (last: {last_date}, today: {today}), considering stale")
+        return is_stale
+
+    except Exception as e:
+        logger.warning(f"Failed to parse date {last_date_str}: {e}")
+        return True  # If we can't parse, consider stale
+
+
+def _update_cache_incrementally(cache_file: Path, ticker: str, asset_class: str) -> Path | None:
+    """Update an existing cache file with new data since the last cached date.
+
+    Args:
+        cache_file: Path to existing cache file
+        ticker: Ticker symbol
+        asset_class: Asset class (equity, crypto, commodity)
+
+    Returns:
+        Updated cache file path or None if update failed
+    """
+    last_date_str = _get_last_date_from_cache(cache_file)
+    if not last_date_str:
+        logger.warning(f"Cannot determine last date for {ticker}, skipping update")
+        return None
+
+    # Fetch data from the day after last cached date to today
+    try:
+        last_date = datetime.strptime(last_date_str, "%Y-%m-%d").date()
+        start_date = (last_date + timedelta(days=1)).strftime("%Y-%m-%d")
+        end_date = datetime.now(tz=timezone.utc).date().strftime("%Y-%m-%d")
+
+        # Don't fetch if we're already up to date
+        if start_date > end_date:
+            logger.info(f"Cache for {ticker} is already up to date (last date: {last_date_str})")
+            return cache_file
+
+        logger.info(f"Updating cache for {ticker} from {start_date} to {end_date}")
+
+        # Read existing dates to prevent duplicates
+        existing_dates = set()
+        with open(cache_file) as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                date_str = row.get("Date", "")[:10]
+                if date_str:
+                    existing_dates.add(date_str)
+
+        # Normalize ticker (adds -USD for crypto)
+        normalized_ticker = normalize_ticker(ticker, asset_class)
+
+        # Fetch new data
+        if asset_class == "crypto":
+            # Use get_stock_data for crypto (yfinance with -USD suffix)
+            csv_text = route_to_vendor("get_stock_data", normalized_ticker.upper(), start_date, end_date)
+        elif asset_class == "commodity":
+            csv_text = route_to_vendor("get_commodity_data", normalized_ticker.upper(), start_date, end_date, "daily")
+        else:
+            csv_text = route_to_vendor("get_stock_data", normalized_ticker.upper(), start_date, end_date)
+
+        # Parse new rows and filter out duplicates
+        new_rows = _normalize_ohlcv_rows_from_csv(csv_text)
+
+        # Filter out rows that already exist in the cache
+        unique_new_rows = [row for row in new_rows if row.get("Date", "")[:10] not in existing_dates]
+
+        if not unique_new_rows:
+            logger.info(f"No new data available for {ticker} (all dates already cached)")
+            return cache_file
+
+        # Append only unique new rows to existing cache file
+        with open(cache_file, "a", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=["Date", "Close", "High", "Low", "Open", "Volume"])
+            for row in unique_new_rows:
+                writer.writerow(row)
+
+        logger.info(f"Successfully appended {len(unique_new_rows)} new rows to {cache_file.name}")
+        return cache_file
+
+    except Exception as e:
+        logger.exception(f"Failed to update cache for {ticker}: {e}")
+        return None
+
+
+def _deduplicate_cache_file(cache_file: Path) -> bool:
+    """Remove duplicate dates from a cache file, keeping the last occurrence.
+
+    Args:
+        cache_file: Path to cache file to deduplicate
+
+    Returns:
+        True if duplicates were removed, False otherwise
+    """
+    try:
+        # Read all rows
+        with open(cache_file) as f:
+            reader = csv.DictReader(f)
+            all_rows = list(reader)
+
+        # Track seen dates and keep last occurrence of each date
+        seen_dates = {}
+        for row in all_rows:
+            date_str = row.get("Date", "")[:10]
+            if date_str:
+                seen_dates[date_str] = row  # Later occurrences overwrite earlier ones
+
+        # Convert back to list and sort by date
+        unique_rows = list(seen_dates.values())
+        unique_rows.sort(key=lambda r: r.get("Date", ""))
+
+        # Check if we removed any duplicates
+        had_duplicates = len(unique_rows) < len(all_rows)
+
+        if had_duplicates:
+            logger.info(f"Removing {len(all_rows) - len(unique_rows)} duplicate dates from {cache_file.name}")
+            # Rewrite file with unique rows
+            with open(cache_file, "w", newline="") as f:
+                writer = csv.DictWriter(f, fieldnames=["Date", "Close", "High", "Low", "Open", "Volume"])
+                writer.writeheader()
+                for row in unique_rows:
+                    writer.writerow(row)
+
+        return had_duplicates
+
+    except Exception as e:
+        logger.warning(f"Failed to deduplicate {cache_file.name}: {e}")
+        return False
+
+
 def _write_cache_csv(ticker: str, start_date: str, end_date: str, rows: list[dict[str, str]]) -> Path:
     """Write normalized OHLCV rows to cache using standard filename pattern."""
     DATA_CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -109,31 +348,85 @@ def _write_cache_csv(ticker: str, start_date: str, end_date: str, rows: list[dic
     return out_path
 
 
-def _ensure_cached_data(ticker: str, start_date: str | None, end_date: str | None) -> Path | None:
-    """Ensure OHLCV cache exists for ticker. If missing, fetch via vendor and write cache.
-    Returns the cache file path if created, else None.
+def _ensure_cached_data(
+    ticker: str, start_date: str | None, end_date: str | None, update_stale: bool = True
+) -> Path | None:
+    """Ensure OHLCV cache exists for ticker and is up to date.
+
+    If cache exists but is stale (more than 1 day old), updates it incrementally.
+    If cache doesn't exist, fetches full history and creates it.
+
+    Uses in-memory tracking to prevent redundant updates when multiple positions
+    use the same ticker in a single request batch.
+
+    Args:
+        ticker: Ticker symbol
+        start_date: Start date for initial fetch (if creating new cache)
+        end_date: End date for initial fetch (if creating new cache)
+        update_stale: If True, updates existing stale caches incrementally
+
+    Returns:
+        Path to cache file if created/updated, None if already up to date
     """
-    # Determine date window if not provided: last ~15 years
+    ticker_upper = ticker.upper()
+
+    # Check if we already updated this ticker recently (in the last 5 minutes)
+    # This prevents redundant updates when loading a portfolio with multiple positions of the same ticker
+    if update_stale and _was_recently_updated(ticker_upper):
+        logger.debug(f"Using cached data for {ticker} - already checked in last 5 minutes")
+        return None
+
+    # Determine date window if not provided
     today = datetime.now(tz=timezone.utc).date()
-    default_start = (today - timedelta(days=365 * 15)).strftime("%Y-%m-%d")
+    asset_class = detect_asset_class(ticker)
+
+    # Crypto: 5 years max (most didn't exist before 2015-2020)
+    # Stocks: 10 years (enough for analysis, not excessive)
+    years_back = 5 if asset_class == "crypto" else 10
+
+    default_start = (today - timedelta(days=365 * years_back)).strftime("%Y-%m-%d")
     default_end = today.strftime("%Y-%m-%d")
     start = start_date or default_start
     end = end_date or default_end
 
-    pattern = f"{ticker.upper()}-YFin-data-*.csv"
+    pattern = f"{ticker_upper}-YFin-data-*.csv"
     existing = list(DATA_CACHE_DIR.glob(pattern))
-    if existing:
-        return None  # already present
 
-    # Detect asset class and fetch
+    # If cache exists, check if it's stale
+    if existing:
+        cache_file = existing[0]
+
+        # First, deduplicate the cache file if it has duplicates
+        # This fixes any duplicates from previous updates
+        _deduplicate_cache_file(cache_file)
+
+        if update_stale and _is_cache_stale(cache_file, max_age_days=1):
+            logger.info(f"Cache for {ticker} is stale, updating incrementally")
+            asset_class = detect_asset_class(ticker)
+            result = _update_cache_incrementally(cache_file, ticker, asset_class)
+            # Mark as updated to prevent redundant updates in this session
+            _mark_as_updated(ticker_upper)
+            return result
+        # Cache exists and is fresh - mark as checked to prevent redundant staleness checks
+        if update_stale:
+            _mark_as_updated(ticker_upper)
+        return None
+
+    # Cache doesn't exist, create it
+    logger.info(f"Creating new cache for {ticker} from {start} to {end}")
+
+    # Detect asset class and normalize ticker
     asset_class = detect_asset_class(ticker)
+    normalized_ticker = normalize_ticker(ticker, asset_class)
+
     try:
         if asset_class == "crypto":
-            csv_text = route_to_vendor("get_crypto_data", ticker.upper(), start, end, "USD")
+            # Use get_stock_data for crypto (yfinance with -USD suffix)
+            csv_text = route_to_vendor("get_stock_data", normalized_ticker.upper(), start, end)
         elif asset_class == "commodity":
-            csv_text = route_to_vendor("get_commodity_data", ticker.upper(), start, end, "daily")
+            csv_text = route_to_vendor("get_commodity_data", normalized_ticker.upper(), start, end, "daily")
         else:
-            csv_text = route_to_vendor("get_stock_data", ticker.upper(), start, end)
+            csv_text = route_to_vendor("get_stock_data", normalized_ticker.upper(), start, end)
     except Exception as e:
         # Log the error for debugging
         logger.exception(f"Failed to fetch data for {ticker}: {e}")
@@ -147,12 +440,22 @@ def _ensure_cached_data(ticker: str, start_date: str | None, end_date: str | Non
         return None
 
     if not rows:
-        logger.warning(f"No data rows returned for {ticker}")
+        # Debug: log the actual CSV content to understand why it's empty
+        csv_preview = csv_text[:500] if csv_text else "(empty)"
+        logger.warning(
+            f"No data rows returned for {ticker}. "
+            f"Asset class: {asset_class}. "
+            f"CSV length: {len(csv_text) if csv_text else 0} chars. "
+            f"CSV preview: {csv_preview}"
+        )
         return None
 
     # Sort by date to be safe
     rows.sort(key=lambda r: r.get("Date", ""))
-    return _write_cache_csv(ticker, start, end, rows)
+    result = _write_cache_csv(ticker, start, end, rows)
+    # Mark as updated to prevent redundant updates in this session
+    _mark_as_updated(ticker_upper)
+    return result
 
 
 @router.get("/cache", response_model=list[CachedTickerInfo])
@@ -198,8 +501,8 @@ async def get_cached_data(
     """Get cached market data for a ticker."""
     logger.info(f"Fetching cached data for {ticker} from {DATA_CACHE_DIR}")
 
-    # Ensure cache exists (auto-fetches if missing for crypto/commodities/stocks)
-    _ensure_cached_data(ticker, start_date, end_date)
+    # Ensure cache exists and is up to date
+    _ensure_cached_data(ticker, start_date, end_date, update_stale=True)
 
     # Find matching file
     pattern = f"{ticker.upper()}-YFin-data-*.csv"
@@ -256,8 +559,8 @@ async def get_cached_data(
             # Delete and regenerate cache
             with contextlib.suppress(Exception):
                 os.remove(csv_file)
-            # Recreate
-            _ensure_cached_data(ticker, start_date, end_date)
+            # Recreate (don't check for stale since we just deleted it)
+            _ensure_cached_data(ticker, start_date, end_date, update_stale=False)
             # Re-discover and re-read
             matching_files = list(DATA_CACHE_DIR.glob(pattern))
             if not matching_files:

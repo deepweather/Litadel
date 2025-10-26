@@ -279,65 +279,39 @@ export const Terminal: React.FC = () => {
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        border: '1px solid rgba(77, 166, 255, 0.3)',
-        backgroundColor: '#0a0e14',
-      }}
-    >
+    <div className="flex flex-col h-full bg-muted/30 rounded-lg overflow-hidden">
       {/* Terminal output */}
       <div
         ref={terminalRef}
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '1rem',
-          fontFamily: 'JetBrains Mono, monospace',
-          fontSize: '0.75rem',
-          lineHeight: '1.5',
-        }}
+        className="flex-1 overflow-y-auto p-4 font-mono text-xs leading-relaxed"
       >
-        {lines.map((line, i) => (
-          <div
-            key={i}
-            style={{
-              color:
-                line.type === 'input'
-                  ? '#4da6ff'
-                  : line.type === 'error'
-                    ? '#ff4444'
-                    : line.type === 'success'
-                      ? '#00d4ff'
-                      : '#2a3e4a',
-              marginBottom: line.content === '' ? '0.5rem' : '0',
-            }}
-          >
-            {line.content || '\u00A0'}
-          </div>
-        ))}
+        {lines.map((line, i) => {
+          const colorClass =
+            line.type === 'input'
+              ? 'text-primary'
+              : line.type === 'error'
+                ? 'text-destructive'
+                : line.type === 'success'
+                  ? 'text-chart-2'
+                  : 'text-muted-foreground'
+
+          return (
+            <div
+              key={i}
+              className={`${colorClass} ${line.content === '' ? 'mb-2' : ''}`}
+            >
+              {line.content || '\u00A0'}
+            </div>
+          )
+        })}
       </div>
 
       {/* Terminal input */}
       <form
         onSubmit={handleSubmit}
-        style={{
-          borderTop: '1px solid rgba(77, 166, 255, 0.3)',
-          padding: '0.5rem 1rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-        }}
+        className="border-t border-border bg-background/50 p-2 px-4 flex items-center gap-2"
       >
-        <span
-          style={{
-            color: '#00d4ff',
-            fontFamily: 'JetBrains Mono, monospace',
-            fontSize: '0.875rem',
-          }}
-        >
+        <span className="text-chart-2 font-mono text-sm">
           &gt;
         </span>
         <input
@@ -347,15 +321,7 @@ export const Terminal: React.FC = () => {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           autoFocus
-          style={{
-            flex: 1,
-            backgroundColor: 'transparent',
-            border: 'none',
-            outline: 'none',
-            color: '#4da6ff',
-            fontFamily: 'JetBrains Mono, monospace',
-            fontSize: '0.875rem',
-          }}
+          className="flex-1 bg-transparent border-none outline-none text-primary font-mono text-sm placeholder:text-muted-foreground"
           placeholder={awaitingInput ? 'Enter value...' : 'Type /help for commands'}
         />
       </form>

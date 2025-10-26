@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import { ColorType, createChart } from 'lightweight-charts'
 import type { IChartApi, Time } from 'lightweight-charts'
+import { Card } from '@/components/ui/card'
 
 type OHLCV = {
   Date: string
@@ -30,21 +31,29 @@ const PriceChart: React.FC<PriceChartProps> = ({
   useEffect(() => {
     if (!containerRef.current) return
 
+    // Use colors that work well in both light and dark themes
+    // Detect if we're in dark mode
+    const isDark = document.documentElement.classList.contains('dark')
+
+    // Get the container's width for initial chart creation
+    const containerWidth = containerRef.current.clientWidth
+
     const chart = createChart(containerRef.current, {
+      width: containerWidth,
       height,
       layout: {
-        background: { type: ColorType.Solid, color: '#0a0e14' },
-        textColor: '#4da6ff',
+        background: { type: ColorType.Solid, color: isDark ? '#09090b' : '#ffffff' },
+        textColor: isDark ? '#a1a1aa' : '#71717a',
       },
       grid: {
-        vertLines: { color: 'rgba(77, 166, 255, 0.1)' },
-        horzLines: { color: 'rgba(77, 166, 255, 0.1)' },
+        vertLines: { color: isDark ? '#27272a' : '#e4e4e7' },
+        horzLines: { color: isDark ? '#27272a' : '#e4e4e7' },
       },
       rightPriceScale: {
-        borderColor: 'rgba(77, 166, 255, 0.3)',
+        borderColor: isDark ? '#27272a' : '#e4e4e7',
       },
       timeScale: {
-        borderColor: 'rgba(77, 166, 255, 0.3)',
+        borderColor: isDark ? '#27272a' : '#e4e4e7',
       },
       crosshair: { mode: 1 },
     })
@@ -55,16 +64,16 @@ const PriceChart: React.FC<PriceChartProps> = ({
     const series: any =
       mode === 'line'
         ? chart.addLineSeries({
-            color: '#4da6ff',
+            color: isDark ? '#60a5fa' : '#3b82f6',
             lineWidth: 2,
           })
         : chart.addCandlestickSeries({
-            upColor: '#00ff00',
-            downColor: '#ff4444',
-            borderUpColor: '#00ff00',
-            borderDownColor: '#ff4444',
-            wickUpColor: '#00ff00',
-            wickDownColor: '#ff4444',
+            upColor: '#22c55e',
+            downColor: '#ef4444',
+            borderUpColor: '#22c55e',
+            borderDownColor: '#ef4444',
+            wickUpColor: '#22c55e',
+            wickDownColor: '#ef4444',
           })
 
     // Prepare data depending on chart mode
@@ -93,54 +102,55 @@ const PriceChart: React.FC<PriceChartProps> = ({
       series.setData(candleData)
     }
 
-    // Add analysis date marker if provided
-    if (analysisDate) {
-      const analysisPrice =
-        mode === 'line'
-          ? lineData.find((d) => d.time === analysisDate)?.value
-          : candleData.find((d) => d.time === analysisDate)?.close
-      if (analysisPrice) {
-        series.createPriceLine({
-          price: analysisPrice,
-          color: '#4da6ff',
-          lineWidth: 2,
-          lineStyle: 2,
-          axisLabelVisible: true,
-          title: 'Analysis',
-        })
+    // Add a marker for the analysis date if provided
+    if (analysisDate && candleData.length > 0) {
+      const marker = {
+        time: analysisDate as Time,
+        position: 'inBar' as const,
+        color: '#ff9800',
+        shape: 'arrowDown' as const,
+        text: 'Analysis',
       }
+      series.setMarkers([marker])
     }
 
-    // Focus on last 60 days of data
-    const baseData: any[] = mode === 'line' ? lineData : candleData
-    if (baseData.length > 60) {
-      const recentData = baseData.slice(-60)
-      chart.timeScale().setVisibleRange({
-        from: recentData[0].time,
-        to: recentData[recentData.length - 1].time,
+    chart.timeScale().fitContent()
+
+    // Handle container resize
+    const resizeObserver = new ResizeObserver((entries) => {
+      if (entries.length === 0 || !chartRef.current || !containerRef.current) return
+
+      const { width } = entries[0].contentRect
+
+      // Use requestAnimationFrame to ensure smooth resize
+      requestAnimationFrame(() => {
+        if (chartRef.current && width > 0) {
+          chartRef.current.applyOptions({
+            width: Math.floor(width),
+            height
+          })
+          // Refit the content after resize
+          chartRef.current.timeScale().fitContent()
+        }
       })
+    })
+
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current)
     }
 
-    const handleResize = () => {
-      if (!containerRef.current || !chartRef.current) return
-      const width = containerRef.current.clientWidth
-      chartRef.current.applyOptions({ width })
-    }
-
-    handleResize()
-    window.addEventListener('resize', handleResize)
+    // Cleanup on unmount
     return () => {
-      window.removeEventListener('resize', handleResize)
+      resizeObserver.disconnect()
       chart.remove()
     }
   }, [data, height, analysisDate, mode])
 
   return (
-    <div style={{ border: '1px solid rgba(77, 166, 255, 0.3)', marginBottom: '1rem' }}>
+    <Card className="p-0 overflow-hidden">
       <div ref={containerRef} style={{ width: '100%', height }} />
-    </div>
+    </Card>
   )
 }
 
 export { PriceChart }
-export default PriceChart
