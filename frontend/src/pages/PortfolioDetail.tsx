@@ -8,12 +8,18 @@ import { PositionTable } from '../components/portfolio/PositionTable'
 import { PositionForm } from '../components/portfolio/PositionForm'
 import { BulkImport } from '../components/portfolio/BulkImport'
 import { Button } from '../components/ui/Button'
+import { Card } from '../components/ui/Card'
+import { IconButton } from '../components/ui/IconButton'
+import { MetricCard } from '../components/common/MetricCard'
+import { TextArea, TextInput } from '../components/ui/Form'
 import type {
   CreatePositionRequest,
   Position,
   UpdatePortfolioRequest,
   UpdatePositionRequest,
 } from '../types/portfolio'
+import { formatCurrency, formatPercentageWithSign } from '../utils/formatters'
+import { getPnLColor, themeColors } from '../utils/colors'
 
 export const PortfolioDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -165,20 +171,6 @@ export const PortfolioDetail: React.FC = () => {
     return result
   }
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value)
-  }
-
-  const formatPercentage = (value: number) => {
-    const sign = value >= 0 ? '+' : ''
-    return `${sign}${value.toFixed(2)}%`
-  }
-
   if (isLoading) {
     return (
       <div
@@ -209,8 +201,6 @@ export const PortfolioDetail: React.FC = () => {
     )
   }
 
-  const pnlColor = portfolio.total_pnl >= 0 ? '#00ff00' : '#ff0000'
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       {/* Back Button */}
@@ -220,37 +210,24 @@ export const PortfolioDetail: React.FC = () => {
       </Button>
 
       {/* Portfolio Header */}
-      <div style={{ border: '1px solid rgba(77, 166, 255, 0.3)', padding: '1.5rem' }}>
+      <Card padding="lg" hoverEffect={false}>
         {isEditingPortfolio ? (
           <div>
-            <input
+            <TextInput
               value={portfolioName}
               onChange={(e) => setPortfolioName(e.target.value)}
               style={{
-                width: '100%',
-                padding: '0.5rem',
                 marginBottom: '1rem',
-                backgroundColor: '#1a2a3a',
-                border: '1px solid #4da6ff',
                 color: '#4da6ff',
-                fontFamily: 'JetBrains Mono, monospace',
                 fontSize: '1.5rem',
                 fontWeight: 'bold',
               }}
             />
-            <textarea
+            <TextArea
               value={portfolioDescription}
               onChange={(e) => setPortfolioDescription(e.target.value)}
               style={{
-                width: '100%',
-                padding: '0.5rem',
                 marginBottom: '1rem',
-                backgroundColor: '#1a2a3a',
-                border: '1px solid rgba(77, 166, 255, 0.3)',
-                color: '#fff',
-                fontFamily: 'JetBrains Mono, monospace',
-                fontSize: '0.875rem',
-                resize: 'vertical',
                 minHeight: '60px',
               }}
             />
@@ -303,34 +280,18 @@ export const PortfolioDetail: React.FC = () => {
                 )}
               </div>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
+                <IconButton
+                  icon={<Edit2 size={16} />}
                   onClick={handleEditPortfolio}
-                  style={{
-                    padding: '0.5rem',
-                    border: '1px solid #4da6ff',
-                    backgroundColor: 'transparent',
-                    color: '#4da6ff',
-                    cursor: 'pointer',
-                    fontFamily: 'JetBrains Mono, monospace',
-                  }}
+                  variant="primary"
                   title="Edit Portfolio"
-                >
-                  <Edit2 size={16} />
-                </button>
-                <button
+                />
+                <IconButton
+                  icon={<Trash2 size={16} />}
                   onClick={handleDeletePortfolio}
-                  style={{
-                    padding: '0.5rem',
-                    border: '1px solid #ff0000',
-                    backgroundColor: 'transparent',
-                    color: '#ff0000',
-                    cursor: 'pointer',
-                    fontFamily: 'JetBrains Mono, monospace',
-                  }}
+                  variant="danger"
                   title="Delete Portfolio"
-                >
-                  <Trash2 size={16} />
-                </button>
+                />
               </div>
             </div>
 
@@ -344,101 +305,30 @@ export const PortfolioDetail: React.FC = () => {
                 borderTop: '1px solid rgba(77, 166, 255, 0.2)',
               }}
             >
-              <div>
-                <div
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#2a3e4a',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    marginBottom: '0.25rem',
-                  }}
-                >
-                  POSITIONS
-                </div>
-                <div
-                  style={{
-                    fontSize: '1.25rem',
-                    fontWeight: 'bold',
-                    color: '#4da6ff',
-                    fontFamily: 'JetBrains Mono, monospace',
-                  }}
-                >
-                  {portfolio.position_count}
-                </div>
-              </div>
-
-              <div>
-                <div
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#2a3e4a',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    marginBottom: '0.25rem',
-                  }}
-                >
-                  TOTAL VALUE
-                </div>
-                <div
-                  style={{
-                    fontSize: '1.25rem',
-                    fontWeight: 'bold',
-                    color: '#4da6ff',
-                    fontFamily: 'JetBrains Mono, monospace',
-                  }}
-                >
-                  {formatCurrency(portfolio.total_value)}
-                </div>
-              </div>
-
-              <div>
-                <div
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#2a3e4a',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    marginBottom: '0.25rem',
-                  }}
-                >
-                  PROFIT/LOSS
-                </div>
-                <div
-                  style={{
-                    fontSize: '1.25rem',
-                    fontWeight: 'bold',
-                    color: pnlColor,
-                    fontFamily: 'JetBrains Mono, monospace',
-                  }}
-                >
-                  {formatCurrency(portfolio.total_pnl)}
-                </div>
-              </div>
-
-              <div>
-                <div
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#2a3e4a',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    marginBottom: '0.25rem',
-                  }}
-                >
-                  RETURN
-                </div>
-                <div
-                  style={{
-                    fontSize: '1.25rem',
-                    fontWeight: 'bold',
-                    color: pnlColor,
-                    fontFamily: 'JetBrains Mono, monospace',
-                  }}
-                >
-                  {formatPercentage(portfolio.total_pnl_percentage)}
-                </div>
-              </div>
+              <MetricCard
+                label="POSITIONS"
+                value={portfolio.position_count}
+                color={themeColors.primary}
+              />
+              <MetricCard
+                label="TOTAL VALUE"
+                value={formatCurrency(portfolio.total_value)}
+                color={themeColors.primary}
+              />
+              <MetricCard
+                label="PROFIT/LOSS"
+                value={formatCurrency(portfolio.total_pnl)}
+                color={getPnLColor(portfolio.total_pnl)}
+              />
+              <MetricCard
+                label="RETURN"
+                value={formatPercentageWithSign(portfolio.total_pnl_percentage)}
+                color={getPnLColor(portfolio.total_pnl)}
+              />
             </div>
           </>
         )}
-      </div>
+      </Card>
 
       {/* Positions Section */}
       <div>

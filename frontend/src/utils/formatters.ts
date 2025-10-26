@@ -93,3 +93,37 @@ export const formatPercentage = (value: number): string => {
 export const formatNumber = (value: number, decimals: number = 2): string => {
   return value.toFixed(decimals)
 }
+
+export const formatCurrency = (value: number | null | undefined): string => {
+  if (value === null || value === undefined) return 'N/A'
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value)
+}
+
+export const formatCurrencyCompact = (value: number | null | undefined): string => {
+  if (value === null || value === undefined) return 'N/A'
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
+export const formatPercentageWithSign = (value: number | null | undefined): string => {
+  if (value === null || value === undefined) return 'N/A'
+  const sign = value >= 0 ? '+' : ''
+  return `${sign}${value.toFixed(2)}%`
+}
+
+export const formatDateShort = (date: string): string => {
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+}

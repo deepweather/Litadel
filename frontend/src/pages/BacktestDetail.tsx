@@ -2,17 +2,23 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { ArrowLeft, ChevronDown, ChevronUp, Play, XCircle } from 'lucide-react'
+import { ArrowLeft, Play, XCircle } from 'lucide-react'
 import { api } from '../services/api'
 import { Button } from '../components/ui/Button'
+import { Card } from '../components/ui/Card'
+import { MetricCard } from '../components/common/MetricCard'
+import { StatusBadge } from '../components/data-display/StatusBadge'
+import { Collapsible } from '../components/interactive/Collapsible'
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '../components/ui/Table'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useBacktestWebSocket } from '../hooks/useBacktestWebSocket'
+import { formatCurrency, formatDateShort, formatPercentageWithSign } from '../utils/formatters'
+import { getPnLColor, themeColors } from '../utils/colors'
 
 export const BacktestDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const [showStrategy, setShowStrategy] = useState(false)
   const backtestId = parseInt(id || '0', 10)
   const [previousStatus, setPreviousStatus] = useState<string | null>(null)
 
@@ -84,43 +90,6 @@ export const BacktestDetail: React.FC = () => {
     enabled: backtestId > 0 && backtest?.status === 'completed',
   })
 
-  const formatCurrency = (value: number | null | undefined) => {
-    if (value === null || value === undefined) return 'N/A'
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value)
-  }
-
-  const formatPercentage = (value: number | null | undefined) => {
-    if (value === null || value === undefined) return 'N/A'
-    const sign = value >= 0 ? '+' : ''
-    return `${sign}${value.toFixed(2)}%`
-  }
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return '#00ff00'
-      case 'running':
-        return '#4da6ff'
-      case 'failed':
-        return '#ff0000'
-      default:
-        return '#2a3e4a'
-    }
-  }
-
   if (loadingBacktest) {
     return (
       <div
@@ -151,8 +120,6 @@ export const BacktestDetail: React.FC = () => {
     )
   }
 
-  const returnColor = backtest.total_return_pct !== null && backtest.total_return_pct >= 0 ? '#00ff00' : '#ff0000'
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       {/* Header */}
@@ -172,18 +139,7 @@ export const BacktestDetail: React.FC = () => {
             >
               {backtest.name}
             </h1>
-            <span
-              style={{
-                padding: '0.25rem 0.5rem',
-                border: `1px solid ${getStatusColor(backtest.status)}`,
-                color: getStatusColor(backtest.status),
-                fontFamily: 'JetBrains Mono, monospace',
-                fontSize: '0.75rem',
-                textTransform: 'uppercase',
-              }}
-            >
-              {backtest.status}
-            </span>
+            <StatusBadge status={backtest.status as 'pending' | 'running' | 'completed' | 'failed'} />
             {backtest.status === 'running' && (
               <span
                 style={{
@@ -215,19 +171,19 @@ export const BacktestDetail: React.FC = () => {
               marginTop: '0.5rem',
             }}
           >
-            {formatDate(backtest.start_date)} - {formatDate(backtest.end_date)} | Initial Capital: {formatCurrency(backtest.initial_capital)}
+            {formatDateShort(backtest.start_date)} - {formatDateShort(backtest.end_date)} | Initial Capital: {formatCurrency(backtest.initial_capital)}
           </p>
         </div>
       </div>
 
       {/* Performance Metrics */}
       {backtest.status === 'completed' && (
-        <div style={{ border: '1px solid rgba(77, 166, 255, 0.3)', padding: '1.5rem' }}>
+        <Card padding="lg" hoverEffect={false}>
           <h2
             style={{
               fontSize: '1rem',
               fontWeight: 'bold',
-              color: '#4da6ff',
+              color: themeColors.primary,
               fontFamily: 'JetBrains Mono, monospace',
               marginBottom: '1.5rem',
             }}
@@ -235,88 +191,38 @@ export const BacktestDetail: React.FC = () => {
             PERFORMANCE SUMMARY
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1.5rem' }}>
-            <div>
-              <div style={{ color: '#2a3e4a', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
-                TOTAL RETURN
-              </div>
-              <div
-                style={{
-                  color: returnColor,
-                  fontSize: '1.5rem',
-                  fontWeight: 'bold',
-                  fontFamily: 'JetBrains Mono, monospace',
-                }}
-              >
-                {formatPercentage(backtest.total_return_pct)}
-              </div>
-            </div>
-            <div>
-              <div style={{ color: '#2a3e4a', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
-                SHARPE RATIO
-              </div>
-              <div
-                style={{
-                  color: '#4da6ff',
-                  fontSize: '1.5rem',
-                  fontWeight: 'bold',
-                  fontFamily: 'JetBrains Mono, monospace',
-                }}
-              >
-                {backtest.sharpe_ratio !== null ? backtest.sharpe_ratio.toFixed(2) : 'N/A'}
-              </div>
-            </div>
-            <div>
-              <div style={{ color: '#2a3e4a', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
-                MAX DRAWDOWN
-              </div>
-              <div
-                style={{
-                  color: '#ff0000',
-                  fontSize: '1.5rem',
-                  fontWeight: 'bold',
-                  fontFamily: 'JetBrains Mono, monospace',
-                }}
-              >
-                {formatPercentage(backtest.max_drawdown_pct)}
-              </div>
-            </div>
-            <div>
-              <div style={{ color: '#2a3e4a', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
-                WIN RATE
-              </div>
-              <div
-                style={{
-                  color: '#00ff00',
-                  fontSize: '1.5rem',
-                  fontWeight: 'bold',
-                  fontFamily: 'JetBrains Mono, monospace',
-                }}
-              >
-                {formatPercentage(backtest.win_rate)}
-              </div>
-            </div>
-            <div>
-              <div style={{ color: '#2a3e4a', fontSize: '0.75rem', marginBottom: '0.5rem' }}>
-                TOTAL TRADES
-              </div>
-              <div
-                style={{
-                  color: '#4da6ff',
-                  fontSize: '1.5rem',
-                  fontWeight: 'bold',
-                  fontFamily: 'JetBrains Mono, monospace',
-                }}
-              >
-                {backtest.total_trades !== null ? backtest.total_trades : 'N/A'}
-              </div>
-            </div>
+            <MetricCard
+              label="TOTAL RETURN"
+              value={formatPercentageWithSign(backtest.total_return_pct)}
+              color={getPnLColor(backtest.total_return_pct)}
+            />
+            <MetricCard
+              label="SHARPE RATIO"
+              value={backtest.sharpe_ratio !== null ? backtest.sharpe_ratio.toFixed(2) : 'N/A'}
+              color={themeColors.primary}
+            />
+            <MetricCard
+              label="MAX DRAWDOWN"
+              value={formatPercentageWithSign(backtest.max_drawdown_pct)}
+              color={themeColors.error}
+            />
+            <MetricCard
+              label="WIN RATE"
+              value={formatPercentageWithSign(backtest.win_rate)}
+              color={themeColors.success}
+            />
+            <MetricCard
+              label="TOTAL TRADES"
+              value={backtest.total_trades !== null ? backtest.total_trades : 'N/A'}
+              color={themeColors.primary}
+            />
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Equity Curve */}
       {equityCurve && equityCurve.length > 0 && (
-        <div style={{ border: '1px solid rgba(77, 166, 255, 0.3)', padding: '1.5rem' }}>
+        <Card padding="lg" hoverEffect={false}>
           <h2
             style={{
               fontSize: '1rem',
@@ -349,19 +255,19 @@ export const BacktestDetail: React.FC = () => {
                   fontFamily: 'JetBrains Mono',
                   fontSize: '0.75rem',
                 }}
-                labelFormatter={(value) => new Date(value).toLocaleDateString()}
-                formatter={(value: any) => [`$${value.toLocaleString()}`, 'Portfolio Value']}
+                labelFormatter={(value) => formatDateShort(value)}
+                formatter={(value: any) => [formatCurrency(value), 'Portfolio Value']}
               />
               <Line type="monotone" dataKey="portfolio_value" stroke="#4da6ff" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
       )}
 
       {/* Trades Table */}
       {trades && trades.length > 0 && (
-        <div style={{ border: '1px solid rgba(77, 166, 255, 0.3)' }}>
-          <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(77, 166, 255, 0.3)' }}>
+        <Card padding="sm" hoverEffect={false}>
+          <div style={{ padding: '1rem', borderBottom: '1px solid rgba(77, 166, 255, 0.3)' }}>
             <h2
               style={{
                 fontSize: '1rem',
@@ -373,169 +279,52 @@ export const BacktestDetail: React.FC = () => {
               TRADES
             </h2>
           </div>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid rgba(77, 166, 255, 0.3)' }}>
-                  <th
-                    style={{
-                      padding: '1rem',
-                      textAlign: 'left',
-                      color: '#4da6ff',
-                      fontFamily: 'JetBrains Mono, monospace',
-                      fontSize: '0.75rem',
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    DATE
-                  </th>
-                  <th
-                    style={{
-                      padding: '1rem',
-                      textAlign: 'left',
-                      color: '#4da6ff',
-                      fontFamily: 'JetBrains Mono, monospace',
-                      fontSize: '0.75rem',
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    TICKER
-                  </th>
-                  <th
-                    style={{
-                      padding: '1rem',
-                      textAlign: 'center',
-                      color: '#4da6ff',
-                      fontFamily: 'JetBrains Mono, monospace',
-                      fontSize: '0.75rem',
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    ACTION
-                  </th>
-                  <th
-                    style={{
-                      padding: '1rem',
-                      textAlign: 'right',
-                      color: '#4da6ff',
-                      fontFamily: 'JetBrains Mono, monospace',
-                      fontSize: '0.75rem',
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    QUANTITY
-                  </th>
-                  <th
-                    style={{
-                      padding: '1rem',
-                      textAlign: 'right',
-                      color: '#4da6ff',
-                      fontFamily: 'JetBrains Mono, monospace',
-                      fontSize: '0.75rem',
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    PRICE
-                  </th>
-                  <th
-                    style={{
-                      padding: '1rem',
-                      textAlign: 'right',
-                      color: '#4da6ff',
-                      fontFamily: 'JetBrains Mono, monospace',
-                      fontSize: '0.75rem',
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    P&L
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {trades.slice(0, 50).map((trade) => (
-                  <tr
-                    key={trade.id}
-                    style={{ borderBottom: '1px solid rgba(77, 166, 255, 0.1)' }}
-                  >
-                    <td
+          <Table bordered={false}>
+            <TableHeader>
+              <TableCell header align="left">DATE</TableCell>
+              <TableCell header align="left">TICKER</TableCell>
+              <TableCell header align="center">ACTION</TableCell>
+              <TableCell header align="right">QUANTITY</TableCell>
+              <TableCell header align="right">PRICE</TableCell>
+              <TableCell header align="right">P&L</TableCell>
+            </TableHeader>
+            <TableBody>
+              {trades.slice(0, 50).map((trade) => (
+                <TableRow key={trade.id} hoverable={false}>
+                  <TableCell color="#2a3e4a">{formatDateShort(trade.trade_date)}</TableCell>
+                  <TableCell bold>{trade.ticker}</TableCell>
+                  <TableCell align="center">
+                    <span
                       style={{
-                        padding: '1rem',
-                        color: '#2a3e4a',
+                        padding: '0.25rem 0.5rem',
+                        border: `1px solid ${trade.action === 'BUY' ? '#00ff00' : '#ff0000'}`,
+                        color: trade.action === 'BUY' ? '#00ff00' : '#ff0000',
                         fontFamily: 'JetBrains Mono, monospace',
-                        fontSize: '0.875rem',
+                        fontSize: '0.75rem',
                       }}
                     >
-                      {formatDate(trade.trade_date)}
-                    </td>
-                    <td
-                      style={{
-                        padding: '1rem',
-                        color: '#fff',
-                        fontFamily: 'JetBrains Mono, monospace',
-                        fontSize: '0.875rem',
-                        fontWeight: 'bold',
-                      }}
-                    >
-                      {trade.ticker}
-                    </td>
-                    <td style={{ padding: '1rem', textAlign: 'center' }}>
-                      <span
-                        style={{
-                          padding: '0.25rem 0.5rem',
-                          border: `1px solid ${trade.action === 'BUY' ? '#00ff00' : '#ff0000'}`,
-                          color: trade.action === 'BUY' ? '#00ff00' : '#ff0000',
-                          fontFamily: 'JetBrains Mono, monospace',
-                          fontSize: '0.75rem',
-                        }}
-                      >
-                        {trade.action}
-                      </span>
-                    </td>
-                    <td
-                      style={{
-                        padding: '1rem',
-                        textAlign: 'right',
-                        color: '#fff',
-                        fontFamily: 'JetBrains Mono, monospace',
-                        fontSize: '0.875rem',
-                      }}
-                    >
-                      {trade.quantity.toFixed(2)}
-                    </td>
-                    <td
-                      style={{
-                        padding: '1rem',
-                        textAlign: 'right',
-                        color: '#fff',
-                        fontFamily: 'JetBrains Mono, monospace',
-                        fontSize: '0.875rem',
-                      }}
-                    >
-                      {formatCurrency(trade.price)}
-                    </td>
-                    <td
-                      style={{
-                        padding: '1rem',
-                        textAlign: 'right',
-                        color: trade.pnl !== null && trade.pnl >= 0 ? '#00ff00' : '#ff0000',
-                        fontFamily: 'JetBrains Mono, monospace',
-                        fontSize: '0.875rem',
-                        fontWeight: 'bold',
-                      }}
-                    >
-                      {trade.pnl !== null ? (
-                        <>
-                          {formatCurrency(trade.pnl)} ({formatPercentage(trade.pnl_pct)})
-                        </>
-                      ) : (
-                        '-'
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      {trade.action}
+                    </span>
+                  </TableCell>
+                  <TableCell align="right">{trade.quantity.toFixed(2)}</TableCell>
+                  <TableCell align="right">{formatCurrency(trade.price)}</TableCell>
+                  <TableCell
+                    align="right"
+                    color={trade.pnl !== null && trade.pnl >= 0 ? '#00ff00' : '#ff0000'}
+                    bold
+                  >
+                    {trade.pnl !== null ? (
+                      <>
+                        {formatCurrency(trade.pnl)} ({formatPercentageWithSign(trade.pnl_pct)})
+                      </>
+                    ) : (
+                      '-'
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
           {trades.length > 50 && (
             <div
               style={{
@@ -548,94 +337,60 @@ export const BacktestDetail: React.FC = () => {
               Showing first 50 of {trades.length} trades
             </div>
           )}
-        </div>
+        </Card>
       )}
 
       {/* Strategy Section */}
-      <div style={{ border: '1px solid rgba(77, 166, 255, 0.3)' }}>
-        <button
-          onClick={() => setShowStrategy(!showStrategy)}
-          style={{
-            width: '100%',
-            padding: '1.5rem',
-            backgroundColor: 'transparent',
-            border: 'none',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            cursor: 'pointer',
-          }}
-        >
-          <h2
-            style={{
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-            }}
-          >
-            STRATEGY DEFINITION
-          </h2>
-          {showStrategy ? <ChevronUp color="#4da6ff" /> : <ChevronDown color="#4da6ff" />}
-        </button>
-        {showStrategy && (
+      <Collapsible title="STRATEGY DEFINITION" defaultExpanded={false}>
+        <div style={{ marginBottom: '1.5rem' }}>
           <div
             style={{
-              padding: '1.5rem',
-              borderTop: '1px solid rgba(77, 166, 255, 0.3)',
+              color: '#2a3e4a',
+              fontSize: '0.75rem',
+              marginBottom: '0.5rem',
+              fontWeight: 'bold',
             }}
           >
-            <div style={{ marginBottom: '1.5rem' }}>
-              <div
-                style={{
-                  color: '#2a3e4a',
-                  fontSize: '0.75rem',
-                  marginBottom: '0.5rem',
-                  fontWeight: 'bold',
-                }}
-              >
-                NATURAL LANGUAGE DESCRIPTION
-              </div>
-              <div
-                style={{
-                  color: '#fff',
-                  fontSize: '0.875rem',
-                  fontFamily: 'JetBrains Mono, monospace',
-                  lineHeight: '1.5',
-                }}
-              >
-                {backtest.strategy_description}
-              </div>
-            </div>
-            <div>
-              <div
-                style={{
-                  color: '#2a3e4a',
-                  fontSize: '0.75rem',
-                  marginBottom: '0.5rem',
-                  fontWeight: 'bold',
-                }}
-              >
-                DSL YAML
-              </div>
-              <pre
-                style={{
-                  backgroundColor: '#1a2a3a',
-                  border: '1px solid rgba(77, 166, 255, 0.3)',
-                  padding: '1rem',
-                  overflow: 'auto',
-                  color: '#4da6ff',
-                  fontSize: '0.75rem',
-                  fontFamily: 'Consolas, Monaco, monospace',
-                  lineHeight: '1.5',
-                }}
-              >
-                {backtest.strategy_dsl_yaml}
-              </pre>
-            </div>
+            NATURAL LANGUAGE DESCRIPTION
           </div>
-        )}
-      </div>
+          <div
+            style={{
+              color: '#fff',
+              fontSize: '0.875rem',
+              fontFamily: 'JetBrains Mono, monospace',
+              lineHeight: '1.5',
+            }}
+          >
+            {backtest.strategy_description}
+          </div>
+        </div>
+        <div>
+          <div
+            style={{
+              color: '#2a3e4a',
+              fontSize: '0.75rem',
+              marginBottom: '0.5rem',
+              fontWeight: 'bold',
+            }}
+          >
+            DSL YAML
+          </div>
+          <pre
+            style={{
+              backgroundColor: '#1a2a3a',
+              border: '1px solid rgba(77, 166, 255, 0.3)',
+              padding: '1rem',
+              overflow: 'auto',
+              color: '#4da6ff',
+              fontSize: '0.75rem',
+              fontFamily: 'Consolas, Monaco, monospace',
+              lineHeight: '1.5',
+            }}
+          >
+            {backtest.strategy_dsl_yaml}
+          </pre>
+        </div>
+      </Collapsible>
 
       {/* Pending State - Show Execute Button */}
       {backtest.status === 'pending' && (

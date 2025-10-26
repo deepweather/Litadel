@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react'
-import { AlertCircle, Check, Download, Upload, X } from 'lucide-react'
+import { AlertCircle, Check, Download, Upload } from 'lucide-react'
 import { Button } from '../ui/Button'
+import { Modal } from '../ui/Modal'
 
 interface BulkImportProps {
   onImport: (file: File) => Promise<{
@@ -67,60 +68,13 @@ TSLA,50,200.00,2024-03-10,Tesla position`
   }
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
-      onClick={onClose}
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title="BULK IMPORT POSITIONS"
+      maxWidth="600px"
     >
-      <div
-        style={{
-          backgroundColor: '#0a0e14',
-          border: '2px solid #4da6ff',
-          padding: '2rem',
-          width: '100%',
-          maxWidth: '600px',
-          fontFamily: 'JetBrains Mono, monospace',
-          maxHeight: '80vh',
-          overflowY: 'auto',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '1.5rem',
-          }}
-        >
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#4da6ff' }}>
-            BULK IMPORT POSITIONS
-          </h2>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#4da6ff',
-              cursor: 'pointer',
-            }}
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        {/* Instructions */}
+      {/* Instructions */}
         <div
           style={{
             backgroundColor: '#1a2a3a',
@@ -309,8 +263,7 @@ TSLA,50,200.00,2024-03-10,Tesla position`
             </Button>
           )}
         </div>
-      </div>
-    </div>
+    </Modal>
   )
 }
 

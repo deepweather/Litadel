@@ -3,6 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { SystemMetrics } from '../components/dashboard/SystemMetrics'
 import { RecentActivity } from '../components/dashboard/RecentActivity'
 import { Terminal } from '../components/terminal/Terminal'
+import { PageHeader } from '../components/layout/PageHeader'
+import { SectionHeader } from '../components/layout/SectionHeader'
+import { Panel } from '../components/layout/Panel'
+import { Button } from '../components/ui/Button'
+import { LinkButton } from '../components/ui/LinkButton'
 import { Plus } from 'lucide-react'
 import { LOGO_ASCII } from '../utils/ascii'
 
@@ -12,7 +17,7 @@ export const Dashboard: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1.5rem' }}>
       {/* Welcome header */}
-      <div className="border border-terminal-border p-6">
+      <Panel padding="lg">
         <pre
           style={{
             color: '#4da6ff',
@@ -24,114 +29,34 @@ export const Dashboard: React.FC = () => {
         >
           {LOGO_ASCII}
         </pre>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <h1
-              style={{
-                fontSize: '1.5rem',
-                fontWeight: 'bold',
-                marginBottom: '0.5rem',
-                color: '#4da6ff',
-                fontFamily: 'JetBrains Mono, monospace',
-              }}
-            >
-              CONTROL CENTER
-            </h1>
-            <p
-              style={{
-                color: '#2a3e4a',
-                fontFamily: 'JetBrains Mono, monospace',
-                fontSize: '0.875rem',
-              }}
-            >
-              Multi-Agent Trading Analysis System v1.0.0
-            </p>
-          </div>
-          <button
-            onClick={() => navigate('/analyses/create')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.75rem 1.5rem',
-              border: '2px solid #4da6ff',
-              backgroundColor: 'transparent',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontWeight: 'bold',
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(77, 166, 255, 0.1)'
-              e.currentTarget.style.borderColor = '#00d4ff'
-              e.currentTarget.style.color = '#00d4ff'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.borderColor = '#4da6ff'
-              e.currentTarget.style.color = '#4da6ff'
-            }}
-          >
-            <Plus size={18} />
-            NEW ANALYSIS
-          </button>
-        </div>
-      </div>
+        <PageHeader
+          title="CONTROL CENTER"
+          subtitle="Multi-Agent Trading Analysis System v1.0.0"
+          actions={
+            <Button onClick={() => navigate('/analyses/create')}>
+              <Plus size={18} />
+              NEW ANALYSIS
+            </Button>
+          }
+        />
+      </Panel>
 
       {/* Metrics, Activity, and Terminal */}
       <div style={{ display: 'flex', gap: '1.5rem', flex: 1, minHeight: 0 }}>
         <div style={{ flex: '0 0 300px', display: 'flex', flexDirection: 'column' }}>
-          <div
-            style={{
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              marginBottom: '1rem',
-              paddingBottom: '0.5rem',
-              borderBottom: '1px solid rgba(77, 166, 255, 0.3)',
-            }}
-          >
-            SYSTEM METRICS
-          </div>
+          <SectionHeader title="SYSTEM METRICS" />
           <SystemMetrics />
         </div>
         <div
           style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0 }}
         >
-          <div
-            style={{
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              marginBottom: '1rem',
-              paddingBottom: '0.5rem',
-              borderBottom: '1px solid rgba(77, 166, 255, 0.3)',
-            }}
-          >
-            RECENT ACTIVITY
-          </div>
+          <SectionHeader title="RECENT ACTIVITY" />
           <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
             <RecentActivity />
           </div>
         </div>
         <div style={{ flex: '0 0 400px', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          <div
-            style={{
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              marginBottom: '1rem',
-              paddingBottom: '0.5rem',
-              borderBottom: '1px solid rgba(77, 166, 255, 0.3)',
-            }}
-          >
-            TERMINAL
-          </div>
+          <SectionHeader title="TERMINAL" />
           <div style={{ flex: 1, minHeight: 0 }}>
             <Terminal />
           </div>
@@ -139,139 +64,28 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Quick Links */}
-      <div className="border border-terminal-border p-6" style={{ marginTop: 'auto' }}>
-        <div
-          style={{
-            fontSize: '1rem',
-            fontWeight: 'bold',
-            color: '#4da6ff',
-            fontFamily: 'JetBrains Mono, monospace',
-            marginBottom: '1rem',
-            textAlign: 'center',
-            paddingBottom: '0.75rem',
-            borderBottom: '1px solid rgba(77, 166, 255, 0.3)',
-          }}
-        >
-          QUICK LINKS
+      <Panel padding="lg" className="mt-auto">
+        <div style={{ textAlign: 'center' }}>
+          <SectionHeader title="QUICK LINKS" />
         </div>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => navigate('/analyses')}
-            style={{
-              border: '1px solid rgba(77, 166, 255, 0.3)',
-              padding: '0.75rem 1.5rem',
-              backgroundColor: 'transparent',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#4da6ff'
-              e.currentTarget.style.backgroundColor = 'rgba(77, 166, 255, 0.1)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(77, 166, 255, 0.3)'
-              e.currentTarget.style.backgroundColor = 'transparent'
-            }}
-          >
+          <LinkButton onClick={() => navigate('/analyses')} variant="primary">
             View All Analyses
-          </button>
-          <button
-            onClick={() => navigate('/analyses/create')}
-            style={{
-              border: '1px solid rgba(77, 166, 255, 0.3)',
-              padding: '0.75rem 1.5rem',
-              backgroundColor: 'transparent',
-              color: '#00d4ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#00d4ff'
-              e.currentTarget.style.backgroundColor = 'rgba(0, 212, 255, 0.1)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(77, 166, 255, 0.3)'
-              e.currentTarget.style.backgroundColor = 'transparent'
-            }}
-          >
+          </LinkButton>
+          <LinkButton onClick={() => navigate('/analyses/create')} variant="accent">
             Create Analysis
-          </button>
-          <button
-            onClick={() => navigate('/portfolio')}
-            style={{
-              border: '1px solid rgba(77, 166, 255, 0.3)',
-              padding: '0.75rem 1.5rem',
-              backgroundColor: 'transparent',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#4da6ff'
-              e.currentTarget.style.backgroundColor = 'rgba(77, 166, 255, 0.1)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(77, 166, 255, 0.3)'
-              e.currentTarget.style.backgroundColor = 'transparent'
-            }}
-          >
+          </LinkButton>
+          <LinkButton onClick={() => navigate('/portfolio')} variant="primary">
             View Portfolios
-          </button>
-          <button
-            onClick={() => navigate('/backtests/create')}
-            style={{
-              border: '1px solid rgba(77, 166, 255, 0.3)',
-              padding: '0.75rem 1.5rem',
-              backgroundColor: 'transparent',
-              color: '#00d4ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#00d4ff'
-              e.currentTarget.style.backgroundColor = 'rgba(0, 212, 255, 0.1)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(77, 166, 255, 0.3)'
-              e.currentTarget.style.backgroundColor = 'transparent'
-            }}
-          >
+          </LinkButton>
+          <LinkButton onClick={() => navigate('/backtests/create')} variant="accent">
             Create Backtest
-          </button>
-          <button
-            onClick={() => navigate('/settings')}
-            style={{
-              border: '1px solid rgba(77, 166, 255, 0.3)',
-              padding: '0.75rem 1.5rem',
-              backgroundColor: 'transparent',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#4da6ff'
-              e.currentTarget.style.backgroundColor = 'rgba(77, 166, 255, 0.1)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(77, 166, 255, 0.3)'
-              e.currentTarget.style.backgroundColor = 'transparent'
-            }}
-          >
+          </LinkButton>
+          <LinkButton onClick={() => navigate('/settings')} variant="primary">
             Settings
-          </button>
+          </LinkButton>
         </div>
-      </div>
+      </Panel>
     </div>
   )
 }

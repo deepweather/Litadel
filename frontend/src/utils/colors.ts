@@ -34,3 +34,30 @@ export const tailwindColors = {
 export const getTailwindColor = (status: string): string => {
   return tailwindColors[status as keyof typeof tailwindColors] || 'text-terminal-fg'
 }
+
+// Theme colors for consistent styling across the app
+export const themeColors = {
+  primary: '#4da6ff',
+  accent: '#00d4ff',
+  success: '#00ff00',
+  error: '#ff4444',
+  warning: '#ffaa00',
+  muted: '#2a3e4a',
+  mutedText: '#5a6e7a',
+  background: '#0a0e14',
+  backgroundAlt: '#1a2a3a',
+  border: 'rgba(77, 166, 255, 0.3)',
+  borderSolid: '#4da6ff',
+}
+
+export const getDecisionColor = (decision: string): string => {
+  const d = decision.toUpperCase()
+  if (d === 'BUY') return themeColors.success
+  if (d === 'SELL') return themeColors.error
+  return themeColors.warning
+}
+
+export const getPnLColor = (value: number | null | undefined): string => {
+  if (value === null || value === undefined || value === 0) return themeColors.muted
+  return value > 0 ? themeColors.success : themeColors.error
+}

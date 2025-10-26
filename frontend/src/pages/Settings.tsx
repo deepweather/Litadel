@@ -4,6 +4,7 @@ import { useAuthStore } from '../stores/authStore'
 import { ASCIIBox } from '../components/ui/ASCIIBox'
 import { Input } from '../components/ui/Input'
 import { Button } from '../components/ui/Button'
+import { KeyValueRow } from '../components/common/KeyValueRow'
 import toast from 'react-hot-toast'
 
 export const Settings: React.FC = () => {
@@ -83,65 +84,17 @@ export const Settings: React.FC = () => {
                 gap: '1rem',
               }}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingBottom: '1rem',
-                  borderBottom: '1px solid rgba(77, 166, 255, 0.2)',
-                }}
-              >
-                <span
-                  style={{
-                    color: '#5a6e7a',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    fontSize: '0.875rem',
-                  }}
-                >
-                  Authentication Method
-                </span>
-                <span
-                  style={{
-                    color: '#4da6ff',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    fontSize: '0.875rem',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  {authMethod === 'jwt' ? 'USERNAME / PASSWORD' : authMethod === 'apikey' ? 'API KEY' : 'NOT AUTHENTICATED'}
-                </span>
-              </div>
+              <KeyValueRow
+                label="Authentication Method"
+                value={authMethod === 'jwt' ? 'USERNAME / PASSWORD' : authMethod === 'apikey' ? 'API KEY' : 'NOT AUTHENTICATED'}
+                valueBold={true}
+              />
 
               {authMethod === 'jwt' && username && (
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    paddingBottom: '1rem',
-                    borderBottom: '1px solid rgba(77, 166, 255, 0.2)',
-                  }}
-                >
-                  <span
-                    style={{
-                      color: '#5a6e7a',
-                      fontFamily: 'JetBrains Mono, monospace',
-                      fontSize: '0.875rem',
-                    }}
-                  >
-                    Logged in as
-                  </span>
-                  <span
-                    style={{
-                      color: '#4da6ff',
-                      fontFamily: 'JetBrains Mono, monospace',
-                      fontSize: '0.875rem',
-                    }}
-                  >
-                    {username}
-                  </span>
-                </div>
+                <KeyValueRow
+                  label="Logged in as"
+                  value={username}
+                />
               )}
 
               {authMethod && (
@@ -257,64 +210,26 @@ export const Settings: React.FC = () => {
                 fontSize: '0.875rem',
               }}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  borderBottom: '1px solid rgba(77, 166, 255, 0.2)',
-                  paddingBottom: '0.75rem',
-                }}
-              >
-                <span style={{ color: '#5a6e7a', fontFamily: 'JetBrains Mono, monospace' }}>
-                  Version
-                </span>
-                <span style={{ color: '#4da6ff', fontFamily: 'JetBrains Mono, monospace' }}>
-                  1.0.0
-                </span>
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  borderBottom: '1px solid rgba(77, 166, 255, 0.2)',
-                  paddingBottom: '0.75rem',
-                }}
-              >
-                <span style={{ color: '#5a6e7a', fontFamily: 'JetBrains Mono, monospace' }}>
-                  Build
-                </span>
-                <span style={{ color: '#4da6ff', fontFamily: 'JetBrains Mono, monospace' }}>
-                  2025.10.21
-                </span>
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  borderBottom: '1px solid rgba(77, 166, 255, 0.2)',
-                  paddingBottom: '0.75rem',
-                }}
-              >
-                <span style={{ color: '#5a6e7a', fontFamily: 'JetBrains Mono, monospace' }}>
-                  Environment
-                </span>
-                <span style={{ color: '#4da6ff', fontFamily: 'JetBrains Mono, monospace' }}>
-                  {import.meta.env.MODE}
-                </span>
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <span style={{ color: '#5a6e7a', fontFamily: 'JetBrains Mono, monospace' }}>
-                  Status
-                </span>
-                <span style={{ color: '#4da6ff', fontFamily: 'JetBrains Mono, monospace' }}>
-                  OPERATIONAL
-                </span>
-              </div>
+              <KeyValueRow
+                label="Version"
+                value="1.0.0"
+                style={{ paddingBottom: '0.75rem' }}
+              />
+              <KeyValueRow
+                label="Build"
+                value="2025.10.21"
+                style={{ paddingBottom: '0.75rem' }}
+              />
+              <KeyValueRow
+                label="Environment"
+                value={import.meta.env.MODE}
+                style={{ paddingBottom: '0.75rem' }}
+              />
+              <KeyValueRow
+                label="Status"
+                value="OPERATIONAL"
+                divider={false}
+              />
             </div>
           </div>
         </ASCIIBox>

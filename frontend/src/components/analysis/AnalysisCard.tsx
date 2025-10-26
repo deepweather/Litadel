@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import type { Analysis } from '../../types/api'
 import { formatDuration } from '../../utils/formatters'
 import { ChevronRight, Clock, Minus, TrendingDown, TrendingUp } from 'lucide-react'
+import { Card } from '../ui/Card'
 
 interface AnalysisCardProps {
   analysis: Analysis
@@ -47,26 +48,13 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({ analysis }) => {
     : null
 
   return (
-    <div
+    <Card
       onClick={() => navigate(`/analyses/${analysis.id}`)}
+      padding="md"
+      border={analysis.status === 'running' ? '2px solid #00d4ff' : '1px solid rgba(77, 166, 255, 0.3)'}
       style={{
-        border:
-          analysis.status === 'running' ? '2px solid #00d4ff' : '1px solid rgba(77, 166, 255, 0.3)',
         backgroundColor: analysis.status === 'running' ? 'rgba(0, 212, 255, 0.02)' : 'transparent',
         padding: '1rem',
-        cursor: 'pointer',
-        transition: 'all 0.2s',
-        fontFamily: 'JetBrains Mono, monospace',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = '#4da6ff'
-        e.currentTarget.style.backgroundColor = 'rgba(77, 166, 255, 0.05)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor =
-          analysis.status === 'running' ? '#00d4ff' : 'rgba(77, 166, 255, 0.3)'
-        e.currentTarget.style.backgroundColor =
-          analysis.status === 'running' ? 'rgba(0, 212, 255, 0.02)' : 'transparent'
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
@@ -218,6 +206,6 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({ analysis }) => {
           <ChevronRight size={20} />
         </div>
       </div>
-    </div>
+    </Card>
   )
 }

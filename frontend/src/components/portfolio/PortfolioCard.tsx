@@ -1,6 +1,9 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { PortfolioSummary } from '../../types/portfolio'
+import { formatCurrency, formatPercentageWithSign } from '../../utils/formatters'
+import { getPnLColor } from '../../utils/colors'
+import { Card } from '../ui/Card'
 
 interface PortfolioCardProps {
   portfolio: PortfolioSummary
@@ -9,41 +12,8 @@ interface PortfolioCardProps {
 export const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio }) => {
   const navigate = useNavigate()
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value)
-  }
-
-  const formatPercentage = (value: number) => {
-    const sign = value >= 0 ? '+' : ''
-    return `${sign}${value.toFixed(2)}%`
-  }
-
-  const pnlColor = portfolio.total_pnl >= 0 ? '#00ff00' : '#ff0000'
-
   return (
-    <div
-      onClick={() => navigate(`/portfolio/${portfolio.id}`)}
-      style={{
-        border: '1px solid rgba(77, 166, 255, 0.3)',
-        padding: '1.5rem',
-        cursor: 'pointer',
-        transition: 'all 0.2s',
-        backgroundColor: '#0a0e14',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = '#4da6ff'
-        e.currentTarget.style.backgroundColor = '#1a2a3a'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'rgba(77, 166, 255, 0.3)'
-        e.currentTarget.style.backgroundColor = '#0a0e14'
-      }}
-    >
+    <Card onClick={() => navigate(`/portfolio/${portfolio.id}`)}>
       <div
         style={{
           display: 'flex',
@@ -134,7 +104,7 @@ export const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio }) => {
             style={{
               fontSize: '1rem',
               fontWeight: 'bold',
-              color: pnlColor,
+              color: getPnLColor(portfolio.total_pnl),
               fontFamily: 'JetBrains Mono, monospace',
             }}
           >
@@ -157,15 +127,15 @@ export const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio }) => {
             style={{
               fontSize: '1rem',
               fontWeight: 'bold',
-              color: pnlColor,
+              color: getPnLColor(portfolio.total_pnl),
               fontFamily: 'JetBrains Mono, monospace',
             }}
           >
-            {formatPercentage(portfolio.total_pnl_percentage)}
+            {formatPercentageWithSign(portfolio.total_pnl_percentage)}
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   )
 }
 

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { AlertCircle, Check, Loader, X } from 'lucide-react'
+import { AlertCircle, Check, Loader } from 'lucide-react'
 import type { CreatePositionRequest, Position, UpdatePositionRequest } from '../../types/portfolio'
 import { Input } from '../ui/Input'
 import { Button } from '../ui/Button'
+import { Modal } from '../ui/Modal'
 import { api } from '../../services/api'
 
 interface PositionFormProps {
@@ -172,57 +173,13 @@ export const PositionForm: React.FC<PositionFormProps> = ({
   }
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
-      onClick={onCancel}
+    <Modal
+      isOpen={true}
+      onClose={onCancel}
+      title={isEditing ? 'EDIT POSITION' : 'ADD POSITION'}
+      maxWidth="500px"
     >
-      <div
-        style={{
-          backgroundColor: '#0a0e14',
-          border: '2px solid #4da6ff',
-          padding: '2rem',
-          width: '100%',
-          maxWidth: '500px',
-          fontFamily: 'JetBrains Mono, monospace',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '1.5rem',
-          }}
-        >
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#4da6ff' }}>
-            {isEditing ? 'EDIT POSITION' : 'ADD POSITION'}
-          </h2>
-          <button
-            onClick={onCancel}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#4da6ff',
-              cursor: 'pointer',
-            }}
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div>
               <label
@@ -503,8 +460,7 @@ export const PositionForm: React.FC<PositionFormProps> = ({
             </div>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 }
 

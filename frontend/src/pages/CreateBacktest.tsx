@@ -5,7 +5,10 @@ import toast from 'react-hot-toast'
 import { ArrowLeft, ArrowRight, Check, Sparkles } from 'lucide-react'
 import { api } from '../services/api'
 import { Button } from '../components/ui/Button'
+import { KeyValueRow } from '../components/common/KeyValueRow'
 import { StrategyVisualizer } from '../components/backtest/StrategyVisualizer'
+import { DateInput, FormField, NumberInput, TextArea, TextInput } from '../components/ui/Form'
+import { InfoBanner } from '../components/ui/InfoBanner'
 import type { CreateBacktestRequest } from '../types/backtest'
 
 export const CreateBacktest: React.FC = () => {
@@ -237,24 +240,6 @@ export const CreateBacktest: React.FC = () => {
     })
   }
 
-  const inputStyle = {
-    width: '100%',
-    padding: '0.75rem',
-    backgroundColor: '#1a2a3a',
-    border: '1px solid #4da6ff',
-    color: '#fff',
-    fontFamily: 'JetBrains Mono, monospace',
-    fontSize: '0.875rem',
-  }
-
-  const labelStyle = {
-    display: 'block',
-    marginBottom: '0.5rem',
-    color: '#4da6ff',
-    fontFamily: 'JetBrains Mono, monospace',
-    fontSize: '0.875rem',
-    fontWeight: 'bold',
-  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '900px', margin: '0 auto' }}>
@@ -306,66 +291,64 @@ export const CreateBacktest: React.FC = () => {
       <div style={{ border: '1px solid rgba(77, 166, 255, 0.3)', padding: '2rem' }}>
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <h2 style={{ ...labelStyle, fontSize: '1.125rem', marginBottom: '1rem' }}>
+            <h2
+              style={{
+                fontSize: '1.125rem',
+                marginBottom: '1rem',
+                color: '#4da6ff',
+                fontFamily: 'JetBrains Mono, monospace',
+                fontWeight: 'bold',
+              }}
+            >
               Basic Information
             </h2>
 
-            <div>
-              <label style={labelStyle}>
-                NAME <span style={{ color: '#ff0000' }}>*</span>
-              </label>
-              <input
-                type="text"
+            <FormField label="NAME" required>
+              <TextInput
                 value={formData.name || ''}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="My Trading Strategy"
-                style={inputStyle}
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label style={labelStyle}>DESCRIPTION</label>
-              <textarea
+            <FormField label="DESCRIPTION">
+              <TextArea
                 value={formData.description || ''}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Optional description of your backtest"
                 rows={3}
-                style={{ ...inputStyle, resize: 'vertical' }}
               />
-            </div>
+            </FormField>
           </div>
         )}
 
         {step === 2 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <h2 style={{ ...labelStyle, fontSize: '1.125rem', marginBottom: '1rem' }}>
+            <h2
+              style={{
+                fontSize: '1.125rem',
+                marginBottom: '1rem',
+                color: '#4da6ff',
+                fontFamily: 'JetBrains Mono, monospace',
+                fontWeight: 'bold',
+              }}
+            >
               Strategy Definition
             </h2>
 
-            <div>
-              <label style={labelStyle}>
-                NATURAL LANGUAGE DESCRIPTION <span style={{ color: '#ff0000' }}>*</span>
-              </label>
-              <textarea
+            <FormField label="NATURAL LANGUAGE DESCRIPTION" required>
+              <TextArea
                 value={formData.strategy_description || ''}
                 onChange={(e) => setFormData({ ...formData, strategy_description: e.target.value })}
                 placeholder="Describe your trading strategy in plain English. Be as detailed as possible - an AI agent will interpret this to create your trading rules."
                 rows={6}
-                style={{ ...inputStyle, resize: 'vertical' }}
               />
-              <div style={{
-                color: '#00d4ff',
-                fontSize: '0.75rem',
-                marginTop: '0.5rem',
-                padding: '0.75rem',
-                border: '1px solid rgba(0, 212, 255, 0.3)',
-                backgroundColor: 'rgba(0, 212, 255, 0.05)'
-              }}>
-                <strong>💡 AI-Powered Strategy Generation:</strong> Just describe your strategy and click "Generate YAML" - the AI will extract tickers from your description (e.g., "Tesla" → TSLA) and automatically fill in the Configuration step for you. No need to manually enter tickers twice!
-                <br/><br/>
-                <strong>Example:</strong> "I want to invest $50k in Tesla and Apple. Buy when the stock is oversold (RSI &lt; 30) and has positive news sentiment. Sell when RSI exceeds 70 or if there's negative news. Maximum 5 positions, equal weight, with a 10% stop-loss."
-              </div>
-            </div>
+            </FormField>
+            <InfoBanner variant="info" icon="💡" title="AI-Powered Strategy Generation">
+              Just describe your strategy and click "Generate YAML" - the AI will extract tickers from your description (e.g., "Tesla" → TSLA) and automatically fill in the Configuration step for you. No need to manually enter tickers twice!
+              <br/><br/>
+              <strong>Example:</strong> "I want to invest $50k in Tesla and Apple. Buy when the stock is oversold (RSI &lt; 30) and has positive news sentiment. Sell when RSI exceeds 70 or if there's negative news. Maximum 5 positions, equal weight, with a 10% stop-loss."
+            </InfoBanner>
 
             <div>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
@@ -478,57 +461,46 @@ export const CreateBacktest: React.FC = () => {
 
         {step === 3 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <h2 style={{ ...labelStyle, fontSize: '1.125rem', marginBottom: '1rem' }}>
+            <h2
+              style={{
+                fontSize: '1.125rem',
+                marginBottom: '1rem',
+                color: '#4da6ff',
+                fontFamily: 'JetBrains Mono, monospace',
+                fontWeight: 'bold',
+              }}
+            >
               Configuration
             </h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-              <div>
-                <label style={labelStyle}>
-                  START DATE <span style={{ color: '#ff0000' }}>*</span>
-                </label>
-                <input
-                  type="date"
+              <FormField label="START DATE" required>
+                <DateInput
                   value={formData.start_date || ''}
                   onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                  style={inputStyle}
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label style={labelStyle}>
-                  END DATE <span style={{ color: '#ff0000' }}>*</span>
-                </label>
-                <input
-                  type="date"
+              <FormField label="END DATE" required>
+                <DateInput
                   value={formData.end_date || ''}
                   onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                  style={inputStyle}
                 />
-              </div>
+              </FormField>
             </div>
 
-            <div>
-              <label style={labelStyle}>
-                INITIAL CAPITAL <span style={{ color: '#ff0000' }}>*</span>
-              </label>
-              <input
-                type="number"
+            <FormField label="INITIAL CAPITAL" required>
+              <NumberInput
                 value={formData.initial_capital || ''}
                 onChange={(e) => setFormData({ ...formData, initial_capital: parseFloat(e.target.value) })}
                 placeholder="100000"
                 step="1000"
                 min="1000"
-                style={inputStyle}
               />
-            </div>
+            </FormField>
 
-            <div>
-              <label style={labelStyle}>
-                TICKER LIST
-              </label>
-              <input
-                type="text"
+            <FormField label="TICKER LIST">
+              <TextInput
                 value={formData.ticker_list?.join(', ') || ''}
                 onChange={(e) =>
                   setFormData({
@@ -537,72 +509,64 @@ export const CreateBacktest: React.FC = () => {
                   })
                 }
                 placeholder="Leave empty for random ticker selection, or enter: AAPL, TSLA, NVDA"
-                style={inputStyle}
               />
-              <div
-                style={{
-                  marginTop: '0.5rem',
-                  padding: '0.75rem',
-                  border: '1px solid rgba(76, 175, 80, 0.3)',
-                  backgroundColor: 'rgba(76, 175, 80, 0.05)',
-                  fontSize: '0.75rem',
-                  color: '#4caf50',
-                }}
-              >
-                <strong>🎲 Random Portfolio Mode:</strong> Leave this field empty to enable random mode. The system will randomly select 3-10 tickers from a curated pool of 50+ stocks, cryptocurrencies, and commodities, generating realistic trades with actual historical prices.
-              </div>
-              <div
-                style={{
-                  marginTop: '0.5rem',
-                  padding: '0.75rem',
-                  border: '1px solid rgba(255, 165, 0, 0.3)',
-                  backgroundColor: 'rgba(255, 165, 0, 0.05)',
-                  fontSize: '0.75rem',
-                  color: '#ff9900',
-                }}
-              >
-                <strong>⚠️ Ticker Format:</strong> Make sure tickers existed during your selected date range.
-                <br />
-                • Stocks: AAPL, TSLA (no suffix)
-                <br />
-                • Crypto: BTC-USD, ETH-USD (with -USD suffix)
-                <br />
-                • Commodities: BRENT, WTI (no suffix)
-              </div>
-            </div>
+            </FormField>
+            <InfoBanner variant="success" icon="🎲" title="Random Portfolio Mode">
+              Leave this field empty to enable random mode. The system will randomly select 3-10 tickers from a curated pool of 50+ stocks, cryptocurrencies, and commodities, generating realistic trades with actual historical prices.
+            </InfoBanner>
+            <InfoBanner variant="warning" icon="⚠️" title="Ticker Format">
+              Make sure tickers existed during your selected date range.
+              <br />
+              • Stocks: AAPL, TSLA (no suffix)
+              <br />
+              • Crypto: BTC-USD, ETH-USD (with -USD suffix)
+              <br />
+              • Commodities: BRENT, WTI (no suffix)
+            </InfoBanner>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-              <div>
-                <label style={labelStyle}>REBALANCE FREQUENCY</label>
+              <FormField label="REBALANCE FREQUENCY">
                 <select
                   value={formData.rebalance_frequency || 'weekly'}
                   onChange={(e) => setFormData({ ...formData, rebalance_frequency: e.target.value })}
-                  style={inputStyle}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    backgroundColor: '#1a2a3a',
+                    border: '1px solid #4da6ff',
+                    color: '#fff',
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: '0.875rem',
+                  }}
                 >
                   <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
                   <option value="monthly">Monthly</option>
                 </select>
-              </div>
+              </FormField>
 
-              <div>
-                <label style={labelStyle}>POSITION SIZING</label>
+              <FormField label="POSITION SIZING">
                 <select
                   value={formData.position_sizing || 'equal_weight'}
                   onChange={(e) => setFormData({ ...formData, position_sizing: e.target.value })}
-                  style={inputStyle}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    backgroundColor: '#1a2a3a',
+                    border: '1px solid #4da6ff',
+                    color: '#fff',
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: '0.875rem',
+                  }}
                 >
                   <option value="equal_weight">Equal Weight</option>
                   <option value="risk_parity">Risk Parity</option>
                   <option value="kelly">Kelly Criterion</option>
                 </select>
-              </div>
+              </FormField>
             </div>
 
-            <div>
-              <label style={labelStyle}>
-                MAX POSITIONS: {formData.max_positions || 10}
-              </label>
+            <FormField label={`MAX POSITIONS: ${formData.max_positions || 10}`}>
               <input
                 type="range"
                 min="1"
@@ -611,54 +575,74 @@ export const CreateBacktest: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, max_positions: parseInt(e.target.value) })}
                 style={{ width: '100%' }}
               />
-            </div>
+            </FormField>
           </div>
         )}
 
         {step === 4 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <h2 style={{ ...labelStyle, fontSize: '1.125rem', marginBottom: '1rem' }}>
+            <h2
+              style={{
+                fontSize: '1.125rem',
+                marginBottom: '1rem',
+                color: '#4da6ff',
+                fontFamily: 'JetBrains Mono, monospace',
+                fontWeight: 'bold',
+              }}
+            >
               Review & Submit
             </h2>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ borderBottom: '1px solid rgba(77, 166, 255, 0.2)', paddingBottom: '0.5rem' }}>
-                <div style={{ color: '#2a3e4a', fontSize: '0.75rem' }}>NAME</div>
-                <div style={{ color: '#fff', fontSize: '1rem' }}>{formData.name}</div>
-              </div>
+              <KeyValueRow
+                label="NAME"
+                value={formData.name || ''}
+                labelColor="#2a3e4a"
+                valueColor="#fff"
+                style={{ paddingBottom: '0.5rem' }}
+              />
 
               {formData.description && (
-                <div style={{ borderBottom: '1px solid rgba(77, 166, 255, 0.2)', paddingBottom: '0.5rem' }}>
-                  <div style={{ color: '#2a3e4a', fontSize: '0.75rem' }}>DESCRIPTION</div>
-                  <div style={{ color: '#fff', fontSize: '1rem' }}>{formData.description}</div>
-                </div>
+                <KeyValueRow
+                  label="DESCRIPTION"
+                  value={formData.description}
+                  labelColor="#2a3e4a"
+                  valueColor="#fff"
+                  style={{ paddingBottom: '0.5rem' }}
+                />
               )}
 
-              <div style={{ borderBottom: '1px solid rgba(77, 166, 255, 0.2)', paddingBottom: '0.5rem' }}>
-                <div style={{ color: '#2a3e4a', fontSize: '0.75rem' }}>TICKERS</div>
-                <div style={{ color: '#fff', fontSize: '1rem' }}>{formData.ticker_list?.join(', ')}</div>
-              </div>
+              <KeyValueRow
+                label="TICKERS"
+                value={formData.ticker_list?.join(', ') || ''}
+                labelColor="#2a3e4a"
+                valueColor="#fff"
+                style={{ paddingBottom: '0.5rem' }}
+              />
 
-              <div style={{ borderBottom: '1px solid rgba(77, 166, 255, 0.2)', paddingBottom: '0.5rem' }}>
-                <div style={{ color: '#2a3e4a', fontSize: '0.75rem' }}>DATE RANGE</div>
-                <div style={{ color: '#fff', fontSize: '1rem' }}>
-                  {formData.start_date} to {formData.end_date}
-                </div>
-              </div>
+              <KeyValueRow
+                label="DATE RANGE"
+                value={`${formData.start_date} to ${formData.end_date}`}
+                labelColor="#2a3e4a"
+                valueColor="#fff"
+                style={{ paddingBottom: '0.5rem' }}
+              />
 
-              <div style={{ borderBottom: '1px solid rgba(77, 166, 255, 0.2)', paddingBottom: '0.5rem' }}>
-                <div style={{ color: '#2a3e4a', fontSize: '0.75rem' }}>INITIAL CAPITAL</div>
-                <div style={{ color: '#fff', fontSize: '1rem' }}>
-                  ${formData.initial_capital?.toLocaleString()}
-                </div>
-              </div>
+              <KeyValueRow
+                label="INITIAL CAPITAL"
+                value={`$${formData.initial_capital?.toLocaleString()}`}
+                labelColor="#2a3e4a"
+                valueColor="#fff"
+                style={{ paddingBottom: '0.5rem' }}
+              />
 
-              <div style={{ borderBottom: '1px solid rgba(77, 166, 255, 0.2)', paddingBottom: '0.5rem' }}>
-                <div style={{ color: '#2a3e4a', fontSize: '0.75rem' }}>CONFIGURATION</div>
-                <div style={{ color: '#fff', fontSize: '1rem' }}>
-                  {formData.rebalance_frequency} rebalancing, {formData.position_sizing} sizing, max {formData.max_positions} positions
-                </div>
-              </div>
+              <KeyValueRow
+                label="CONFIGURATION"
+                value={`${formData.rebalance_frequency} rebalancing, ${formData.position_sizing} sizing, max ${formData.max_positions} positions`}
+                labelColor="#2a3e4a"
+                valueColor="#fff"
+                divider={false}
+              />
             </div>
           </div>
         )}

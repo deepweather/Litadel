@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   useAnalysis,
@@ -14,10 +14,11 @@ import PriceChart from '../components/analysis/PriceChart.tsx'
 import { useMarketData } from '../hooks/useMarketData'
 import { LogViewer } from '../components/analysis/LogViewer'
 import { Button } from '../components/ui/Button'
+import { IconButton } from '../components/ui/IconButton'
+import { Collapsible } from '../components/interactive/Collapsible'
+import { InfoBanner } from '../components/ui/InfoBanner'
 import {
   ArrowLeft,
-  ChevronDown,
-  ChevronUp,
   Copy,
   Download,
   Minus,
@@ -38,8 +39,6 @@ export const AnalysisDetail: React.FC = () => {
   const { data: marketData } = useMarketData(analysis?.ticker)
   const { data: logs = [] } = useAnalysisLogs(analysisId)
   const deleteMutation = useDeleteAnalysis()
-
-  const [logsExpanded, setLogsExpanded] = useState(false)
 
   // Calculate market metrics
   const marketMetrics = React.useMemo(() => {
@@ -226,40 +225,39 @@ export const AnalysisDetail: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <Button onClick={handleCopyId} title="Copy Analysis ID">
-            <Copy size={16} />
-          </Button>
-          <Button onClick={handleExportAll} title="Export All Data">
-            <Download size={16} />
-          </Button>
-          <Button onClick={() => refetch()} title="Refresh">
-            <RefreshCw size={16} />
-          </Button>
-          <Button
-            variant="error"
+          <IconButton
+            icon={<Copy size={16} />}
+            onClick={handleCopyId}
+            variant="primary"
+            title="Copy Analysis ID"
+          />
+          <IconButton
+            icon={<Download size={16} />}
+            onClick={handleExportAll}
+            variant="primary"
+            title="Export All Data"
+          />
+          <IconButton
+            icon={<RefreshCw size={16} />}
+            onClick={() => refetch()}
+            variant="primary"
+            title="Refresh"
+          />
+          <IconButton
+            icon={<Trash2 size={16} />}
             onClick={handleDelete}
+            variant="danger"
             disabled={deleteMutation.isPending}
             title="Delete Analysis"
-          >
-            <Trash2 size={16} />
-          </Button>
+          />
         </div>
       </div>
 
       {/* Error Banner */}
       {analysis.status === 'failed' && analysis.error_message && (
-        <div
-          style={{
-            border: '2px solid #ff4444',
-            padding: '1rem',
-            color: '#ff4444',
-            fontFamily: 'JetBrains Mono, monospace',
-            marginBottom: '1.5rem',
-          }}
-        >
-          <div style={{ fontWeight: 'bold' }}>✗ ANALYSIS FAILED</div>
-          <div style={{ fontSize: '0.75rem', marginTop: '0.5rem' }}>{analysis.error_message}</div>
-        </div>
+        <InfoBanner variant="error" title="✗ ANALYSIS FAILED">
+          {analysis.error_message}
+        </InfoBanner>
       )}
 
       {/* Main Content Area */}
@@ -515,53 +513,10 @@ export const AnalysisDetail: React.FC = () => {
 
       {/* Logs Section (Collapsible) */}
       {logs.length > 0 && (
-        <div
-          style={{
-            marginTop: '1.5rem',
-            border: '1px solid rgba(77, 166, 255, 0.3)',
-            backgroundColor: 'rgba(77, 166, 255, 0.02)',
-          }}
-        >
-          <button
-            onClick={() => setLogsExpanded(!logsExpanded)}
-            style={{
-              width: '100%',
-              padding: '0.75rem 1rem',
-              backgroundColor: 'transparent',
-              border: 'none',
-              borderBottom: logsExpanded ? '1px solid rgba(77, 166, 255, 0.3)' : 'none',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '0.875rem',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(77, 166, 255, 0.05)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-            }}
-          >
-            <span>EXECUTION LOGS ({logs.length})</span>
-            {logsExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          </button>
-
-          {logsExpanded && (
-            <div
-              style={{
-                padding: '1rem',
-                maxHeight: '400px',
-                overflow: 'auto',
-              }}
-            >
-              <LogViewer logs={logs} analysisStartTime={analysis.created_at || undefined} />
-            </div>
-          )}
+        <div style={{ marginTop: '1.5rem' }}>
+          <Collapsible title="EXECUTION LOGS" count={logs.length} defaultExpanded={false}>
+            <LogViewer logs={logs} analysisStartTime={analysis.created_at || undefined} />
+          </Collapsible>
         </div>
       )}
     </div>

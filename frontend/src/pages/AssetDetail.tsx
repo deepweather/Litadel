@@ -4,9 +4,12 @@ import { useQuery } from '@tanstack/react-query'
 import { Activity, ArrowLeft, Briefcase, Plus, TrendingUp } from 'lucide-react'
 import { api } from '../services/api'
 import { Button } from '../components/ui/Button'
+import { MetricCard } from '../components/common/MetricCard'
 import { PriceChart } from '../components/analysis/PriceChart'
 import { AnalysisCard } from '../components/analysis/AnalysisCard'
 import { useMarketData } from '../hooks/useMarketData'
+import { formatCurrency } from '../utils/formatters'
+import { getDecisionColor, getPnLColor, themeColors } from '../utils/colors'
 
 export const AssetDetail: React.FC = () => {
   const { ticker } = useParams<{ ticker: string }>()
@@ -31,28 +34,6 @@ export const AssetDetail: React.FC = () => {
   })
 
   const { data: marketData } = useMarketData(ticker)
-
-  const formatCurrency = (value: number | null | undefined) => {
-    if (value === null || value === undefined) return 'N/A'
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value)
-  }
-
-  const getPnLColor = (value: number | null | undefined) => {
-    if (value === null || value === undefined || value === 0) return '#2a3e4a'
-    return value > 0 ? '#00ff00' : '#ff0000'
-  }
-
-  const getDecisionColor = (decision: string) => {
-    const d = decision.toUpperCase()
-    if (d === 'BUY') return '#00ff00'
-    if (d === 'SELL') return '#ff0000'
-    return '#ffaa00'
-  }
 
   if (summaryLoading) {
     return (
@@ -205,71 +186,26 @@ export const AssetDetail: React.FC = () => {
               marginBottom: '1rem',
             }}
           >
-            <div
-              style={{
-                border: '1px solid rgba(77, 166, 255, 0.3)',
-                padding: '1rem',
-                fontFamily: 'JetBrains Mono, monospace',
-              }}
-            >
-              <div style={{ fontSize: '0.75rem', color: '#2a3e4a', marginBottom: '0.25rem' }}>
-                TOTAL QUANTITY
-              </div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#4da6ff' }}>
-                {summary.holdings.total_quantity.toFixed(4)}
-              </div>
-            </div>
-
-            <div
-              style={{
-                border: '1px solid rgba(77, 166, 255, 0.3)',
-                padding: '1rem',
-                fontFamily: 'JetBrains Mono, monospace',
-              }}
-            >
-              <div style={{ fontSize: '0.75rem', color: '#2a3e4a', marginBottom: '0.25rem' }}>
-                AVG ENTRY PRICE
-              </div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#4da6ff' }}>
-                {formatCurrency(summary.holdings.avg_entry_price)}
-              </div>
-            </div>
-
-            <div
-              style={{
-                border: '1px solid rgba(77, 166, 255, 0.3)',
-                padding: '1rem',
-                fontFamily: 'JetBrains Mono, monospace',
-              }}
-            >
-              <div style={{ fontSize: '0.75rem', color: '#2a3e4a', marginBottom: '0.25rem' }}>
-                CURRENT VALUE
-              </div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#00d4ff' }}>
-                {formatCurrency(summary.holdings.current_value)}
-              </div>
-            </div>
-
-            <div
-              style={{
-                border: '1px solid rgba(77, 166, 255, 0.3)',
-                padding: '1rem',
-                fontFamily: 'JetBrains Mono, monospace',
-              }}
-            >
-              <div style={{ fontSize: '0.75rem', color: '#2a3e4a', marginBottom: '0.25rem' }}>
-                TOTAL P&L
-              </div>
-              <div
-                style={{
-                  fontSize: '1.25rem',
-                  fontWeight: 'bold',
-                  color: getPnLColor(summary.holdings.total_pnl),
-                }}
-              >
-                {formatCurrency(summary.holdings.total_pnl)}
-              </div>
-            </div>
+            <MetricCard
+              label="TOTAL QUANTITY"
+              value={summary.holdings.total_quantity.toFixed(4)}
+              color={themeColors.primary}
+            />
+            <MetricCard
+              label="AVG ENTRY PRICE"
+              value={formatCurrency(summary.holdings.avg_entry_price)}
+              color={themeColors.primary}
+            />
+            <MetricCard
+              label="CURRENT VALUE"
+              value={formatCurrency(summary.holdings.current_value)}
+              color={themeColors.accent}
+            />
+            <MetricCard
+              label="TOTAL P&L"
+              value={formatCurrency(summary.holdings.total_pnl)}
+              color={getPnLColor(summary.holdings.total_pnl)}
+            />
           </div>
 
           {/* Positions List */}
@@ -388,70 +324,37 @@ export const AssetDetail: React.FC = () => {
               marginBottom: '1rem',
             }}
           >
-            <div
-              style={{
-                border: '1px solid rgba(77, 166, 255, 0.3)',
-                padding: '1rem',
-                fontFamily: 'JetBrains Mono, monospace',
-              }}
-            >
-              <div style={{ fontSize: '0.75rem', color: '#2a3e4a', marginBottom: '0.25rem' }}>
-                TOTAL ANALYSES
-              </div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4da6ff' }}>
-                {summary.analyses.total_count}
-              </div>
-            </div>
+            <MetricCard
+              label="TOTAL ANALYSES"
+              value={summary.analyses.total_count}
+              color={themeColors.primary}
+            />
 
             {summary.analyses.decision_counts.BUY > 0 && (
-              <div
-                style={{
-                  border: '1px solid rgba(0, 255, 0, 0.3)',
-                  padding: '1rem',
-                  fontFamily: 'JetBrains Mono, monospace',
-                }}
-              >
-                <div style={{ fontSize: '0.75rem', color: '#2a3e4a', marginBottom: '0.25rem' }}>
-                  BUY SIGNALS
-                </div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#00ff00' }}>
-                  {summary.analyses.decision_counts.BUY}
-                </div>
-              </div>
+              <MetricCard
+                label="BUY SIGNALS"
+                value={summary.analyses.decision_counts.BUY}
+                color={themeColors.success}
+                borderColor={`${themeColors.success}50`}
+              />
             )}
 
             {summary.analyses.decision_counts.HOLD > 0 && (
-              <div
-                style={{
-                  border: '1px solid rgba(255, 170, 0, 0.3)',
-                  padding: '1rem',
-                  fontFamily: 'JetBrains Mono, monospace',
-                }}
-              >
-                <div style={{ fontSize: '0.75rem', color: '#2a3e4a', marginBottom: '0.25rem' }}>
-                  HOLD SIGNALS
-                </div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ffaa00' }}>
-                  {summary.analyses.decision_counts.HOLD}
-                </div>
-              </div>
+              <MetricCard
+                label="HOLD SIGNALS"
+                value={summary.analyses.decision_counts.HOLD}
+                color={themeColors.warning}
+                borderColor={`${themeColors.warning}50`}
+              />
             )}
 
             {summary.analyses.decision_counts.SELL > 0 && (
-              <div
-                style={{
-                  border: '1px solid rgba(255, 0, 0, 0.3)',
-                  padding: '1rem',
-                  fontFamily: 'JetBrains Mono, monospace',
-                }}
-              >
-                <div style={{ fontSize: '0.75rem', color: '#2a3e4a', marginBottom: '0.25rem' }}>
-                  SELL SIGNALS
-                </div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ff0000' }}>
-                  {summary.analyses.decision_counts.SELL}
-                </div>
-              </div>
+              <MetricCard
+                label="SELL SIGNALS"
+                value={summary.analyses.decision_counts.SELL}
+                color={themeColors.error}
+                borderColor={`${themeColors.error}50`}
+              />
             )}
           </div>
         )}
