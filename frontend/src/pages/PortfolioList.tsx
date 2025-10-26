@@ -5,8 +5,8 @@ import { Briefcase, Plus } from 'lucide-react'
 import { api } from '../services/api'
 import { PortfolioCard } from '../components/portfolio/PortfolioCard'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { PageHeader } from '../components/layout/PageHeader'
-import { Panel } from '../components/layout/Panel'
 import { LoadingState } from '../components/data-display/LoadingState'
 import { ErrorState } from '../components/data-display/ErrorState'
 
@@ -41,8 +41,8 @@ export const PortfolioList: React.FC = () => {
 
       {/* Portfolio Grid */}
       {!portfolios || portfolios.length === 0 ? (
-        <Panel padding="lg">
-          <div className="text-center">
+        <Card>
+          <CardContent className="p-6 text-center">
             <Briefcase size={48} className="mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg text-primary font-mono mb-2">
               No portfolios yet
@@ -54,8 +54,8 @@ export const PortfolioList: React.FC = () => {
               <Plus size={18} />
               <span>CREATE PORTFOLIO</span>
             </Button>
-          </div>
-        </Panel>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-6">
           {portfolios.map((portfolio) => (

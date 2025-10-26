@@ -16,7 +16,7 @@ import { LogViewer } from '../components/analysis/LogViewer'
 import { TradingDecisionCard } from '../components/trading/TradingDecisionCard'
 import { Button } from '@/components/ui/button'
 import { Collapsible } from '../components/interactive/Collapsible'
-import { InfoBanner } from '../components/ui/InfoBanner'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -61,31 +61,53 @@ export const AnalysisDetail: React.FC = () => {
       ? sortedData.find((d) => d.Date === analysis.analysis_date)
       : null
 
-    const latestPrice = latest.Close ? Number(latest.Close) : 0
-    const previousClose = previous?.Close ? Number(previous.Close) : latestPrice
-    const dailyChange = ((latestPrice - previousClose) / previousClose) * 100
+    // Use analysis date data if available, otherwise use latest
+    const referenceData = analysisDateData || latest
+    const previousData = analysisDateData && analysis?.analysis_date
+      ? sortedData[sortedData.findIndex((d) => d.Date === analysis.analysis_date) - 1]
+      : previous
 
-    // Get 52-week range
-    const yearAgo = new Date()
+    const latestPrice = latest.Close ? Number(latest.Close) : 0
+    const referencePrice = referenceData.Close ? Number(referenceData.Close) : 0
+    const previousClose = previousData?.Close ? Number(previousData.Close) : referencePrice
+    const dailyChange = ((referencePrice - previousClose) / previousClose) * 100
+
+    // Get 52-week range from analysis date (or latest if no analysis date)
+    const referenceDate = new Date(referenceData.Date)
+    const yearAgo = new Date(referenceDate)
     yearAgo.setFullYear(yearAgo.getFullYear() - 1)
     const yearAgoStr = yearAgo.toISOString().split('T')[0]
-    const yearData = sortedData.filter((d) => d.Date >= yearAgoStr)
+    const referenceDateStr = referenceDate.toISOString().split('T')[0]
+    const yearData = sortedData.filter((d) => d.Date >= yearAgoStr && d.Date <= referenceDateStr)
     const yearHighs = yearData.map((d) => Number(d.High || 0))
     const yearLows = yearData.map((d) => Number(d.Low || 0))
 
+    // Parse volume from reference date (analysis date or latest)
+    let volumeValue: number | null = null
+    if (referenceData.Volume !== undefined && referenceData.Volume !== null) {
+      // Handle both string and number types
+      if (typeof referenceData.Volume === 'string') {
+        const parsed = parseFloat(referenceData.Volume)
+        volumeValue = !isNaN(parsed) && parsed > 0 ? parsed : null
+      } else {
+        volumeValue = referenceData.Volume > 0 ? referenceData.Volume : null
+      }
+    }
+
     return {
       currentPrice: latestPrice,
+      referencePrice: referencePrice, // Price at analysis date (or latest if no analysis date)
       dailyChange,
       dailyChangePositive: dailyChange >= 0,
-      volume: latest.Volume ? Number(latest.Volume) : 0,
-      dayHigh: latest.High ? Number(latest.High) : 0,
-      dayLow: latest.Low ? Number(latest.Low) : 0,
+      volume: volumeValue,
+      dayHigh: referenceData.High ? Number(referenceData.High) : 0,
+      dayLow: referenceData.Low ? Number(referenceData.Low) : 0,
       yearHigh: Math.max(...yearHighs),
       yearLow: Math.min(...yearLows.filter((l) => l > 0)),
       analysisPrice: analysisDateData?.Close ? Number(analysisDateData.Close) : null,
       latestDate: latest.Date,
     }
-  }, [marketData, analysis])
+  }, [marketData?.data, analysis?.analysis_date])
 
   // Connect to WebSocket for real-time updates
   useRealTimeStatus(analysisId, analysis?.status)
@@ -161,8 +183,28 @@ export const AnalysisDetail: React.FC = () => {
     }
   }
 
-  // Get trading decision from API
-  const tradeDecision = analysis?.trading_decision
+  // Get trading decision from API and enrich with rationale from report
+  const tradeDecision = useMemo(() => {
+    if (!analysis?.trading_decision) return null
+
+    // Find FINAL_TRADE_DECISION or TRADE_DECISION report (case-insensitive)
+    const decisionReport = reports.find(r =>
+      r.report_type.toLowerCase() === 'final_trade_decision' ||
+      r.report_type.toLowerCase() === 'trade_decision'
+    )
+
+    // Use report content as rationale if available, otherwise fall back to API field
+    return {
+      decision: analysis.trading_decision.decision,
+      confidence: analysis.trading_decision.confidence,
+      rationale: decisionReport?.content || analysis.trading_decision.rationale || ''
+    }
+  }, [
+    analysis?.trading_decision?.decision,
+    analysis?.trading_decision?.confidence,
+    analysis?.trading_decision?.rationale,
+    reports
+  ])
 
   // Categorize reports by type for tabs
   const categorizedReports = useMemo(() => {
@@ -302,11 +344,10 @@ export const AnalysisDetail: React.FC = () => {
 
         {/* Error Banner */}
         {analysis.status === 'failed' && analysis.error_message && (
-          <div className="mb-4">
-            <InfoBanner variant="error" title="✗ ANALYSIS FAILED">
-              {analysis.error_message}
-            </InfoBanner>
-          </div>
+          <Alert variant="destructive" className="mb-4">
+            <AlertTitle>✗ ANALYSIS FAILED</AlertTitle>
+            <AlertDescription>{analysis.error_message}</AlertDescription>
+          </Alert>
         )}
 
         {/* Main Content Area - Two Column with Sticky Sidebar */}

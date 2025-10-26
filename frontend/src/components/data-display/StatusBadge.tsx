@@ -11,11 +11,26 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   status,
   size = 'md',
 }) => {
+  // Map status to shadcn Badge variants
+  const getVariant = (status: string) => {
+    switch (status) {
+      case 'failed':
+        return 'destructive' as const
+      case 'completed':
+        return 'default' as const
+      case 'running':
+        return 'secondary' as const
+      case 'pending':
+      default:
+        return 'outline' as const
+    }
+  }
+
   const statusStyles = {
-    pending: 'border-warning text-warning bg-warning/10',
-    running: 'border-secondary text-secondary bg-secondary/10',
-    completed: 'border-green-500 text-green-500 bg-green-500/10',
-    failed: 'border-destructive text-destructive bg-destructive/10',
+    pending: 'border-yellow-600 text-yellow-600 dark:border-yellow-400 dark:text-yellow-400 bg-yellow-500/10',
+    running: 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 bg-blue-500/10',
+    completed: 'border-green-600 text-green-600 dark:border-green-400 dark:text-green-400 bg-green-500/10',
+    failed: '', // destructive variant handles this
   }
 
   const sizeStyles = {
@@ -25,7 +40,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
 
   return (
     <Badge
-      variant="outline"
+      variant={getVariant(status)}
       className={cn(
         'font-bold uppercase font-mono',
         statusStyles[status],

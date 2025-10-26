@@ -180,60 +180,39 @@ export const PositionForm: React.FC<PositionFormProps> = ({
       maxWidth="500px"
     >
       <form onSubmit={handleSubmit}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="flex flex-col gap-4">
             <div>
-              <label
-                style={{
-                  display: 'block',
-                  marginBottom: '0.5rem',
-                  color: 'hsl(var(--primary))',
-                  fontSize: '0.875rem',
-                }}
-              >
+              <label className="block mb-2 text-primary text-sm">
                 TICKER
               </label>
-              <div style={{ position: 'relative' }}>
+              <div className="relative">
                 <Input
                   value={formData.ticker}
                   onChange={(e) => setFormData({ ...formData, ticker: e.target.value.toUpperCase() })}
                   placeholder="e.g., AAPL"
                   disabled={isEditing}
-                  style={{
-                    paddingRight: '2.5rem',
-                    borderColor:
-                      tickerValidation.status === 'valid'
-                        ? '#00ff00'
-                        : tickerValidation.status === 'invalid'
-                          ? '#ff0000'
-                          : undefined,
-                  }}
+                  className={`pr-10 ${
+                    tickerValidation.status === 'valid'
+                      ? 'border-green-600'
+                      : tickerValidation.status === 'invalid'
+                        ? 'border-destructive'
+                        : ''
+                  }`}
                 />
                 {!isEditing && formData.ticker && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      right: '0.75rem',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                    }}
-                  >
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
                     {tickerValidation.status === 'validating' && (
                       <Loader size={16} className="text-primary animate-spin" />
                     )}
-                    {tickerValidation.status === 'valid' && <Check size={16} color="#00ff00" />}
-                    {tickerValidation.status === 'invalid' && <AlertCircle size={16} color="#ff0000" />}
+                    {tickerValidation.status === 'valid' && <Check size={16} className="text-green-600" />}
+                    {tickerValidation.status === 'invalid' && <AlertCircle size={16} className="text-destructive" />}
                   </div>
                 )}
               </div>
               {tickerValidation.message && (
-                <div
-                  style={{
-                    color: tickerValidation.status === 'valid' ? '#00ff00' : '#ff0000',
-                    fontSize: '0.75rem',
-                    marginTop: '0.25rem',
-                    fontFamily: 'JetBrains Mono, monospace',
-                  }}
-                >
+                <div className={`text-xs mt-1 font-mono ${
+                  tickerValidation.status === 'valid' ? 'text-green-600' : 'text-destructive'
+                }`}>
                   {tickerValidation.message}
                 </div>
               )}
@@ -241,36 +220,20 @@ export const PositionForm: React.FC<PositionFormProps> = ({
                 <button
                   type="button"
                   onClick={handleUseCurrentPrice}
-                  style={{
-                    marginTop: '0.5rem',
-                    padding: '0.25rem 0.5rem',
-                    fontSize: '0.75rem',
-                    color: 'hsl(var(--primary))',
-                    backgroundColor: 'transparent',
-                    border: '1px solid hsl(var(--primary))',
-                    cursor: 'pointer',
-                    fontFamily: 'JetBrains Mono, monospace',
-                  }}
+                  className="mt-2 px-2 py-1 text-xs text-primary bg-transparent border border-primary cursor-pointer font-mono hover:bg-primary/10 transition-colors"
                 >
                   Use Current Price (${tickerValidation.currentPrice.toFixed(2)})
                 </button>
               )}
               {errors.ticker && (
-                <div style={{ color: '#ff0000', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                <div className="text-destructive text-xs mt-1">
                   {errors.ticker}
                 </div>
               )}
             </div>
 
             <div>
-              <label
-                style={{
-                  display: 'block',
-                  marginBottom: '0.5rem',
-                  color: 'hsl(var(--primary))',
-                  fontSize: '0.875rem',
-                }}
-              >
+              <label className="block mb-2 text-primary text-sm">
                 QUANTITY
               </label>
               <Input
@@ -281,7 +244,7 @@ export const PositionForm: React.FC<PositionFormProps> = ({
                 placeholder="e.g., 100"
               />
               {errors.quantity && (
-                <div style={{ color: '#ff0000', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                <div className="text-destructive text-xs mt-1">
                   {errors.quantity}
                 </div>
               )}
@@ -290,17 +253,10 @@ export const PositionForm: React.FC<PositionFormProps> = ({
             {!isEditing && (
               <>
                 <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      marginBottom: '0.5rem',
-                      color: 'hsl(var(--primary))',
-                      fontSize: '0.875rem',
-                    }}
-                  >
+                  <label className="block mb-2 text-primary text-sm">
                     ENTRY PRICE
                   </label>
-                  <div style={{ position: 'relative' }}>
+                  <div className="relative">
                     <Input
                       type="number"
                       step="0.01"
@@ -309,46 +265,27 @@ export const PositionForm: React.FC<PositionFormProps> = ({
                       placeholder="e.g., 150.00"
                     />
                     {priceAutoFillStatus === 'loading' && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          right: '0.75rem',
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                        }}
-                      >
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
                         <Loader size={16} className="text-primary animate-spin" />
                       </div>
                     )}
                   </div>
                   {priceAutoFillMessage && (
-                    <div
-                      style={{
-                        color: priceAutoFillStatus === 'success' ? '#00ff00' : '#ffaa00',
-                        fontSize: '0.75rem',
-                        marginTop: '0.25rem',
-                        fontFamily: 'JetBrains Mono, monospace',
-                      }}
-                    >
+                    <div className={`text-xs mt-1 font-mono ${
+                      priceAutoFillStatus === 'success' ? 'text-green-600' : 'text-yellow-600'
+                    }`}>
                       {priceAutoFillMessage}
                     </div>
                   )}
                   {errors.entry_price && (
-                    <div style={{ color: '#ff0000', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                    <div className="text-destructive text-xs mt-1">
                       {errors.entry_price}
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      marginBottom: '0.5rem',
-                      color: 'hsl(var(--primary))',
-                      fontSize: '0.875rem',
-                    }}
-                  >
+                  <label className="block mb-2 text-primary text-sm">
                     ENTRY DATE
                   </label>
                   <Input
@@ -357,7 +294,7 @@ export const PositionForm: React.FC<PositionFormProps> = ({
                     onChange={(e) => setFormData({ ...formData, entry_date: e.target.value })}
                   />
                   {errors.entry_date && (
-                    <div style={{ color: '#ff0000', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                    <div className="text-destructive text-xs mt-1">
                       {errors.entry_date}
                     </div>
                   )}
@@ -368,14 +305,7 @@ export const PositionForm: React.FC<PositionFormProps> = ({
             {isEditing && (
               <>
                 <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      marginBottom: '0.5rem',
-                      color: 'hsl(var(--primary))',
-                      fontSize: '0.875rem',
-                    }}
-                  >
+                  <label className="block mb-2 text-primary text-sm">
                     EXIT PRICE (Optional)
                   </label>
                   <Input
@@ -386,21 +316,14 @@ export const PositionForm: React.FC<PositionFormProps> = ({
                     placeholder="e.g., 175.00"
                   />
                   {errors.exit_price && (
-                    <div style={{ color: '#ff0000', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                    <div className="text-destructive text-xs mt-1">
                       {errors.exit_price}
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      marginBottom: '0.5rem',
-                      color: 'hsl(var(--primary))',
-                      fontSize: '0.875rem',
-                    }}
-                  >
+                  <label className="block mb-2 text-primary text-sm">
                     EXIT DATE (Optional)
                   </label>
                   <Input
@@ -413,47 +336,26 @@ export const PositionForm: React.FC<PositionFormProps> = ({
             )}
 
             <div>
-              <label
-                style={{
-                  display: 'block',
-                  marginBottom: '0.5rem',
-                  color: 'hsl(var(--primary))',
-                  fontSize: '0.875rem',
-                }}
-              >
+              <label className="block mb-2 text-primary text-sm">
                 NOTES (Optional)
               </label>
               <textarea
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 placeholder="Optional notes about this position"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  backgroundColor: 'hsl(var(--secondary))',
-                  border: '1px solid hsl(var(--border))',
-                  color: '#fff',
-                  fontFamily: 'JetBrains Mono, monospace',
-                  fontSize: '0.875rem',
-                  resize: 'vertical',
-                  minHeight: '80px',
-                }}
+                className="w-full p-3 bg-secondary border border-input text-foreground font-mono text-sm resize-y min-h-[80px] rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-              <Button type="submit" style={{ flex: 1 }}>
+            <div className="flex gap-4 mt-4">
+              <Button type="submit" className="flex-1">
                 {isEditing ? 'UPDATE' : 'ADD POSITION'}
               </Button>
               <Button
                 type="button"
                 onClick={onCancel}
-                style={{
-                  flex: 1,
-                  backgroundColor: 'transparent',
-                  color: '#2a3e4a',
-                  borderColor: '#2a3e4a',
-                }}
+                variant="outline"
+                className="flex-1"
               >
                 CANCEL
               </Button>

@@ -119,7 +119,11 @@ def get_crypto(
                     close_price = find_value(
                         [f"4a. close ({market_upper})", f"4b. close ({market_upper})", "4a. close", "4. close"]
                     )
+                    # Alpha Vantage doesn't provide volume for crypto - leave empty rather than "0"
                     volume = values.get("5. volume", "")
+                    # If volume is "0" or empty, don't include it (will be handled as null/missing)
+                    if volume in ("", "0", "0.0", "0.00"):
+                        volume = ""
 
                     rows.append((date_str, open_price, high_price, low_price, close_price, volume))
             except ValueError:

@@ -6,8 +6,8 @@ import { Plus, Sparkles, Trash2 } from 'lucide-react'
 import { api } from '../services/api'
 import { Button } from '@/components/ui/button'
 import { IconButton } from '../components/ui/IconButton'
+import { Card, CardContent } from '@/components/ui/card'
 import { PageHeader } from '../components/layout/PageHeader'
-import { Panel } from '../components/layout/Panel'
 import { StatusBadge } from '../components/data-display/StatusBadge'
 import { LoadingState } from '../components/data-display/LoadingState'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table'
@@ -73,29 +73,31 @@ export const BacktestList: React.FC = () => {
       />
 
       {/* Filters */}
-      <Panel>
-        <div className="flex gap-4 items-center">
-          <label className="text-muted-foreground font-mono text-sm">
-            STATUS:
-          </label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-background border border-input text-foreground font-mono text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            <option value="">All</option>
-            <option value="pending">Pending</option>
-            <option value="running">Running</option>
-            <option value="completed">Completed</option>
-            <option value="failed">Failed</option>
-          </select>
-        </div>
-      </Panel>
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex gap-4 items-center">
+            <label className="text-muted-foreground font-mono text-sm">
+              STATUS:
+            </label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 bg-background border border-input text-foreground font-mono text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="">All</option>
+              <option value="pending">Pending</option>
+              <option value="running">Running</option>
+              <option value="completed">Completed</option>
+              <option value="failed">Failed</option>
+            </select>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Table */}
       {!filteredBacktests || filteredBacktests.length === 0 ? (
-        <Panel padding="lg">
-          <div className="text-center">
+        <Card>
+          <CardContent className="p-6 text-center">
             <p className="text-muted-foreground font-mono text-base mb-4">
               No backtests found
             </p>
@@ -113,10 +115,10 @@ export const BacktestList: React.FC = () => {
                 <span>CREATE (CLASSIC)</span>
               </Button>
             </div>
-          </div>
-        </Panel>
+          </CardContent>
+        </Card>
       ) : (
-        <Panel padding="none" className="overflow-auto">
+        <Card className="overflow-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -185,7 +187,7 @@ export const BacktestList: React.FC = () => {
               ))}
             </TableBody>
           </Table>
-        </Panel>
+        </Card>
       )}
     </div>
   )

@@ -35,7 +35,11 @@ const PriceChart: React.FC<PriceChartProps> = ({
     // Detect if we're in dark mode
     const isDark = document.documentElement.classList.contains('dark')
 
+    // Get the container's width for initial chart creation
+    const containerWidth = containerRef.current.clientWidth
+
     const chart = createChart(containerRef.current, {
+      width: containerWidth,
       height,
       layout: {
         background: { type: ColorType.Solid, color: isDark ? '#09090b' : '#ffffff' },
@@ -112,8 +116,32 @@ const PriceChart: React.FC<PriceChartProps> = ({
 
     chart.timeScale().fitContent()
 
+    // Handle container resize
+    const resizeObserver = new ResizeObserver((entries) => {
+      if (entries.length === 0 || !chartRef.current || !containerRef.current) return
+
+      const { width } = entries[0].contentRect
+
+      // Use requestAnimationFrame to ensure smooth resize
+      requestAnimationFrame(() => {
+        if (chartRef.current && width > 0) {
+          chartRef.current.applyOptions({
+            width: Math.floor(width),
+            height
+          })
+          // Refit the content after resize
+          chartRef.current.timeScale().fitContent()
+        }
+      })
+    })
+
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current)
+    }
+
     // Cleanup on unmount
     return () => {
+      resizeObserver.disconnect()
       chart.remove()
     }
   }, [data, height, analysisDate, mode])

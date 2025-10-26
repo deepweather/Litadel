@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { ArrowLeft, Play, XCircle } from 'lucide-react'
 import { api } from '../services/api'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { MetricCard } from '../components/common/MetricCard'
 import { StatusBadge } from '../components/data-display/StatusBadge'
 import { Collapsible } from '../components/interactive/Collapsible'
@@ -13,7 +13,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useBacktestWebSocket } from '../hooks/useBacktestWebSocket'
 import { formatCurrency, formatDateShort, formatPercentageWithSign } from '../utils/formatters'
-import { getPnLColor, themeColors } from '../utils/colors'
 
 export const BacktestDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -92,14 +91,7 @@ export const BacktestDetail: React.FC = () => {
 
   if (loadingBacktest) {
     return (
-      <div
-        style={{
-          padding: '2rem',
-          textAlign: 'center',
-          color: '#2a3e4a',
-          fontFamily: 'JetBrains Mono, monospace',
-        }}
-      >
+      <div className="p-8 text-center text-muted-foreground font-mono">
         Loading backtest...
       </div>
     )
@@ -107,65 +99,37 @@ export const BacktestDetail: React.FC = () => {
 
   if (!backtest) {
     return (
-      <div
-        style={{
-          padding: '2rem',
-          textAlign: 'center',
-          color: '#ff0000',
-          fontFamily: 'JetBrains Mono, monospace',
-        }}
-      >
+      <div className="p-8 text-center text-destructive font-mono">
         Backtest not found
       </div>
     )
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="flex flex-col gap-6">
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-        <Button onClick={() => navigate('/backtests')} style={{ padding: '0.5rem' }}>
+      <div className="flex items-start gap-4">
+        <Button onClick={() => navigate('/backtests')} size="icon">
           <ArrowLeft size={18} />
         </Button>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-            <h1
-              className="text-2xl font-bold text-primary font-mono"
-            >
+        <div className="flex-1">
+          <div className="flex items-center gap-4 mb-2">
+            <h1 className="text-2xl font-bold text-primary font-mono">
               {backtest.name}
             </h1>
             <StatusBadge status={backtest.status as 'pending' | 'running' | 'completed' | 'failed'} />
             {backtest.status === 'running' && (
-              <span
-                style={{
-                  color: '#2a3e4a',
-                  fontFamily: 'JetBrains Mono, monospace',
-                  fontSize: '0.875rem',
-                }}
-              >
+              <span className="text-muted-foreground font-mono text-sm">
                 Progress: {backtest.progress_percentage}%
               </span>
             )}
           </div>
           {backtest.description && (
-            <p
-              style={{
-                color: '#2a3e4a',
-                fontFamily: 'JetBrains Mono, monospace',
-                fontSize: '0.875rem',
-              }}
-            >
+            <p className="text-muted-foreground font-mono text-sm">
               {backtest.description}
             </p>
           )}
-          <p
-            style={{
-              color: '#2a3e4a',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '0.875rem',
-              marginTop: '0.5rem',
-            }}
-          >
+          <p className="text-muted-foreground font-mono text-sm mt-2">
             {formatDateShort(backtest.start_date)} - {formatDateShort(backtest.end_date)} | Initial Capital: {formatCurrency(backtest.initial_capital)}
           </p>
         </div>
@@ -174,42 +138,29 @@ export const BacktestDetail: React.FC = () => {
       {/* Performance Metrics */}
       {backtest.status === 'completed' && (
         <Card className="p-6">
-          <h2
-            style={{
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              color: themeColors.primary,
-              fontFamily: 'JetBrains Mono, monospace',
-              marginBottom: '1.5rem',
-            }}
-          >
+          <h2 className="text-base font-bold text-primary font-mono mb-6">
             PERFORMANCE SUMMARY
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1.5rem' }}>
+          <div className="grid grid-cols-5 gap-6">
             <MetricCard
               label="TOTAL RETURN"
               value={formatPercentageWithSign(backtest.total_return_pct)}
-              color={getPnLColor(backtest.total_return_pct)}
             />
             <MetricCard
               label="SHARPE RATIO"
               value={backtest.sharpe_ratio !== null ? backtest.sharpe_ratio.toFixed(2) : 'N/A'}
-              color={themeColors.primary}
             />
             <MetricCard
               label="MAX DRAWDOWN"
               value={formatPercentageWithSign(backtest.max_drawdown_pct)}
-              color={themeColors.error}
             />
             <MetricCard
               label="WIN RATE"
               value={formatPercentageWithSign(backtest.win_rate)}
-              color={themeColors.success}
             />
             <MetricCard
               label="TOTAL TRADES"
               value={backtest.total_trades !== null ? backtest.total_trades : 'N/A'}
-              color={themeColors.primary}
             />
           </div>
         </Card>
@@ -256,10 +207,8 @@ export const BacktestDetail: React.FC = () => {
       {/* Trades Table */}
       {trades && trades.length > 0 && (
         <Card className="p-3">
-          <div style={{ padding: '1rem', borderBottom: '1px solid hsl(var(--border))' }}>
-            <h2
-              className="text-base font-bold text-primary font-mono"
-            >
+          <div className="p-4 border-b border-border">
+            <h2 className="text-base font-bold text-primary font-mono">
               TRADES
             </h2>
           </div>
@@ -312,14 +261,7 @@ export const BacktestDetail: React.FC = () => {
             </TableBody>
           </Table>
           {trades.length > 50 && (
-            <div
-              style={{
-                padding: '1rem',
-                textAlign: 'center',
-                color: '#2a3e4a',
-                fontSize: '0.875rem',
-              }}
-            >
+            <div className="p-4 text-center text-muted-foreground text-sm">
               Showing first 50 of {trades.length} trades
             </div>
           )}
@@ -328,45 +270,19 @@ export const BacktestDetail: React.FC = () => {
 
       {/* Strategy Section */}
       <Collapsible title="STRATEGY DEFINITION" defaultExpanded={false}>
-        <div style={{ marginBottom: '1.5rem' }}>
-          <div
-            style={{
-              color: '#2a3e4a',
-              fontSize: '0.75rem',
-              marginBottom: '0.5rem',
-              fontWeight: 'bold',
-            }}
-          >
+        <div className="mb-6">
+          <div className="text-muted-foreground text-xs mb-2 font-bold">
             NATURAL LANGUAGE DESCRIPTION
           </div>
-          <div
-            style={{
-              color: '#fff',
-              fontSize: '0.875rem',
-              fontFamily: 'JetBrains Mono, monospace',
-              lineHeight: '1.5',
-            }}
-          >
+          <div className="text-foreground text-sm font-mono leading-relaxed">
             {backtest.strategy_description}
           </div>
         </div>
         <div>
-          <div
-            style={{
-              color: '#2a3e4a',
-              fontSize: '0.75rem',
-              marginBottom: '0.5rem',
-              fontWeight: 'bold',
-            }}
-          >
+          <div className="text-muted-foreground text-xs mb-2 font-bold">
             DSL YAML
           </div>
-          <pre
-            className="bg-secondary border border-primary/30 p-4 overflow-auto text-primary text-xs font-mono"
-            style={{
-              lineHeight: '1.5',
-            }}
-          >
+          <pre className="bg-secondary border border-primary/30 p-4 overflow-auto text-primary text-xs font-mono leading-relaxed">
             {backtest.strategy_dsl_yaml}
           </pre>
         </div>
@@ -374,73 +290,47 @@ export const BacktestDetail: React.FC = () => {
 
       {/* Pending State - Show Execute Button */}
       {backtest.status === 'pending' && (
-        <div
-          style={{
-            border: '1px solid hsl(var(--border))',
-            padding: '2rem',
-            textAlign: 'center',
-          }}
-        >
-          <p
-            style={{
-              color: '#2a3e4a',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '1rem',
-              marginBottom: '1rem',
-            }}
-          >
-            Backtest is pending execution. Click the button below to start.
-          </p>
-          <Button
-            onClick={() => executeBacktestMutation.mutate(backtestId)}
-            disabled={executeBacktestMutation.isPending}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 auto' }}
-          >
-            <Play size={18} />
-            <span>{executeBacktestMutation.isPending ? 'STARTING...' : 'EXECUTE BACKTEST'}</span>
-          </Button>
-        </div>
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p className="text-muted-foreground font-mono text-base mb-4">
+              Backtest is pending execution. Click the button below to start.
+            </p>
+            <Button
+              onClick={() => executeBacktestMutation.mutate(backtestId)}
+              disabled={executeBacktestMutation.isPending}
+              className="flex items-center gap-2"
+            >
+              <Play size={18} />
+              <span>{executeBacktestMutation.isPending ? 'STARTING...' : 'EXECUTE BACKTEST'}</span>
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
       {/* Running State - Show Progress */}
       {backtest.status === 'running' && (
-        <div
-          style={{
-            border: '1px solid hsl(var(--border))',
-            padding: '2rem',
-            textAlign: 'center',
-          }}
-        >
-          <p
-            className="text-primary font-mono text-base"
-            style={{
-              marginBottom: '1rem',
-            }}
-          >
-            Backtest is running... Progress: {backtest.progress_percentage}%
-          </p>
-          <div style={{
-            width: '100%',
-            height: '4px',
-            backgroundColor: 'hsl(var(--primary) / 0.2)',
-            marginBottom: '1rem',
-          }}>
-            <div style={{
-              width: `${backtest.progress_percentage}%`,
-              height: '100%',
-              backgroundColor: 'hsl(var(--primary))',
-              transition: 'width 0.3s ease',
-            }} />
-          </div>
-          <Button
-            onClick={() => cancelBacktestMutation.mutate(backtestId)}
-            disabled={cancelBacktestMutation.isPending}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 auto', borderColor: '#ff0000', color: '#ff0000' }}
-          >
-            <XCircle size={18} />
-            <span>{cancelBacktestMutation.isPending ? 'CANCELLING...' : 'CANCEL BACKTEST'}</span>
-          </Button>
-        </div>
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p className="text-primary font-mono text-base mb-4">
+              Backtest is running... Progress: {backtest.progress_percentage}%
+            </p>
+            <div className="w-full h-1 bg-primary/20 mb-4">
+              <div
+                className="h-full bg-primary transition-all duration-300 ease-out"
+                style={{ width: `${backtest.progress_percentage}%` }}
+              />
+            </div>
+            <Button
+              onClick={() => cancelBacktestMutation.mutate(backtestId)}
+              disabled={cancelBacktestMutation.isPending}
+              variant="destructive"
+              className="flex items-center gap-2"
+            >
+              <XCircle size={18} />
+              <span>{cancelBacktestMutation.isPending ? 'CANCELLING...' : 'CANCEL BACKTEST'}</span>
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
       {/* Failed State */}

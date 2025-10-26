@@ -4,6 +4,7 @@ import { Edit, Trash2, XCircle } from 'lucide-react'
 import type { Position } from '../../types/portfolio'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface PositionTableProps {
   positions: Position[]
@@ -89,22 +90,27 @@ export const PositionTable: React.FC<PositionTableProps> = ({
                   ? formatCurrency(position.current_price)
                   : formatCurrency(position.exit_price)}
               </TableCell>
-              <TableCell className={`text-right font-bold ${getPnLColorClass(position.status === 'open' ? position.unrealized_pnl : position.realized_pnl)}`}>
+              <TableCell className={cn(
+                "text-right font-bold",
+                getPnLColorClass(position.status === 'open' ? position.unrealized_pnl : position.realized_pnl)
+              )}>
                 {position.status === 'open'
                   ? formatCurrency(position.unrealized_pnl)
                   : formatCurrency(position.realized_pnl)}
               </TableCell>
-              <TableCell className={`text-right font-bold ${getPnLColorClass(position.pnl_percentage)}`}>
+              <TableCell className={cn(
+                "text-right font-bold",
+                getPnLColorClass(position.pnl_percentage)
+              )}>
                 {formatPercentage(position.pnl_percentage)}
               </TableCell>
               <TableCell className="text-center">
-                <span
-                  className={`px-2 py-1 text-xs border ${
-                    position.status === 'open'
-                      ? 'border-green-600 text-green-600 dark:border-green-400 dark:text-green-400'
-                      : 'border-muted-foreground text-muted-foreground'
-                  }`}
-                >
+                <span className={cn(
+                  "px-2 py-1 text-xs border",
+                  position.status === 'open'
+                    ? 'border-green-600 text-green-600 dark:border-green-400 dark:text-green-400'
+                    : 'border-muted-foreground text-muted-foreground'
+                )}>
                   {position.status.toUpperCase()}
                 </span>
               </TableCell>

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { KeyValueRow } from '../components/common/KeyValueRow'
 import { StrategyVisualizer } from '../components/backtest/StrategyVisualizer'
 import { DateInput, FormField, NumberInput, TextArea, TextInput } from '../components/ui/Form'
-import { InfoBanner } from '../components/ui/InfoBanner'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import type { CreateBacktestRequest } from '../types/backtest'
 
 export const CreateBacktest: React.FC = () => {
@@ -311,11 +311,14 @@ export const CreateBacktest: React.FC = () => {
                 rows={6}
               />
             </FormField>
-            <InfoBanner variant="info" icon="💡" title="AI-Powered Strategy Generation">
-              Just describe your strategy and click "Generate YAML" - the AI will extract tickers from your description (e.g., "Tesla" → TSLA) and automatically fill in the Configuration step for you. No need to manually enter tickers twice!
-              <br/><br/>
-              <strong>Example:</strong> "I want to invest $50k in Tesla and Apple. Buy when the stock is oversold (RSI &lt; 30) and has positive news sentiment. Sell when RSI exceeds 70 or if there's negative news. Maximum 5 positions, equal weight, with a 10% stop-loss."
-            </InfoBanner>
+            <Alert>
+              <AlertTitle>💡 AI-Powered Strategy Generation</AlertTitle>
+              <AlertDescription>
+                Just describe your strategy and click "Generate YAML" - the AI will extract tickers from your description (e.g., "Tesla" → TSLA) and automatically fill in the Configuration step for you. No need to manually enter tickers twice!
+                <br/><br/>
+                <strong>Example:</strong> "I want to invest $50k in Tesla and Apple. Buy when the stock is oversold (RSI &lt; 30) and has positive news sentiment. Sell when RSI exceeds 70 or if there's negative news. Maximum 5 positions, equal weight, with a 10% stop-loss."
+              </AlertDescription>
+            </Alert>
 
             <div>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
@@ -450,18 +453,24 @@ export const CreateBacktest: React.FC = () => {
                 placeholder="Leave empty for random ticker selection, or enter: AAPL, TSLA, NVDA"
               />
             </FormField>
-            <InfoBanner variant="success" icon="🎲" title="Random Portfolio Mode">
-              Leave this field empty to enable random mode. The system will randomly select 3-10 tickers from a curated pool of 50+ stocks, cryptocurrencies, and commodities, generating realistic trades with actual historical prices.
-            </InfoBanner>
-            <InfoBanner variant="warning" icon="⚠️" title="Ticker Format">
-              Make sure tickers existed during your selected date range.
-              <br />
-              • Stocks: AAPL, TSLA (no suffix)
-              <br />
-              • Crypto: BTC-USD, ETH-USD (with -USD suffix)
-              <br />
-              • Commodities: BRENT, WTI (no suffix)
-            </InfoBanner>
+            <Alert>
+              <AlertTitle>🎲 Random Portfolio Mode</AlertTitle>
+              <AlertDescription>
+                Leave this field empty to enable random mode. The system will randomly select 3-10 tickers from a curated pool of 50+ stocks, cryptocurrencies, and commodities, generating realistic trades with actual historical prices.
+              </AlertDescription>
+            </Alert>
+            <Alert>
+              <AlertTitle>⚠️ Ticker Format</AlertTitle>
+              <AlertDescription>
+                Make sure tickers existed during your selected date range.
+                <br />
+                • Stocks: AAPL, TSLA (no suffix)
+                <br />
+                • Crypto: BTC-USD, ETH-USD (with -USD suffix)
+                <br />
+                • Commodities: BRENT, WTI (no suffix)
+              </AlertDescription>
+            </Alert>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
               <FormField label="REBALANCE FREQUENCY">

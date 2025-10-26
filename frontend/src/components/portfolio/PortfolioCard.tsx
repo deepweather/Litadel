@@ -3,17 +3,18 @@ import { useNavigate } from 'react-router-dom'
 import type { PortfolioSummary } from '../../types/portfolio'
 import { formatCurrency, formatPercentageWithSign } from '../../utils/formatters'
 import { Card } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 interface PortfolioCardProps {
   portfolio: PortfolioSummary
 }
 
-const getPnLColorClass = (value: number) => {
-  return value >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-}
-
 export const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio }) => {
   const navigate = useNavigate()
+
+  const getPnLColorClass = (value: number) => {
+    return value >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+  }
 
   return (
     <Card onClick={() => navigate(`/portfolio/${portfolio.id}`)} className="cursor-pointer transition-all hover:shadow-md p-4">
@@ -47,7 +48,10 @@ export const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio }) => {
           <div className="text-xs text-muted-foreground font-mono mb-1">
             P&L
           </div>
-          <div className={`text-base font-bold font-mono ${getPnLColorClass(portfolio.total_pnl)}`}>
+          <div className={cn(
+            "text-base font-bold font-mono",
+            getPnLColorClass(portfolio.total_pnl)
+          )}>
             {formatCurrency(portfolio.total_pnl)}
           </div>
         </div>
@@ -56,7 +60,10 @@ export const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio }) => {
           <div className="text-xs text-muted-foreground font-mono mb-1">
             RETURN
           </div>
-          <div className={`text-base font-bold font-mono ${getPnLColorClass(portfolio.total_pnl)}`}>
+          <div className={cn(
+            "text-base font-bold font-mono",
+            getPnLColorClass(portfolio.total_pnl)
+          )}>
             {formatPercentageWithSign(portfolio.total_pnl_percentage)}
           </div>
         </div>
