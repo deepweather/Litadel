@@ -49,38 +49,13 @@ Litadel is an AI-native hedge fund platform that delivers the complete trading w
 The web dashboard provides a complete control center for managing analyses, backtests, and portfolios with real-time monitoring, interactive visualizations, and comprehensive reporting.
 
 <p align="center">
-  <img src="assets/dashboard.png" width="100%" style="display: inline-block;">
-</p>
-
-<p align="center">
-  <img src="assets/dasboard_rationale.png" width="100%" style="display: inline-block;">
-</p>
-
-### Analysis Management
-
-Browse all your analyses with smart filtering and grouping. Track active analyses in real-time and review historical decisions with detailed statistics.
-
-<p align="center">
-  <img src="assets/analyses.png" width="100%" style="display: inline-block;">
+  <img src="assets/dashboard.png" width="100%">
 </p>
 
 ### Real-Time Analysis Tracking
 
-Watch your analysis unfold in real-time as AI agents collaborate to evaluate market conditions. See live progress updates, agent pipeline status, and streaming reports as they're generated.
+Watch your analysis unfold in real-time as AI agents collaborate to evaluate market conditions. Each analysis provides:
 
-<p align="center">
-  <img src="assets/btc_single_analysis.png" width="100%" style="display: inline-block;">
-</p>
-
-Monitor execution logs and agent reasoning in real-time:
-
-<p align="center">
-  <img src="assets/execution_logs.png" width="100%" style="display: inline-block;">
-</p>
-
-### Comprehensive Analysis Reports
-
-Each completed analysis provides detailed insights with:
 - **Trading Decision** - Clear BUY/SELL/HOLD recommendation with confidence score
 - **Interactive Price Charts** - Candlestick charts with analysis date markers and 60-day history
 - **Market Metrics** - Current price, daily change, volume, and 52-week ranges
@@ -89,11 +64,13 @@ Each completed analysis provides detailed insights with:
 - **Risk Assessment** - Comprehensive risk evaluation and portfolio impact analysis
 
 <p align="center">
-  <img src="assets/aapl_analysis.png" width="100%" style="display: inline-block;">
+  <img src="assets/dasboard_rationale.png" width="100%">
 </p>
 
+Monitor execution logs and agent reasoning in real-time:
+
 <p align="center">
-  <img src="assets/anlaysis_report_example.png" width="100%" style="display: inline-block;">
+  <img src="assets/execution_logs.png" width="100%">
 </p>
 
 ### Key Features
@@ -188,6 +165,10 @@ The Litadel CLI provides a rich, interactive terminal interface with:
 - **Syntax-highlighted code** for generated strategies
 - **Formatted results** with colors and panels
 
+<p align="center">
+  <img src="assets/litadel_cli.png" width="100%">
+</p>
+
 **Analysis Workflow:**
 1. Select ticker and date
 2. Choose analyst team
@@ -202,10 +183,6 @@ The Litadel CLI provides a rich, interactive terminal interface with:
 4. Docker sandbox validates (auto-fixes errors)
 5. Run backtest
 6. See performance metrics and profit/loss
-
-<p align="center">
-  <img src="assets/litadel_cli.png" width="100%" style="display: inline-block;">
-</p>
 
 Results are automatically saved to `results/<TICKER>/<DATE>/` with detailed logs and markdown reports.
 
@@ -275,7 +252,7 @@ Test your trading strategies with historical data before risking real capital. L
 - Self-healing: Auto-fixes common errors (missing imports, syntax issues)
 
 <p align="center">
-  <img src="assets/backtest_strategy.png" width="100%" style="display: inline-block;">
+  <img src="assets/backtest_strategy.png" width="100%">
 </p>
 
 **Professional Backtesting:**
@@ -296,10 +273,8 @@ Test your trading strategies with historical data before risking real capital. L
 - Cumulative P&L
 - Win/loss distribution
 
-### Example Output
-
 <p align="center">
-  <img src="assets/backtest_output.png" width="100%" style="display: inline-block;">
+  <img src="assets/backtest_output.png" width="100%">
 </p>
 
 ### Quick Start
@@ -309,7 +284,7 @@ Test your trading strategies with historical data before risking real capital. L
 Create and execute backtests with an intuitive step-by-step interface:
 
 <p align="center">
-  <img src="assets/backtest_ui.png" width="100%" style="display: inline-block;">
+  <img src="assets/backtest_ui.png" width="100%">
 </p>
 
 1. Navigate to Strategies → Create Backtest
@@ -321,7 +296,7 @@ Create and execute backtests with an intuitive step-by-step interface:
 View detailed results with professional charts and comprehensive metrics:
 
 <p align="center">
-  <img src="assets/backtest_detail.png" width="100%" style="display: inline-block;">
+  <img src="assets/backtest_detail.png" width="100%">
 </p>
 
 **CLI:**
@@ -388,7 +363,7 @@ print(f"Trades: {result.num_trades}")
 Litadel uses a multi-agent architecture that mirrors the structure of professional trading firms. Specialized AI agents collaborate to provide comprehensive market analysis.
 
 <p align="center">
-  <img src="assets/schema.png" style="width: 100%; height: auto;">
+  <img src="assets/schema.png" width="100%">
 </p>
 
 ### Analyst Team
@@ -401,7 +376,7 @@ Four specialized analysts evaluate different aspects of market conditions:
 - **Sentiment Analyst** - Analyzes social media and public sentiment to gauge market mood
 
 <p align="center">
-  <img src="assets/analyst.png" width="100%" style="display: inline-block; margin: 0 2%;">
+  <img src="assets/analyst.png" width="100%">
 </p>
 
 ### Researcher Team
@@ -409,7 +384,7 @@ Four specialized analysts evaluate different aspects of market conditions:
 Bull and bear researchers critically assess analyst insights through structured debates, balancing potential gains against risks.
 
 <p align="center">
-  <img src="assets/researcher.png" width="70%" style="display: inline-block; margin: 0 2%;">
+  <img src="assets/researcher.png" width="70%">
 </p>
 
 ### Trader Agent
@@ -417,7 +392,7 @@ Bull and bear researchers critically assess analyst insights through structured 
 Synthesizes all reports and research to make informed trading decisions with clear timing and position sizing recommendations.
 
 <p align="center">
-  <img src="assets/trader.png" width="70%" style="display: inline-block; margin: 0 2%;">
+  <img src="assets/trader.png" width="70%">
 </p>
 
 ### Risk Management and Portfolio Manager
@@ -425,7 +400,7 @@ Synthesizes all reports and research to make informed trading decisions with cle
 Evaluates portfolio risk by assessing market volatility, liquidity, and other risk factors. The risk team provides final assessment and approval for trading decisions.
 
 <p align="center">
-  <img src="assets/risk.png" width="70%" style="display: inline-block; margin: 0 2%;">
+  <img src="assets/risk.png" width="70%">
 </p>
 
 ## What's New in Litadel
