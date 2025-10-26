@@ -32,7 +32,7 @@ export const CreateBacktest: React.FC = () => {
   const createBacktestMutation = useMutation({
     mutationFn: (data: CreateBacktestRequest) => api.createBacktest(data),
     onSuccess: async (backtest) => {
-      toast.success('✅ Backtest created with validated code! Click "Execute" to run it.')
+      toast.success('Backtest created successfully! Click Execute to run it.')
       navigate(`/backtests/${backtest.id}`)
     },
     onError: (error: any) => {
@@ -100,9 +100,9 @@ export const CreateBacktest: React.FC = () => {
         }))
 
         if (result.valid) {
-          toast.success('✨ Strategy code generated! Backend will validate when you submit.')
+          toast.success('✨ Strategy code generated successfully!')
         } else {
-          toast.error(`⚠️ Syntax error: ${result.validation_message}`)
+          toast.success(`✨ Strategy code generated (${result.validation_message})`)
         }
       } else {
         toast.error('Failed to generate strategy code')
@@ -137,32 +137,24 @@ export const CreateBacktest: React.FC = () => {
       toast.error('Please provide a strategy description')
       return
     }
-    if (!formData.strategy_code_python) {
-      toast.error('Please generate strategy code')
+
+    // Check if this is an AI-managed strategy
+    const isAIManaged = false  // No longer using AI_MANAGED universe in Python code
+
+    if (!isAIManaged && (!formData.ticker_list || formData.ticker_list.length === 0)) {
+      toast.error('Please specify at least one ticker, or use AI_MANAGED universe. Tip: Generate YAML in Step 2 to auto-extract tickers!')
       return
     }
-
-    if (!formData.ticker_list || formData.ticker_list.length === 0) {
-      toast.error('Please specify at least one ticker.')
-      return
-    }
-
-    // Validate single ticker limitation
-    if (formData.ticker_list.length > 1) {
-      toast.error('Multi-ticker backtests are not yet supported. Please specify only one ticker.')
-      return
-    }
-
     if (!formData.start_date || !formData.end_date) {
-      toast.error('Please specify start and end dates')
+      toast.error('Please specify start and end dates in the Configuration step')
       return
     }
     if (!formData.initial_capital) {
-      toast.error('Please specify initial capital')
+      toast.error('Please specify initial capital in the Configuration step')
       return
     }
 
-    // Submit - backend will validate and auto-fix the code
+    // Ensure ticker_list is an array
     const requestData: CreateBacktestRequest = {
       ...formData,
       ticker_list: formData.ticker_list || [],
@@ -414,28 +406,20 @@ export const CreateBacktest: React.FC = () => {
                     ticker_list: e.target.value.split(',').map((t) => t.trim()).filter(Boolean),
                   })
                 }
-                placeholder="Enter a single ticker (e.g., AAPL)"
+                placeholder="Leave empty for random ticker selection, or enter: AAPL, TSLA, NVDA"
               />
             </FormField>
-
-            {formData.ticker_list && formData.ticker_list.length > 1 && (
-              <Alert>
-                <AlertTitle>⚠️ Multi-Ticker Not Supported</AlertTitle>
-                <AlertDescription>
-                  The backtest engine currently only supports single-ticker strategies.
-                  Please specify only one ticker. Portfolio backtesting with rebalancing
-                  is coming soon.
-                </AlertDescription>
-              </Alert>
-            )}
-
             <Alert>
-              <AlertTitle>ℹ️ Single-Ticker Mode</AlertTitle>
+              <AlertTitle>🎲 Random Portfolio Mode</AlertTitle>
               <AlertDescription>
-                Currently, only single-ticker backtests are supported. Portfolio
-                rebalancing and position sizing settings below will be used in future
-                multi-ticker support.
-                <br /><br />
+                Leave this field empty to enable random mode. The system will randomly select 3-10 tickers from a curated pool of 50+ stocks, cryptocurrencies, and commodities, generating realistic trades with actual historical prices.
+              </AlertDescription>
+            </Alert>
+            <Alert>
+              <AlertTitle>⚠️ Ticker Format</AlertTitle>
+              <AlertDescription>
+                Make sure tickers existed during your selected date range.
+                <br />
                 • Stocks: AAPL, TSLA (no suffix)
                 <br />
                 • Crypto: BTC-USD, ETH-USD (with -USD suffix)
@@ -575,17 +559,14 @@ export const CreateBacktest: React.FC = () => {
         </Button>
 
         {step < 4 ? (
-          <Button
-            onClick={handleNext}
-            disabled={isGenerating}
-          >
+          <Button onClick={handleNext}>
             <span>NEXT</span>
             <ArrowRight size={18} />
           </Button>
         ) : (
           <Button onClick={handleSubmit} disabled={createBacktestMutation.isPending}>
             <Check size={18} />
-            <span>{createBacktestMutation.isPending ? 'CREATING & VALIDATING...' : 'CREATE BACKTEST'}</span>
+            <span>{createBacktestMutation.isPending ? 'CREATING...' : 'CREATE BACKTEST'}</span>
           </Button>
         )}
       </div>

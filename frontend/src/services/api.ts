@@ -356,20 +356,49 @@ class APIService {
   }
 
   async executeBacktest(id: number): Promise<{
-    message: string
-    backtest_id: number
     status: string
   }> {
-    const response = await this.client.post(`/api/v1/backtests/${id}/execute`)
-    return response.data
+    // Simply pass the backtest ID - backend handles everything
+    const response = await this.client.post('/api/v1/backtest-execution', {
+      backtest_id: id,
+    })
+
+    return {
+      status: response.data.status,
+    }
   }
 
   async cancelBacktest(id: number): Promise<{
     message: string
     backtest_id: number
   }> {
-    const response = await this.client.post(`/api/v1/backtests/${id}/cancel`)
+    await this.client.delete(`/api/v1/backtest-execution/${id}`)
+    return {
+      message: 'Backtest cancelled',
+      backtest_id: id,
+    }
+  }
+
+  // New Execution Engine Endpoints
+  async executeBacktestDirect(request: import('../types/backtest').ExecuteBacktestRequest): Promise<import('../types/backtest').BacktestExecutionStatus> {
+    const response = await this.client.post('/api/v1/backtest-execution', request)
     return response.data
+  }
+
+  async getBacktestExecutionStatus(id: number): Promise<import('../types/backtest').BacktestExecutionStatus> {
+    const response = await this.client.get(`/api/v1/backtest-execution/${id}/status`)
+    return response.data
+  }
+
+  async getBacktestExecutionResults(id: number): Promise<import('../types/backtest').BacktestExecutionResults> {
+    const response = await this.client.get(`/api/v1/backtest-execution/${id}/results`)
+    return response.data
+  }
+
+  async cancelBacktestExecution(id: number, permanent: boolean = false): Promise<void> {
+    await this.client.delete(`/api/v1/backtest-execution/${id}`, {
+      params: { permanent },
+    })
   }
 
   // Conversational trading interface
@@ -406,6 +435,15 @@ class APIService {
     message: string
   }> {
     const response = await this.client.post('/api/v1/backtests/execute-intent', data)
+    return response.data
+  }
+
+  async validateStrategyCode(code: string): Promise<{
+    valid: boolean
+    message: string
+    fixed_code: string | null
+  }> {
+    const response = await this.client.post('/api/v1/backtests/validate-strategy-direct', { code })
     return response.data
   }
 

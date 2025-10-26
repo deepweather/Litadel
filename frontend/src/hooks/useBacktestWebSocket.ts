@@ -36,12 +36,20 @@ export const useBacktestWebSocket = (backtestId: number | null) => {
 
     ws.current.onmessage = (event) => {
       try {
+        // Ignore non-JSON messages like "pong" keepalive
+        if (typeof event.data === 'string' && (event.data === 'pong' || event.data === 'ping')) {
+          return
+        }
+
         const data = JSON.parse(event.data)
         if (data.type === 'status_update') {
           setStatus(data)
         }
       } catch (error) {
-        console.error('Failed to parse WebSocket message:', error)
+        // Silently ignore parse errors from non-JSON keepalive messages
+        if (event.data !== 'pong' && event.data !== 'ping') {
+          console.error('Failed to parse WebSocket message:', error, 'Data:', event.data)
+        }
       }
     }
 

@@ -204,6 +204,14 @@ class Backtest(Base):
     total_trades = Column(Integer, nullable=True)
     avg_trade_duration_days = Column(Float, nullable=True)
 
+    # Execution metadata (new fields for backtest engine)
+    asset_class = Column(String, nullable=True)  # equity, crypto, commodity
+    commission = Column(Float, nullable=True)  # Commission rate used
+    data_source = Column(String, nullable=True)  # "cache" or "live"
+    execution_time_seconds = Column(Float, nullable=True)  # Time taken to execute
+    error_traceback = Column(Text, nullable=True)  # Full traceback if failed
+    execution_id = Column(Integer, nullable=True)  # Link to execution engine record
+
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
@@ -212,6 +220,7 @@ class Backtest(Base):
     # Relationships
     trades = relationship("BacktestTrade", back_populates="backtest", cascade="all, delete-orphan")
     snapshots = relationship("BacktestSnapshot", back_populates="backtest", cascade="all, delete-orphan")
+    equity_curve = relationship("BacktestEquityCurve", back_populates="backtest", cascade="all, delete-orphan")
     owner = relationship("User", back_populates="backtests")
 
 
@@ -229,6 +238,11 @@ class BacktestTrade(Base):
     price = Column(Float, nullable=False)
     trade_date = Column(DateTime, nullable=False, index=True)
 
+    # Trade timing (new fields for backtest engine)
+    entry_time = Column(DateTime, nullable=True)
+    exit_time = Column(DateTime, nullable=True)
+    duration_days = Column(Float, nullable=True)
+
     # Link to analysis that triggered this trade
     analysis_id = Column(String, ForeignKey("analyses.id"), nullable=True)
     decision_confidence = Column(Float, nullable=True)
@@ -237,6 +251,7 @@ class BacktestTrade(Base):
     # P&L (for closed trades)
     pnl = Column(Float, nullable=True)
     pnl_pct = Column(Float, nullable=True)
+    return_pct = Column(Float, nullable=True)  # Duplicate of pnl_pct for clarity
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
@@ -269,6 +284,21 @@ class BacktestSnapshot(Base):
 
     # Relationships
     backtest = relationship("Backtest", back_populates="snapshots")
+
+
+class BacktestEquityCurve(Base):
+    """Equity curve data points for backtest visualization."""
+
+    __tablename__ = "backtest_equity_curve"
+
+    id = Column(Integer, primary_key=True, index=True)
+    backtest_id = Column(Integer, ForeignKey("backtests.id"), nullable=False, index=True)
+    date = Column(DateTime, nullable=False, index=True)
+    equity = Column(Float, nullable=False)
+    drawdown_pct = Column(Float, nullable=False)
+
+    # Relationships
+    backtest = relationship("Backtest", back_populates="equity_curve")
 
 
 def init_db():

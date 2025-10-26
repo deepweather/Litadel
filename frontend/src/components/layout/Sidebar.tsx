@@ -7,7 +7,6 @@ import {
   History,
   LayoutDashboard,
   List,
-  MessageSquare,
   Plus,
   Settings,
   TrendingUp,
@@ -40,11 +39,6 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  {
-    name: 'Chat',
-    path: '/backtests/chat',
-    icon: <MessageSquare size={18} />,
-  },
   {
     name: 'Strategies',
     path: '/backtests',

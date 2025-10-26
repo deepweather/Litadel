@@ -15,8 +15,9 @@ from fastapi.middleware.cors import CORSMiddleware
 load_dotenv()
 
 from api.auth import create_api_key
+from api.backtest_executor import get_backtest_executor, shutdown_backtest_executor
 from api.database import SessionLocal, init_db
-from api.endpoints import analyses, auth, backtests, data, portfolios, tickers
+from api.endpoints import analyses, auth, backtest_execution, backtests, data, portfolios, tickers
 from api.state_manager import get_executor, shutdown_executor
 from api.websockets import status
 
@@ -73,6 +74,7 @@ async def lifespan(app: FastAPI):
             db.close()
 
     get_executor()
+    get_backtest_executor()
     logger.info("Trading Agents API started successfully")
     logger.info(f"API Documentation: http://localhost:{os.getenv('API_PORT', '8001')}/docs")
 
@@ -81,6 +83,7 @@ async def lifespan(app: FastAPI):
     # Shutdown
     logger.info("Shutting down Trading Agents API...")
     shutdown_executor()
+    shutdown_backtest_executor()
     logger.info("Trading Agents API shutdown complete")
 
 
@@ -111,6 +114,7 @@ app.include_router(tickers.router)
 app.include_router(data.router)
 app.include_router(portfolios.router)
 app.include_router(backtests.router)
+app.include_router(backtest_execution.router)
 app.include_router(status.router)
 
 

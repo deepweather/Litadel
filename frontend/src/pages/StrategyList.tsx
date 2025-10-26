@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Sparkles, Trash2 } from 'lucide-react'
 import { api } from '../services/api'
 import { Button } from '@/components/ui/button'
 import { IconButton } from '../components/ui/IconButton'
@@ -55,10 +55,20 @@ export const BacktestList: React.FC = () => {
         title="BACKTESTS"
         subtitle="Manage and analyze your trading strategy backtests"
         actions={
-          <Button onClick={() => navigate('/backtests/create')}>
-            <Plus size={18} />
-            <span>CREATE BACKTEST</span>
-          </Button>
+          <>
+            <Button
+              onClick={() => navigate('/backtests/chat')}
+              variant="outline"
+              className="bg-primary/10 border-primary/50 text-primary hover:bg-primary/20"
+            >
+              <Sparkles size={18} />
+              <span>CREATE WITH AI CHAT</span>
+            </Button>
+            <Button onClick={() => navigate('/backtests/create')}>
+              <Plus size={18} />
+              <span>CREATE (CLASSIC)</span>
+            </Button>
+          </>
         }
       />
 
@@ -91,10 +101,20 @@ export const BacktestList: React.FC = () => {
             <p className="text-muted-foreground font-mono text-base mb-4">
               No backtests found
             </p>
-            <Button onClick={() => navigate('/backtests/create')}>
-              <Plus size={18} />
-              <span>CREATE BACKTEST</span>
-            </Button>
+            <div className="flex gap-3 justify-center">
+              <Button
+                onClick={() => navigate('/backtests/chat')}
+                variant="outline"
+                className="bg-primary/10 border-primary/50 text-primary hover:bg-primary/20"
+              >
+                <Sparkles size={18} />
+                <span>CREATE WITH AI CHAT</span>
+              </Button>
+              <Button onClick={() => navigate('/backtests/create')}>
+                <Plus size={18} />
+                <span>CREATE (CLASSIC)</span>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : (

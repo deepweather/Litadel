@@ -23,6 +23,7 @@ export interface Backtest {
   win_rate: number | null
   total_trades: number | null
   avg_trade_duration_days: number | null
+  execution_id: number | null
   created_at: string
   updated_at: string
   completed_at: string | null
@@ -56,11 +57,15 @@ export interface BacktestTrade {
   quantity: number
   price: number
   trade_date: string
+  entry_time: string | null
+  exit_time: string | null
+  duration_days: number | null
   analysis_id: string | null
   decision_confidence: number | null
   decision_rationale: string | null
   pnl: number | null
   pnl_pct: number | null
+  return_pct: number | null
   created_at: string
 }
 
@@ -131,5 +136,70 @@ export interface UpdateBacktestRequest {
   rebalance_frequency?: string
   position_sizing?: string
   max_positions?: number
+  execution_id?: number
+}
+
+// Backtest Execution Engine Types
+export interface ExecuteBacktestRequest {
+  name: string
+  description?: string
+  symbol: string
+  start_date: string
+  end_date: string
+  strategy_code: string
+  initial_capital?: number
+  commission?: number
+  asset_class?: string | null
+}
+
+export interface BacktestExecutionStatus {
+  id: number
+  status: string
+  progress_percentage: number
+  updated_at: string
+}
+
+export interface BacktestExecutionTrade {
+  id: number
+  ticker: string
+  entry_time: string | null
+  exit_time: string | null
+  entry_price: number | null
+  quantity: number
+  price: number
+  pnl: number | null
+  return_pct: number | null
+  duration_days: number | null
+}
+
+export interface BacktestExecutionEquityCurve {
+  date: string
+  equity: number
+  drawdown_pct: number
+}
+
+export interface BacktestExecutionResults {
+  id: number
+  name: string
+  symbol: string
+  status: string
+  start_date: string
+  end_date: string
+  initial_capital: number
+  commission: number | null
+  asset_class: string | null
+  final_portfolio_value: number | null
+  total_return_pct: number | null
+  sharpe_ratio: number | null
+  max_drawdown_pct: number | null
+  win_rate: number | null
+  total_trades: number | null
+  avg_trade_duration_days: number | null
+  execution_time_seconds: number | null
+  data_source: string | null
+  created_at: string
+  completed_at: string | null
+  trades: BacktestExecutionTrade[]
+  equity_curve: BacktestExecutionEquityCurve[]
 }
 

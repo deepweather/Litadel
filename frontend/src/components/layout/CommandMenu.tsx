@@ -13,7 +13,6 @@ import {
   BarChart3,
   Briefcase,
   Home,
-  MessageSquare,
   Plus,
   Settings,
   TrendingUp,
@@ -53,13 +52,6 @@ export const CommandMenu: React.FC = () => {
           >
             <Home className="mr-2 h-4 w-4" />
             <span>Dashboard</span>
-          </CommandItem>
-          <CommandItem
-            onSelect={() => runCommand(() => navigate('/backtests/chat'))}
-            className="font-mono"
-          >
-            <MessageSquare className="mr-2 h-4 w-4" />
-            <span>Chat Interface</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => navigate('/backtests'))}

@@ -53,7 +53,6 @@ export const StrategyCodeVisualizer: React.FC<StrategyCodeVisualizerProps> = ({
           inInit = false
         }
         if (inInit && line.includes('self.I(')) {
-          // Extract indicator type
           const indicatorMatch = line.match(/self\.I\((\w+)/)
           if (indicatorMatch) {
             info.indicators.push(indicatorMatch[1])
@@ -101,7 +100,7 @@ export const StrategyCodeVisualizer: React.FC<StrategyCodeVisualizerProps> = ({
 
   if (!strategy) {
     return (
-      <div className="p-8 text-center text-muted-foreground">
+      <div className="p-8 text-center text-muted-foreground font-mono text-sm">
         Unable to parse strategy. Please check code format.
       </div>
     )
@@ -111,26 +110,26 @@ export const StrategyCodeVisualizer: React.FC<StrategyCodeVisualizerProps> = ({
     <div className="mt-4">
       <Tabs defaultValue="visual" className="w-full">
         <TabsList className="mb-4">
-          <TabsTrigger value="visual" className="flex items-center gap-2">
+          <TabsTrigger value="visual" className="flex items-center gap-2 font-mono text-xs">
             <Eye size={16} />
-            Visual Summary
+            VISUAL SUMMARY
           </TabsTrigger>
-          <TabsTrigger value="code" className="flex items-center gap-2">
+          <TabsTrigger value="code" className="flex items-center gap-2 font-mono text-xs">
             <Code size={16} />
-            Python Code
+            PYTHON CODE
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="visual" className="max-h-[600px] overflow-y-auto space-y-4">
           {/* Strategy Header */}
-          <Card className="border-2 border-blue-500">
+          <Card className="border-primary">
             <CardHeader>
-              <CardTitle className="text-blue-500 text-xl">{strategy.className}</CardTitle>
+              <CardTitle className="text-primary text-xl font-mono">{strategy.className}</CardTitle>
               <div className="flex items-center gap-2 mt-2">
-                <Badge variant="secondary" className="bg-blue-500/20 text-blue-400">
+                <Badge variant="secondary" className="font-mono text-xs">
                   {strategyType === 'portfolio' ? 'Portfolio Strategy' : 'Single Ticker'}
                 </Badge>
-                <Badge variant="secondary" className="bg-green-500/20 text-green-400">
+                <Badge variant="secondary" className="font-mono text-xs">
                   backtesting.py
                 </Badge>
               </div>
@@ -141,7 +140,7 @@ export const StrategyCodeVisualizer: React.FC<StrategyCodeVisualizerProps> = ({
           {strategy.indicators.length > 0 && (
             <Card>
               <CardHeader>
-                <div className="flex items-center gap-2 text-sm font-bold text-primary uppercase tracking-wide">
+                <div className="flex items-center gap-2 text-sm font-bold text-primary uppercase tracking-wide font-mono">
                   <Target size={16} />
                   Technical Indicators
                 </div>
@@ -152,7 +151,7 @@ export const StrategyCodeVisualizer: React.FC<StrategyCodeVisualizerProps> = ({
                     <Badge
                       key={idx}
                       variant="secondary"
-                      className="bg-purple-500/20 text-purple-400 border-purple-400"
+                      className="font-mono text-xs"
                     >
                       {indicator}
                     </Badge>
@@ -166,15 +165,15 @@ export const StrategyCodeVisualizer: React.FC<StrategyCodeVisualizerProps> = ({
           {strategy.entrySignals.length > 0 && (
             <Card>
               <CardHeader>
-                <div className="flex items-center gap-2 text-sm font-bold text-primary uppercase tracking-wide">
+                <div className="flex items-center gap-2 text-sm font-bold text-primary uppercase tracking-wide font-mono">
                   <TrendingUp size={16} />
                   Entry Signals
                 </div>
               </CardHeader>
               <CardContent className="space-y-2">
                 {strategy.entrySignals.map((signal, idx) => (
-                  <div key={idx} className="bg-green-500/5 border border-green-500/20 rounded p-3">
-                    <p className="text-sm text-muted-foreground">{signal}</p>
+                  <div key={idx} className="bg-muted border border-border rounded p-3">
+                    <p className="text-sm text-foreground font-mono">{signal}</p>
                   </div>
                 ))}
               </CardContent>
@@ -185,15 +184,15 @@ export const StrategyCodeVisualizer: React.FC<StrategyCodeVisualizerProps> = ({
           {strategy.exitSignals.length > 0 && (
             <Card>
               <CardHeader>
-                <div className="flex items-center gap-2 text-sm font-bold text-primary uppercase tracking-wide">
+                <div className="flex items-center gap-2 text-sm font-bold text-primary uppercase tracking-wide font-mono">
                   <TrendingDown size={16} />
                   Exit Signals
                 </div>
               </CardHeader>
               <CardContent className="space-y-2">
                 {strategy.exitSignals.map((signal, idx) => (
-                  <div key={idx} className="bg-red-500/5 border border-red-500/20 rounded p-3">
-                    <p className="text-sm text-muted-foreground">{signal}</p>
+                  <div key={idx} className="bg-muted border border-border rounded p-3">
+                    <p className="text-sm text-foreground font-mono">{signal}</p>
                   </div>
                 ))}
               </CardContent>
@@ -204,7 +203,7 @@ export const StrategyCodeVisualizer: React.FC<StrategyCodeVisualizerProps> = ({
           {strategy.riskParams.length > 0 && (
             <Card>
               <CardHeader>
-                <div className="flex items-center gap-2 text-sm font-bold text-primary uppercase tracking-wide">
+                <div className="flex items-center gap-2 text-sm font-bold text-primary uppercase tracking-wide font-mono">
                   <Shield size={16} />
                   Risk Management
                 </div>
@@ -213,7 +212,7 @@ export const StrategyCodeVisualizer: React.FC<StrategyCodeVisualizerProps> = ({
                 <div className="space-y-2">
                   {strategy.riskParams.map((param, idx) => (
                     <div key={idx} className="flex items-center gap-2">
-                      <span className="text-sm text-foreground">{param}</span>
+                      <span className="text-sm text-foreground font-mono">{param}</span>
                     </div>
                   ))}
                 </div>
@@ -229,4 +228,3 @@ export const StrategyCodeVisualizer: React.FC<StrategyCodeVisualizerProps> = ({
     </div>
   )
 }
-

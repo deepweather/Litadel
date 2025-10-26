@@ -1,3 +1,6 @@
+// DEPRECATED: This interface is disabled. Use CreateBacktest.tsx instead.
+// Keeping file for reference only.
+
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'

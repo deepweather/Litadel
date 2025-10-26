@@ -22,7 +22,7 @@ from api.backtest_metrics import (
     calculate_trade_statistics,
     calculate_win_rate,
 )
-from api.database import Backtest, BacktestSnapshot, BacktestTrade, User, get_db
+from api.database import Backtest, BacktestEquityCurve, BacktestSnapshot, BacktestTrade, User, get_db
 from api.models.backtest import (
     BacktestPerformanceMetrics,
     BacktestResponse,
@@ -158,6 +158,13 @@ async def create_backtest(
     user: User = Depends(get_current_user_jwt),
 ):
     """Create a new backtest."""
+    # Validate single ticker limitation
+    if len(request.ticker_list) > 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Multi-ticker backtests are not yet supported. Please specify only one ticker.",
+        )
+
     # Parse dates
     start_date = datetime.strptime(request.start_date, "%Y-%m-%d")
     end_date = datetime.strptime(request.end_date, "%Y-%m-%d")
@@ -177,13 +184,13 @@ async def create_backtest(
             detail="strategy_code_python is required. Use the generate-strategy-code endpoint to create it.",
         )
 
-    # Create backtest
+    # Create backtest with status="validating" - validation will happen in background
     backtest = Backtest(
         user_id=user.id,
         name=request.name,
         description=request.description,
         strategy_description=request.strategy_description,
-        strategy_code_python=strategy_code,
+        strategy_code_python=strategy_code,  # Original code, will be fixed during validation
         strategy_type=request.strategy_type,
         ticker_list=json.dumps(request.ticker_list),
         start_date=start_date,
@@ -192,7 +199,7 @@ async def create_backtest(
         rebalance_frequency=request.rebalance_frequency,
         position_sizing=request.position_sizing,
         max_positions=request.max_positions,
-        status="pending",
+        status="validating",  # Will become "pending" after validation or "failed" if invalid
         progress_percentage=0,
     )
 
@@ -200,7 +207,20 @@ async def create_backtest(
     db.commit()
     db.refresh(backtest)
 
-    logger.info(f"User {user.username} created backtest {backtest.id}: {backtest.name}")
+    logger.info(f"User {user.username} created backtest {backtest.id}: {backtest.name} - starting validation...")
+
+    # Start validation in background (like analysis executor)
+    from api.backtest_executor import get_backtest_executor
+
+    executor = get_backtest_executor()
+    try:
+        executor.start_validation(backtest.id)
+        logger.info(f"Backtest {backtest.id} validation started in background")
+    except Exception as e:
+        logger.exception(f"Failed to start validation for backtest {backtest.id}: {e}")
+        backtest.status = "failed"
+        backtest.error_traceback = str(e)
+        db.commit()
 
     return BacktestResponse(
         id=backtest.id,
@@ -520,23 +540,24 @@ async def get_backtest_equity_curve(
     """Get equity curve data points for visualization."""
     backtest = _verify_backtest_ownership(backtest_id, user.id, db)
 
-    snapshots = (
-        db.query(BacktestSnapshot)
-        .filter(BacktestSnapshot.backtest_id == backtest.id)
-        .order_by(BacktestSnapshot.snapshot_date)
+    # Query BacktestEquityCurve table (where executor stores the data)
+    equity_points = (
+        db.query(BacktestEquityCurve)
+        .filter(BacktestEquityCurve.backtest_id == backtest.id)
+        .order_by(BacktestEquityCurve.date)
         .all()
     )
 
     return [
         EquityCurveDataPoint(
-            date=snapshot.snapshot_date,
-            portfolio_value=snapshot.total_value,
-            cash=snapshot.cash,
-            positions_value=snapshot.positions_value,
-            cumulative_return_pct=snapshot.cumulative_return_pct,
-            drawdown_pct=snapshot.drawdown_pct,
+            date=point.date,
+            portfolio_value=point.equity,
+            cash=0,  # Not stored separately in BacktestEquityCurve
+            positions_value=point.equity,
+            cumulative_return_pct=0,  # Calculate if needed
+            drawdown_pct=point.drawdown_pct,
         )
-        for snapshot in snapshots
+        for point in equity_points
     ]
 
 
@@ -562,16 +583,52 @@ async def validate_strategy(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user_jwt),
 ):
-    """Validate Python strategy code syntax."""
+    """Validate Python strategy code syntax with auto-fix."""
     backtest = _verify_backtest_ownership(backtest_id, user.id, db)
 
-    # Validate the strategy Python code
-    is_valid, message = validate_strategy_code(backtest.strategy_code_python)
+    # Validate the strategy Python code with LLM auto-fix
+    llm = _get_llm_for_strategy_generation()
+    is_valid, message, fixed_code = validate_strategy_code(backtest.strategy_code_python, llm)
 
     return {
         "valid": is_valid,
         "message": message,
+        "fixed_code": fixed_code if not is_valid else None,
     }
+
+
+class ValidateCodeRequest(BaseModel):
+    """Request to validate strategy code directly."""
+
+    code: str = Field(..., description="Python strategy code to validate")
+
+
+@router.post("/validate-strategy-direct", response_model=dict)
+async def validate_strategy_direct(
+    request: ValidateCodeRequest,
+    user: User = Depends(get_current_user_jwt),
+):
+    """Validate Python strategy code directly (with sandbox + self-healing)."""
+    logger.info(f"User {user.username} validating strategy code ({len(request.code)} chars)")
+
+    try:
+        llm = _get_llm_for_strategy_generation()
+        is_valid, message, fixed_code = validate_strategy_code(request.code, llm)
+
+        logger.info(f"Validation result for {user.username}: valid={is_valid}, message={message}")
+
+        return {
+            "valid": is_valid,
+            "message": message,
+            "fixed_code": fixed_code if fixed_code != request.code else None,
+        }
+    except Exception as e:
+        logger.exception(f"Validation failed for user {user.username}: {e}")
+        return {
+            "valid": False,
+            "message": f"Validation error: {e!s}",
+            "fixed_code": None,
+        }
 
 
 @router.post("/generate-strategy-code")
@@ -625,10 +682,17 @@ async def generate_strategy_code(
 
             logger.info(f"Streamed {chunk_count} chunks for user {user.username}")
 
-            # Validate the final code
-            is_valid, validation_message = validate_strategy_code(accumulated_code)
+            # Skip heavy validation during streaming - it will happen when user clicks NEXT
+            # Just do a quick syntax check
+            try:
+                compile(accumulated_code, "<string>", "exec")
+                is_valid = True
+                validation_message = "Syntax valid (full validation on next step)"
+            except SyntaxError as e:
+                is_valid = False
+                validation_message = f"Syntax error: {e}"
 
-            # Send completion event with validation result
+            # Send completion event quickly
             complete_data = json.dumps(
                 {
                     "type": "complete",
