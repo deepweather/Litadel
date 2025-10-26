@@ -1,7 +1,7 @@
 import React from 'react'
 import { useAnalyses } from '../../hooks/useAnalyses'
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Progress } from '../ui/progress'
+import { CheckCircle2, Loader2, TrendingUp, XCircle } from 'lucide-react'
 
 export const SystemMetrics: React.FC = () => {
   const { data: analysesData } = useAnalyses(1, 100)
@@ -13,48 +13,67 @@ export const SystemMetrics: React.FC = () => {
   const failedCount = analyses.filter((a) => a.status === 'failed').length
 
   const completionRate = totalCount > 0 ? (completedCount / totalCount) * 100 : 0
+  const systemLoad = (runningCount / 4) * 100
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>SYSTEM METRICS</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div className="text-muted-foreground text-xs mb-1">TOTAL ANALYSES</div>
-              <div className="text-foreground text-2xl font-bold">{totalCount}</div>
-            </div>
-            <div>
-              <div className="text-muted-foreground text-xs mb-1">RUNNING</div>
-              <div className="text-blue-600 dark:text-blue-400 text-2xl font-bold">{runningCount}</div>
-            </div>
-            <div>
-              <div className="text-muted-foreground text-xs mb-1">COMPLETED</div>
-              <div className="text-foreground text-2xl font-bold">{completedCount}</div>
-            </div>
-            <div>
-              <div className="text-muted-foreground text-xs mb-1">FAILED</div>
-              <div className="text-destructive text-2xl font-bold">{failedCount}</div>
-            </div>
+    <div className="space-y-6 font-mono">
+      {/* Metric Cards Grid */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="size-3 text-muted-foreground" />
+            <div className="text-muted-foreground text-xs">TOTAL</div>
           </div>
+          <div className="text-foreground text-3xl font-bold">{totalCount}</div>
+        </div>
 
-          <div>
-            <div className="text-muted-foreground text-xs mb-2">COMPLETION RATE</div>
-            <Progress value={completionRate} />
-            <div className="text-muted-foreground text-xs mt-1">{completionRate.toFixed(0)}%</div>
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Loader2 className="size-3 text-chart-2" />
+            <div className="text-muted-foreground text-xs">RUNNING</div>
           </div>
+          <div className="text-chart-2 text-3xl font-bold">{runningCount}</div>
+        </div>
 
-          <div className="border-t pt-3 mt-3">
-            <div className="text-muted-foreground text-xs mb-2">SYSTEM LOAD</div>
-            <Progress value={(runningCount / 4) * 100} />
-            <div className="text-muted-foreground text-xs mt-1">
-              {runningCount} / 4 concurrent analyses
-            </div>
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="size-3 text-chart-4" />
+            <div className="text-muted-foreground text-xs">COMPLETED</div>
+          </div>
+          <div className="text-foreground text-3xl font-bold">{completedCount}</div>
+        </div>
+
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <XCircle className="size-3 text-destructive" />
+            <div className="text-muted-foreground text-xs">FAILED</div>
+          </div>
+          <div className="text-destructive text-3xl font-bold">{failedCount}</div>
+        </div>
+      </div>
+
+      {/* Completion Rate */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="text-muted-foreground text-xs">COMPLETION RATE</div>
+          <div className="text-foreground text-sm font-bold">{completionRate.toFixed(0)}%</div>
+        </div>
+        <Progress value={completionRate} className="h-2" />
+      </div>
+
+      {/* System Load */}
+      <div className="space-y-2 pt-3 border-t border-border">
+        <div className="flex items-center justify-between">
+          <div className="text-muted-foreground text-xs">SYSTEM LOAD</div>
+          <div className="text-muted-foreground text-xs">
+            {runningCount} / 4 concurrent
           </div>
         </div>
-      </CardContent>
-    </Card>
+        <Progress
+          value={systemLoad}
+          className="h-2"
+        />
+      </div>
+    </div>
   )
 }

@@ -3,6 +3,7 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from './Sidebar'
 import { Header } from './Header'
 import { StatusBar } from './StatusBar'
+import { CommandMenu } from './CommandMenu'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -20,6 +21,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </main>
           <StatusBar />
         </SidebarInset>
+        <CommandMenu />
       </div>
     </SidebarProvider>
   )

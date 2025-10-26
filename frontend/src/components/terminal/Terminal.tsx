@@ -279,7 +279,7 @@ export const Terminal: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-full border bg-background">
+    <div className="flex flex-col h-full bg-muted/30 rounded-lg overflow-hidden">
       {/* Terminal output */}
       <div
         ref={terminalRef}
@@ -292,7 +292,7 @@ export const Terminal: React.FC = () => {
               : line.type === 'error'
                 ? 'text-destructive'
                 : line.type === 'success'
-                  ? 'text-blue-500'
+                  ? 'text-chart-2'
                   : 'text-muted-foreground'
 
           return (
@@ -309,9 +309,9 @@ export const Terminal: React.FC = () => {
       {/* Terminal input */}
       <form
         onSubmit={handleSubmit}
-        className="border-t p-2 px-4 flex items-center gap-2"
+        className="border-t border-border bg-background/50 p-2 px-4 flex items-center gap-2"
       >
-        <span className="text-blue-500 font-mono text-sm">
+        <span className="text-chart-2 font-mono text-sm">
           &gt;
         </span>
         <input
