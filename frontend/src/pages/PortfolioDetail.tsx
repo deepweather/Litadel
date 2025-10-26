@@ -19,7 +19,6 @@ import type {
   UpdatePositionRequest,
 } from '../types/portfolio'
 import { formatCurrency, formatPercentageWithSign } from '../utils/formatters'
-import { getPnLColor, themeColors } from '../utils/colors'
 
 export const PortfolioDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -173,14 +172,7 @@ export const PortfolioDetail: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div
-        style={{
-          padding: '2rem',
-          textAlign: 'center',
-          color: '#2a3e4a',
-          fontFamily: 'JetBrains Mono, monospace',
-        }}
-      >
+      <div className="p-8 text-center text-muted-foreground font-mono">
         Loading portfolio...
       </div>
     )
@@ -188,23 +180,16 @@ export const PortfolioDetail: React.FC = () => {
 
   if (error || !portfolio) {
     return (
-      <div
-        style={{
-          padding: '2rem',
-          textAlign: 'center',
-          color: '#ff0000',
-          fontFamily: 'JetBrains Mono, monospace',
-        }}
-      >
+      <div className="p-8 text-center text-destructive font-mono">
         Portfolio not found
       </div>
     )
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="flex flex-col gap-6">
       {/* Back Button */}
-      <Button onClick={() => navigate('/portfolio')} style={{ alignSelf: 'flex-start' }}>
+      <Button onClick={() => navigate('/portfolio')} className="self-start">
         <ArrowLeft size={18} />
         <span>BACK TO PORTFOLIOS</span>
       </Button>
@@ -216,30 +201,18 @@ export const PortfolioDetail: React.FC = () => {
             <TextInput
               value={portfolioName}
               onChange={(e) => setPortfolioName(e.target.value)}
-              style={{
-                marginBottom: '1rem',
-                color: '#4da6ff',
-                fontSize: '1.5rem',
-                fontWeight: 'bold',
-              }}
+              className="mb-4 text-primary text-2xl font-bold"
             />
             <TextArea
               value={portfolioDescription}
               onChange={(e) => setPortfolioDescription(e.target.value)}
-              style={{
-                marginBottom: '1rem',
-                minHeight: '60px',
-              }}
+              className="mb-4 min-h-[60px]"
             />
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div className="flex gap-4">
               <Button onClick={handleSavePortfolio}>SAVE</Button>
               <Button
                 onClick={() => setIsEditingPortfolio(false)}
-                style={{
-                  backgroundColor: 'transparent',
-                  color: '#2a3e4a',
-                  borderColor: '#2a3e4a',
-                }}
+                variant="outline"
               >
                 CANCEL
               </Button>
@@ -247,39 +220,18 @@ export const PortfolioDetail: React.FC = () => {
           </div>
         ) : (
           <>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                marginBottom: '1rem',
-              }}
-            >
+            <div className="flex justify-between items-start mb-4">
               <div>
-                <h1
-                  style={{
-                    fontSize: '1.5rem',
-                    fontWeight: 'bold',
-                    color: '#4da6ff',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    marginBottom: '0.5rem',
-                  }}
-                >
+                <h1 className="text-2xl font-bold text-primary font-mono mb-2">
                   {portfolio.name}
                 </h1>
                 {portfolio.description && (
-                  <p
-                    style={{
-                      color: '#2a3e4a',
-                      fontFamily: 'JetBrains Mono, monospace',
-                      fontSize: '0.875rem',
-                    }}
-                  >
+                  <p className="text-muted-foreground font-mono text-sm">
                     {portfolio.description}
                   </p>
                 )}
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div className="flex gap-2">
                 <IconButton
                   icon={<Edit2 size={16} />}
                   onClick={handleEditPortfolio}
@@ -296,34 +248,22 @@ export const PortfolioDetail: React.FC = () => {
             </div>
 
             {/* Metrics */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: '1.5rem',
-                paddingTop: '1rem',
-                borderTop: '1px solid rgba(77, 166, 255, 0.2)',
-              }}
-            >
+            <div className="grid grid-cols-4 gap-6 pt-4 border-t">
               <MetricCard
                 label="POSITIONS"
                 value={portfolio.position_count}
-                color={themeColors.primary}
               />
               <MetricCard
                 label="TOTAL VALUE"
                 value={formatCurrency(portfolio.total_value)}
-                color={themeColors.primary}
               />
               <MetricCard
                 label="PROFIT/LOSS"
                 value={formatCurrency(portfolio.total_pnl)}
-                color={getPnLColor(portfolio.total_pnl)}
               />
               <MetricCard
                 label="RETURN"
                 value={formatPercentageWithSign(portfolio.total_pnl_percentage)}
-                color={getPnLColor(portfolio.total_pnl)}
               />
             </div>
           </>
@@ -332,25 +272,11 @@ export const PortfolioDetail: React.FC = () => {
 
       {/* Positions Section */}
       <div>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '1rem',
-          }}
-        >
-          <h2
-            style={{
-              fontSize: '1.125rem',
-              fontWeight: 'bold',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-            }}
-          >
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-bold text-primary font-mono">
             POSITIONS
           </h2>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div className="flex gap-2">
             <Button onClick={() => setShowBulkImport(true)}>
               <Upload size={18} />
               <span>BULK IMPORT</span>

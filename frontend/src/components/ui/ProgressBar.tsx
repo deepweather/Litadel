@@ -1,4 +1,6 @@
 import React from 'react'
+import { Progress } from './progress'
+import { cn } from '@/lib/utils'
 
 interface ProgressBarProps {
   percentage: number
@@ -12,19 +14,12 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   className = '',
 }) => {
   const clampedPercentage = Math.min(100, Math.max(0, percentage))
-  const filled = Math.round((clampedPercentage / 100) * 20)
-  const empty = 20 - filled
 
   return (
-    <div className={`flex items-center gap-2 font-mono ${className}`}>
-      <div className="flex-1 text-terminal-fg">
-        <span className="text-terminal-fg">{'['}</span>
-        <span className="text-terminal-fg">{'█'.repeat(filled)}</span>
-        <span className="text-terminal-dim">{'░'.repeat(empty)}</span>
-        <span className="text-terminal-fg">{']'}</span>
-      </div>
+    <div className={cn('flex items-center gap-3 font-mono', className)}>
+      <Progress value={clampedPercentage} className="flex-1" />
       {showPercentage && (
-        <span className="text-terminal-fg min-w-[3rem] text-right">
+        <span className="text-muted-foreground min-w-[3rem] text-right text-sm">
           {clampedPercentage.toFixed(0)}%
         </span>
       )}

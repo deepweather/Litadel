@@ -18,6 +18,6 @@ export { ASCIIBox } from './ASCIIBox'
 export { ASCIITable } from './ASCIITable'
 export { InfoBanner } from './InfoBanner'
 export * from './Form'
-export * from './Table'
-// Shadcn table available as separate imports from './table' if needed in future
+// Shadcn table components available as separate imports from './table'
+export * from './table'
 

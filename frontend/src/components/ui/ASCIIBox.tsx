@@ -1,4 +1,6 @@
 import React from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from './card'
+import { cn } from '@/lib/utils'
 
 interface ASCIIBoxProps {
   title?: string
@@ -16,31 +18,29 @@ export const ASCIIBox: React.FC<ASCIIBoxProps> = ({
   scrollable = false,
 }) => {
   const variantClasses = {
-    default: 'border-terminal-border',
-    success: 'border-terminal-fg',
-    warning: 'border-terminal-warning',
-    error: 'border-terminal-error',
+    default: '',
+    success: 'border-green-500 dark:border-green-500',
+    warning: 'border-yellow-500 dark:border-yellow-500',
+    error: 'border-destructive',
   }
 
   return (
-    <div
-      className={`border ${variantClasses[variant]} bg-terminal-highlight ${className}`}
-      style={scrollable ? { display: 'flex', flexDirection: 'column', height: '100%' } : undefined}
+    <Card
+      className={cn(
+        'font-mono',
+        variantClasses[variant],
+        scrollable && 'flex flex-col h-full',
+        className
+      )}
     >
       {title && (
-        <div
-          className="border-b border-current px-3 py-2 font-bold text-terminal-fg"
-          style={scrollable ? { flexShrink: 0 } : undefined}
-        >
-          {title}
-        </div>
+        <CardHeader className={scrollable ? 'flex-shrink-0' : ''}>
+          <CardTitle className="text-base">{title}</CardTitle>
+        </CardHeader>
       )}
-      <div
-        className="p-3"
-        style={scrollable ? { flex: 1, overflowY: 'auto', minHeight: 0 } : undefined}
-      >
+      <CardContent className={cn(scrollable && 'flex-1 overflow-y-auto min-h-0', !title && 'pt-6')}>
         {children}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

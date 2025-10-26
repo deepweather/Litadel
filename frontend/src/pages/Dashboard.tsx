@@ -15,18 +15,10 @@ export const Dashboard: React.FC = () => {
   const navigate = useNavigate()
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1.5rem' }}>
+    <div className="flex flex-col h-full gap-6">
       {/* Welcome header */}
       <Panel padding="lg">
-        <pre
-          style={{
-            color: '#4da6ff',
-            fontFamily: 'JetBrains Mono, monospace',
-            fontSize: '0.75rem',
-            lineHeight: '1.2',
-            marginBottom: '1.5rem',
-          }}
-        >
+        <pre className="text-primary font-mono text-xs leading-tight mb-6">
           {LOGO_ASCII}
         </pre>
         <PageHeader
@@ -42,22 +34,20 @@ export const Dashboard: React.FC = () => {
       </Panel>
 
       {/* Metrics, Activity, and Terminal */}
-      <div style={{ display: 'flex', gap: '1.5rem', flex: 1, minHeight: 0 }}>
-        <div style={{ flex: '0 0 300px', display: 'flex', flexDirection: 'column' }}>
+      <div className="flex gap-6 flex-1 min-h-0">
+        <div className="flex-none w-[300px] flex flex-col">
           <SectionHeader title="SYSTEM METRICS" />
           <SystemMetrics />
         </div>
-        <div
-          style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0 }}
-        >
+        <div className="flex-1 flex flex-col min-w-0 min-h-0">
           <SectionHeader title="RECENT ACTIVITY" />
-          <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+          <div className="flex-1 min-h-0 overflow-hidden">
             <RecentActivity />
           </div>
         </div>
-        <div style={{ flex: '0 0 400px', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <div className="flex-none w-[400px] flex flex-col min-h-0">
           <SectionHeader title="TERMINAL" />
-          <div style={{ flex: 1, minHeight: 0 }}>
+          <div className="flex-1 min-h-0">
             <Terminal />
           </div>
         </div>
@@ -65,10 +55,10 @@ export const Dashboard: React.FC = () => {
 
       {/* Quick Links */}
       <Panel padding="lg" className="mt-auto">
-        <div style={{ textAlign: 'center' }}>
+        <div className="text-center">
           <SectionHeader title="QUICK LINKS" />
         </div>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+        <div className="flex justify-center gap-4 flex-wrap">
           <LinkButton onClick={() => navigate('/analyses')} variant="primary">
             View All Analyses
           </LinkButton>

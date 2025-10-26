@@ -15,31 +15,44 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({ analysis }) => {
   // Get trading decision from API
   const tradeDecision = analysis.trading_decision
 
-  const getStatusColor = (status: string) => {
+  const getStatusColorClass = (status: string) => {
     switch (status) {
       case 'completed':
-        return '#00ff00'
+        return 'text-green-600 dark:text-green-400'
       case 'running':
-        return '#00d4ff'
+        return 'text-blue-600 dark:text-blue-400'
       case 'failed':
-        return '#ff4444'
+        return 'text-destructive'
       case 'pending':
-        return '#ffaa00'
+        return 'text-yellow-600 dark:text-yellow-400'
       default:
-        return '#4da6ff'
+        return 'text-primary'
     }
   }
 
-  const getDecisionColor = (decision: string) => {
+  const getDecisionColorClass = (decision: string) => {
     switch (decision) {
       case 'BUY':
-        return '#00ff00'
+        return 'text-green-600 dark:text-green-400'
       case 'SELL':
-        return '#ff4444'
+        return 'text-red-600 dark:text-red-400'
       case 'HOLD':
-        return '#ffaa00'
+        return 'text-yellow-600 dark:text-yellow-400'
       default:
-        return '#4da6ff'
+        return 'text-primary'
+    }
+  }
+
+  const getIconColor = (decision: string) => {
+    switch (decision) {
+      case 'BUY':
+        return 'rgb(22 163 74)' // green-600
+      case 'SELL':
+        return 'rgb(220 38 38)' // red-600
+      case 'HOLD':
+        return 'rgb(202 138 4)' // yellow-600
+      default:
+        return 'currentColor'
     }
   }
 
@@ -50,28 +63,17 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({ analysis }) => {
   return (
     <Card
       onClick={() => navigate(`/analyses/${analysis.id}`)}
-      className="cursor-pointer transition-all hover:shadow-md p-4"
-      style={{
-        borderColor: analysis.status === 'running' ? '#00d4ff' : undefined,
-        borderWidth: analysis.status === 'running' ? '2px' : undefined,
-        backgroundColor: analysis.status === 'running' ? 'rgba(0, 212, 255, 0.02)' : undefined,
-      }}
+      className={`cursor-pointer transition-all hover:shadow-md p-4 ${
+        analysis.status === 'running' ? 'border-blue-500 border-2 bg-blue-500/5' : ''
+      }`}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+      <div className="flex justify-between items-start">
         {/* Left side */}
-        <div style={{ flex: 1 }}>
-          <div
-            style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}
-          >
+        <div className="flex-1">
+          <div className="flex items-center gap-4 mb-2">
             {/* Ticker */}
             <span
-              style={{
-                fontSize: '1.25rem',
-                fontWeight: 'bold',
-                color: '#00d4ff',
-                cursor: 'pointer',
-                textDecoration: 'underline',
-              }}
+              className="text-xl font-bold text-primary cursor-pointer underline"
               onClick={(e) => {
                 e.stopPropagation()
                 navigate(`/asset/${analysis.ticker}`)
@@ -83,55 +85,43 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({ analysis }) => {
 
             {/* Decision or Status */}
             {analysis.status === 'completed' && tradeDecision ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div className="flex items-center gap-2">
                 {tradeDecision.decision === 'BUY' && (
-                  <TrendingUp size={20} color={getDecisionColor('BUY')} />
+                  <TrendingUp size={20} color={getIconColor('BUY')} />
                 )}
                 {tradeDecision.decision === 'SELL' && (
-                  <TrendingDown size={20} color={getDecisionColor('SELL')} />
+                  <TrendingDown size={20} color={getIconColor('SELL')} />
                 )}
                 {tradeDecision.decision === 'HOLD' && (
-                  <Minus size={20} color={getDecisionColor('HOLD')} />
+                  <Minus size={20} color={getIconColor('HOLD')} />
                 )}
-                <span
-                  style={{
-                    color: getDecisionColor(tradeDecision.decision),
-                    fontWeight: 'bold',
-                    fontSize: '1rem',
-                  }}
-                >
+                <span className={`font-bold text-base ${getDecisionColorClass(tradeDecision.decision)}`}>
                   {tradeDecision.decision}
                 </span>
                 {tradeDecision.confidence && (
-                  <span style={{ color: '#5a6e7a', fontSize: '0.875rem' }}>
+                  <span className="text-muted-foreground text-sm">
                     ({tradeDecision.confidence}%)
                   </span>
                 )}
               </div>
             ) : (
-              <span
-                style={{
-                  color: getStatusColor(analysis.status),
-                  fontSize: '0.875rem',
-                  fontWeight: 'bold',
-                }}
-              >
+              <span className={`text-sm font-bold ${getStatusColorClass(analysis.status)}`}>
                 {analysis.status.toUpperCase()}
               </span>
             )}
           </div>
 
           {/* Date, Duration, and Owner */}
-          <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.75rem', color: '#5a6e7a' }}>
+          <div className="flex gap-6 text-xs text-muted-foreground">
             <span>{analysis.analysis_date}</span>
             {duration && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <span className="flex items-center gap-1">
                 <Clock size={12} />
                 {duration}
               </span>
             )}
             {analysis.owner_username && (
-              <span style={{ color: '#4da6ff' }}>
+              <span className="text-foreground">
                 Owner: {analysis.owner_username}
               </span>
             )}
@@ -140,38 +130,19 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({ analysis }) => {
 
           {/* Progress bar for running analyses */}
           {analysis.status === 'running' && analysis.progress_percentage !== undefined && (
-            <div style={{ marginTop: '0.75rem' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  marginBottom: '0.25rem',
-                }}
-              >
-                <span style={{ fontSize: '0.7rem', color: '#00d4ff' }}>
+            <div className="mt-3">
+              <div className="flex justify-between mb-1">
+                <span className="text-[0.7rem] text-blue-600 dark:text-blue-400">
                   {analysis.current_agent || 'Processing...'}
                 </span>
-                <span style={{ fontSize: '0.7rem', color: '#00d4ff' }}>
+                <span className="text-[0.7rem] text-blue-600 dark:text-blue-400">
                   {analysis.progress_percentage}%
                 </span>
               </div>
-              <div
-                style={{
-                  height: '4px',
-                  backgroundColor: 'rgba(0, 212, 255, 0.2)',
-                  position: 'relative',
-                }}
-              >
+              <div className="h-1 bg-blue-500/20 relative">
                 <div
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    top: 0,
-                    height: '100%',
-                    width: `${analysis.progress_percentage}%`,
-                    backgroundColor: '#00d4ff',
-                    transition: 'width 0.3s ease',
-                  }}
+                  className="absolute left-0 top-0 h-full bg-blue-500 transition-all duration-300 ease-out"
+                  style={{ width: `${analysis.progress_percentage}%` }}
                 />
               </div>
             </div>
@@ -179,30 +150,14 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({ analysis }) => {
 
           {/* Error message */}
           {analysis.status === 'failed' && analysis.error_message && (
-            <div
-              style={{
-                marginTop: '0.5rem',
-                fontSize: '0.7rem',
-                color: '#ff4444',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
+            <div className="mt-2 text-[0.7rem] text-destructive overflow-hidden text-ellipsis whitespace-nowrap">
               Error: {analysis.error_message}
             </div>
           )}
         </div>
 
         {/* Right side - Arrow */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            color: '#4da6ff',
-            marginLeft: '1rem',
-          }}
-        >
+        <div className="flex items-center text-foreground ml-4">
           <ChevronRight size={20} />
         </div>
       </div>

@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/card'
 import { MetricCard } from '../components/common/MetricCard'
 import { StatusBadge } from '../components/data-display/StatusBadge'
 import { Collapsible } from '../components/interactive/Collapsible'
-import { Table, TableBody, TableCell, TableHeader, TableRow } from '../components/ui/Table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useBacktestWebSocket } from '../hooks/useBacktestWebSocket'
 import { formatCurrency, formatDateShort, formatPercentageWithSign } from '../utils/formatters'
@@ -130,12 +130,7 @@ export const BacktestDetail: React.FC = () => {
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
             <h1
-              style={{
-                fontSize: '1.5rem',
-                fontWeight: 'bold',
-                color: '#4da6ff',
-                fontFamily: 'JetBrains Mono, monospace',
-              }}
+              className="text-2xl font-bold text-primary font-mono"
             >
               {backtest.name}
             </h1>
@@ -224,19 +219,13 @@ export const BacktestDetail: React.FC = () => {
       {equityCurve && equityCurve.length > 0 && (
         <Card className="p-6">
           <h2
-            style={{
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              marginBottom: '1.5rem',
-            }}
+            className="text-base font-bold text-primary font-mono mb-6"
           >
             EQUITY CURVE
           </h2>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={equityCurve}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(77, 166, 255, 0.1)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--primary) / 0.1)" />
               <XAxis
                 dataKey="date"
                 stroke="#2a3e4a"
@@ -249,16 +238,16 @@ export const BacktestDetail: React.FC = () => {
                 tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
               />
               <Tooltip
-                contentStyle={{
-                  backgroundColor: '#0a1929',
-                  border: '1px solid #4da6ff',
-                  fontFamily: 'JetBrains Mono',
-                  fontSize: '0.75rem',
-                }}
+              contentStyle={{
+                backgroundColor: 'hsl(var(--background))',
+                border: '1px solid hsl(var(--primary))',
+                fontFamily: 'JetBrains Mono',
+                fontSize: '0.75rem',
+              }}
                 labelFormatter={(value) => formatDateShort(value)}
                 formatter={(value: any) => [formatCurrency(value), 'Portfolio Value']}
               />
-              <Line type="monotone" dataKey="portfolio_value" stroke="#4da6ff" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="portfolio_value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </Card>
@@ -267,51 +256,48 @@ export const BacktestDetail: React.FC = () => {
       {/* Trades Table */}
       {trades && trades.length > 0 && (
         <Card className="p-3">
-          <div style={{ padding: '1rem', borderBottom: '1px solid rgba(77, 166, 255, 0.3)' }}>
+          <div style={{ padding: '1rem', borderBottom: '1px solid hsl(var(--border))' }}>
             <h2
-              style={{
-                fontSize: '1rem',
-                fontWeight: 'bold',
-                color: '#4da6ff',
-                fontFamily: 'JetBrains Mono, monospace',
-              }}
+              className="text-base font-bold text-primary font-mono"
             >
               TRADES
             </h2>
           </div>
-          <Table bordered={false}>
+          <Table>
             <TableHeader>
-              <TableCell header align="left">DATE</TableCell>
-              <TableCell header align="left">TICKER</TableCell>
-              <TableCell header align="center">ACTION</TableCell>
-              <TableCell header align="right">QUANTITY</TableCell>
-              <TableCell header align="right">PRICE</TableCell>
-              <TableCell header align="right">P&L</TableCell>
+              <TableRow>
+                <TableHead>DATE</TableHead>
+                <TableHead>TICKER</TableHead>
+                <TableHead className="text-center">ACTION</TableHead>
+                <TableHead className="text-right">QUANTITY</TableHead>
+                <TableHead className="text-right">PRICE</TableHead>
+                <TableHead className="text-right">P&L</TableHead>
+              </TableRow>
             </TableHeader>
             <TableBody>
               {trades.slice(0, 50).map((trade) => (
-                <TableRow key={trade.id} hoverable={false}>
-                  <TableCell color="#2a3e4a">{formatDateShort(trade.trade_date)}</TableCell>
-                  <TableCell bold>{trade.ticker}</TableCell>
-                  <TableCell align="center">
+                <TableRow key={trade.id}>
+                  <TableCell className="text-muted-foreground">{formatDateShort(trade.trade_date)}</TableCell>
+                  <TableCell className="font-bold">{trade.ticker}</TableCell>
+                  <TableCell className="text-center">
                     <span
-                      style={{
-                        padding: '0.25rem 0.5rem',
-                        border: `1px solid ${trade.action === 'BUY' ? '#00ff00' : '#ff0000'}`,
-                        color: trade.action === 'BUY' ? '#00ff00' : '#ff0000',
-                        fontFamily: 'JetBrains Mono, monospace',
-                        fontSize: '0.75rem',
-                      }}
+                      className={`px-2 py-1 border font-mono text-xs ${
+                        trade.action === 'BUY'
+                          ? 'border-green-500 text-green-600 dark:text-green-400'
+                          : 'border-red-500 text-red-600 dark:text-red-400'
+                      }`}
                     >
                       {trade.action}
                     </span>
                   </TableCell>
-                  <TableCell align="right">{trade.quantity.toFixed(2)}</TableCell>
-                  <TableCell align="right">{formatCurrency(trade.price)}</TableCell>
+                  <TableCell className="text-right">{trade.quantity.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(trade.price)}</TableCell>
                   <TableCell
-                    align="right"
-                    color={trade.pnl !== null && trade.pnl >= 0 ? '#00ff00' : '#ff0000'}
-                    bold
+                    className={`text-right font-bold ${
+                      trade.pnl !== null && trade.pnl >= 0
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-red-600 dark:text-red-400'
+                    }`}
                   >
                     {trade.pnl !== null ? (
                       <>
@@ -376,14 +362,8 @@ export const BacktestDetail: React.FC = () => {
             DSL YAML
           </div>
           <pre
+            className="bg-secondary border border-primary/30 p-4 overflow-auto text-primary text-xs font-mono"
             style={{
-              backgroundColor: '#1a2a3a',
-              border: '1px solid rgba(77, 166, 255, 0.3)',
-              padding: '1rem',
-              overflow: 'auto',
-              color: '#4da6ff',
-              fontSize: '0.75rem',
-              fontFamily: 'Consolas, Monaco, monospace',
               lineHeight: '1.5',
             }}
           >
@@ -396,7 +376,7 @@ export const BacktestDetail: React.FC = () => {
       {backtest.status === 'pending' && (
         <div
           style={{
-            border: '1px solid rgba(77, 166, 255, 0.3)',
+            border: '1px solid hsl(var(--border))',
             padding: '2rem',
             textAlign: 'center',
           }}
@@ -426,16 +406,14 @@ export const BacktestDetail: React.FC = () => {
       {backtest.status === 'running' && (
         <div
           style={{
-            border: '1px solid rgba(77, 166, 255, 0.3)',
+            border: '1px solid hsl(var(--border))',
             padding: '2rem',
             textAlign: 'center',
           }}
         >
           <p
+            className="text-primary font-mono text-base"
             style={{
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '1rem',
               marginBottom: '1rem',
             }}
           >
@@ -444,13 +422,13 @@ export const BacktestDetail: React.FC = () => {
           <div style={{
             width: '100%',
             height: '4px',
-            backgroundColor: 'rgba(77, 166, 255, 0.2)',
+            backgroundColor: 'hsl(var(--primary) / 0.2)',
             marginBottom: '1rem',
           }}>
             <div style={{
               width: `${backtest.progress_percentage}%`,
               height: '100%',
-              backgroundColor: '#4da6ff',
+              backgroundColor: 'hsl(var(--primary))',
               transition: 'width 0.3s ease',
             }} />
           </div>

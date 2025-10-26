@@ -21,15 +21,15 @@ export const AnalysisStatusCard: React.FC<AnalysisStatusCardProps> = ({ analysis
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return '#00ff00'
+        return 'hsl(var(--success))'
       case 'running':
-        return '#00d4ff'
+        return 'hsl(var(--accent))'
       case 'failed':
-        return '#ff4444'
+        return 'hsl(var(--destructive))'
       case 'pending':
-        return '#ffaa00'
+        return 'hsl(var(--warning))'
       default:
-        return '#4da6ff'
+        return 'hsl(var(--primary))'
     }
   }
 
@@ -61,7 +61,7 @@ export const AnalysisStatusCard: React.FC<AnalysisStatusCardProps> = ({ analysis
   return (
     <div
       style={{
-        border: '1px solid rgba(77, 166, 255, 0.3)',
+        border: '1px solid hsl(var(--border))',
         padding: '1rem',
         fontFamily: 'JetBrains Mono, monospace',
         fontSize: '0.75rem',
@@ -76,7 +76,7 @@ export const AnalysisStatusCard: React.FC<AnalysisStatusCardProps> = ({ analysis
           marginBottom: '0.75rem',
         }}
       >
-        <span style={{ color: '#5a6e7a' }}>STATUS</span>
+        <span style={{ color: 'hsl(var(--muted-foreground))' }}>STATUS</span>
         <span
           style={{
             color: getStatusColor(analysis.status),
@@ -103,7 +103,7 @@ export const AnalysisStatusCard: React.FC<AnalysisStatusCardProps> = ({ analysis
           <div
             style={{
               height: '4px',
-              backgroundColor: 'rgba(77, 166, 255, 0.2)',
+              backgroundColor: 'hsl(var(--primary) / 0.2)',
               position: 'relative',
             }}
           >
@@ -161,7 +161,7 @@ export const AnalysisStatusCard: React.FC<AnalysisStatusCardProps> = ({ analysis
       <div
         style={{
           paddingTop: '0.75rem',
-          borderTop: '1px solid rgba(77, 166, 255, 0.2)',
+          borderTop: '1px solid hsl(var(--primary) / 0.2)',
           fontSize: '0.65rem',
           color: '#5a6e7a',
         }}

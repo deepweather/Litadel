@@ -10,14 +10,7 @@ interface ReportViewerProps {
 export const ReportViewer: React.FC<ReportViewerProps> = ({ reports }) => {
   const handleCopyReport = (report: AnalysisReport) => {
     navigator.clipboard.writeText(report.content || '');
-    toast.success(`${report.report_type.replace('_', ' ')} copied to clipboard`, {
-      style: {
-        background: '#1a2a3a',
-        color: '#4da6ff',
-        border: '1px solid #4da6ff',
-        fontFamily: 'JetBrains Mono, monospace',
-      },
-    });
+    toast.success(`${report.report_type.replace('_', ' ')} copied to clipboard`);
   };
 
   const handleDownloadReport = (report: AnalysisReport) => {
@@ -84,8 +77,8 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({ reports }) => {
           <div
             key={key}
             style={{
-              border: isTradeDecision ? '2px solid #4da6ff' : '1px solid rgba(77, 166, 255, 0.3)',
-              backgroundColor: isTradeDecision ? 'rgba(77, 166, 255, 0.02)' : 'transparent',
+              border: isTradeDecision ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
+              backgroundColor: isTradeDecision ? 'hsl(var(--primary) / 0.02)' : 'transparent',
               padding: '1rem',
               fontFamily: 'JetBrains Mono, monospace'
             }}
@@ -109,9 +102,9 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({ reports }) => {
                   onClick={() => handleCopyReport(report)}
                   style={{
                     padding: '0.25rem 0.5rem',
-                    border: '1px solid rgba(77, 166, 255, 0.3)',
+                    border: '1px solid hsl(var(--border))',
                     backgroundColor: 'transparent',
-                    color: '#4da6ff',
+                    color: 'hsl(var(--primary))',
                     fontFamily: 'JetBrains Mono, monospace',
                     fontSize: '0.75rem',
                     cursor: 'pointer',
@@ -122,10 +115,10 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({ reports }) => {
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = '#4da6ff';
-                    e.currentTarget.style.backgroundColor = 'rgba(77, 166, 255, 0.1)';
+                    e.currentTarget.style.backgroundColor = 'hsl(var(--primary) / 0.1)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(77, 166, 255, 0.3)';
+                    e.currentTarget.style.borderColor = 'hsl(var(--border))';
                     e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
@@ -136,9 +129,9 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({ reports }) => {
                   onClick={() => handleDownloadReport(report)}
                   style={{
                     padding: '0.25rem 0.5rem',
-                    border: '1px solid rgba(77, 166, 255, 0.3)',
+                    border: '1px solid hsl(var(--border))',
                     backgroundColor: 'transparent',
-                    color: '#4da6ff',
+                    color: 'hsl(var(--primary))',
                     fontFamily: 'JetBrains Mono, monospace',
                     fontSize: '0.75rem',
                     cursor: 'pointer',
@@ -149,10 +142,10 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({ reports }) => {
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = '#4da6ff';
-                    e.currentTarget.style.backgroundColor = 'rgba(77, 166, 255, 0.1)';
+                    e.currentTarget.style.backgroundColor = 'hsl(var(--primary) / 0.1)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(77, 166, 255, 0.3)';
+                    e.currentTarget.style.borderColor = 'hsl(var(--border))';
                     e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
@@ -187,7 +180,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({ reports }) => {
                 style={{
                   marginTop: '0.75rem',
                   paddingTop: '0.75rem',
-                  borderTop: '1px solid rgba(77, 166, 255, 0.2)',
+                  borderTop: '1px solid hsl(var(--primary) / 0.2)',
                   maxHeight: '400px',
                   overflowY: 'auto',
                   overflowX: 'hidden',
@@ -198,7 +191,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({ reports }) => {
                   style={{
                     fontFamily: 'JetBrains Mono, monospace',
                     fontSize: '0.875rem',
-                    color: '#4da6ff',
+                    color: 'hsl(var(--primary))',
                     whiteSpace: 'pre-wrap',
                     wordWrap: 'break-word',
                     overflowWrap: 'break-word',

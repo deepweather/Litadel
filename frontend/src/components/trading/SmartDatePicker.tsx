@@ -1,5 +1,8 @@
 import React, { useState } from 'react'
 import { Calendar } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface SmartDatePickerProps {
   onDateRangeSelect: (startDate: string, endDate: string) => void
@@ -61,56 +64,20 @@ export const SmartDatePicker: React.FC<SmartDatePickerProps> = ({
   }
 
   return (
-    <div style={{
-      padding: '1.5rem',
-      border: '2px solid #4da6ff',
-      borderRadius: '8px',
-      backgroundColor: 'rgba(77, 166, 255, 0.05)'
-    }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.5rem',
-        marginBottom: '1rem',
-        color: '#4da6ff',
-        fontSize: '0.875rem',
-        fontWeight: 'bold'
-      }}>
+    <div className="p-6 border-2 border-primary rounded-lg bg-primary/5">
+      <div className="flex items-center gap-2 mb-4 text-primary text-sm font-bold">
         <Calendar size={18} />
         <span>What time period for the backtest?</span>
       </div>
 
       {!showCustom ? (
         <>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-            gap: '0.75rem',
-            marginBottom: '0.75rem'
-          }}>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-3 mb-3">
             {Object.keys(presets).map((presetName) => (
               <button
                 key={presetName}
                 onClick={() => handlePresetClick(presetName)}
-                style={{
-                  padding: '0.75rem',
-                  border: '1px solid #4da6ff',
-                  backgroundColor: 'rgba(77, 166, 255, 0.1)',
-                  color: '#4da6ff',
-                  fontSize: '0.875rem',
-                  fontFamily: 'JetBrains Mono, monospace',
-                  cursor: 'pointer',
-                  borderRadius: '4px',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(77, 166, 255, 0.2)'
-                  e.currentTarget.style.borderColor = '#00d4ff'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(77, 166, 255, 0.1)'
-                  e.currentTarget.style.borderColor = '#4da6ff'
-                }}
+                className="p-3 border border-primary bg-primary/10 text-primary text-sm font-mono cursor-pointer rounded transition-all hover:bg-primary/20 hover:border-blue-500"
               >
                 {presetName}
               </button>
@@ -119,112 +86,55 @@ export const SmartDatePicker: React.FC<SmartDatePickerProps> = ({
 
           <button
             onClick={() => setShowCustom(true)}
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              border: '1px dashed #4da6ff',
-              backgroundColor: 'transparent',
-              color: '#4da6ff',
-              fontSize: '0.875rem',
-              fontFamily: 'JetBrains Mono, monospace',
-              cursor: 'pointer',
-              borderRadius: '4px'
-            }}
+            className="w-full p-3 border border-dashed border-primary bg-transparent text-primary text-sm font-mono cursor-pointer rounded hover:bg-primary/5"
           >
             Custom Range...
           </button>
         </>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="flex flex-col gap-4">
           <div>
-            <label style={{
-              display: 'block',
-              marginBottom: '0.5rem',
-              color: '#4da6ff',
-              fontSize: '0.75rem'
-            }}>
+            <Label className="block mb-2 text-primary text-xs">
               START DATE
-            </label>
-            <input
+            </Label>
+            <Input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                backgroundColor: '#1a2a3a',
-                border: '1px solid #4da6ff',
-                color: '#fff',
-                fontFamily: 'JetBrains Mono, monospace',
-                fontSize: '0.875rem'
-              }}
+              className="w-full p-2 bg-background border border-primary text-foreground font-mono text-sm"
             />
           </div>
 
           <div>
-            <label style={{
-              display: 'block',
-              marginBottom: '0.5rem',
-              color: '#4da6ff',
-              fontSize: '0.75rem'
-            }}>
+            <Label className="block mb-2 text-primary text-xs">
               END DATE
-            </label>
-            <input
+            </Label>
+            <Input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                backgroundColor: '#1a2a3a',
-                border: '1px solid #4da6ff',
-                color: '#fff',
-                fontFamily: 'JetBrains Mono, monospace',
-                fontSize: '0.875rem'
-              }}
+              className="w-full p-2 bg-background border border-primary text-foreground font-mono text-sm"
             />
           </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button
+          <div className="flex gap-2">
+            <Button
               onClick={handleCustomSubmit}
               disabled={!startDate || !endDate}
-              style={{
-                flex: 1,
-                padding: '0.75rem',
-                border: '1px solid #00d4ff',
-                backgroundColor: 'rgba(0, 212, 255, 0.1)',
-                color: '#00d4ff',
-                fontSize: '0.875rem',
-                fontWeight: 'bold',
-                fontFamily: 'JetBrains Mono, monospace',
-                cursor: !startDate || !endDate ? 'not-allowed' : 'pointer',
-                opacity: !startDate || !endDate ? 0.5 : 1,
-                borderRadius: '4px'
-              }}
+              className="flex-1 p-3 border border-blue-500 bg-blue-500/10 text-blue-500 text-sm font-bold font-mono disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Apply
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setShowCustom(false)}
-              style={{
-                padding: '0.75rem 1.5rem',
-                border: '1px solid #666',
-                backgroundColor: 'transparent',
-                color: '#666',
-                fontSize: '0.875rem',
-                fontFamily: 'JetBrains Mono, monospace',
-                cursor: 'pointer',
-                borderRadius: '4px'
-              }}
+              variant="outline"
+              className="px-6 py-3 border border-muted-foreground text-muted-foreground text-sm font-mono"
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </div>
       )}
     </div>
   )
 }
-

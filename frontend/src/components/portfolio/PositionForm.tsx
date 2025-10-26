@@ -186,7 +186,7 @@ export const PositionForm: React.FC<PositionFormProps> = ({
                 style={{
                   display: 'block',
                   marginBottom: '0.5rem',
-                  color: '#4da6ff',
+                  color: 'hsl(var(--primary))',
                   fontSize: '0.875rem',
                 }}
               >
@@ -218,7 +218,7 @@ export const PositionForm: React.FC<PositionFormProps> = ({
                     }}
                   >
                     {tickerValidation.status === 'validating' && (
-                      <Loader size={16} color="#4da6ff" style={{ animation: 'spin 1s linear infinite' }} />
+                      <Loader size={16} className="text-primary animate-spin" />
                     )}
                     {tickerValidation.status === 'valid' && <Check size={16} color="#00ff00" />}
                     {tickerValidation.status === 'invalid' && <AlertCircle size={16} color="#ff0000" />}
@@ -245,9 +245,9 @@ export const PositionForm: React.FC<PositionFormProps> = ({
                     marginTop: '0.5rem',
                     padding: '0.25rem 0.5rem',
                     fontSize: '0.75rem',
-                    color: '#4da6ff',
+                    color: 'hsl(var(--primary))',
                     backgroundColor: 'transparent',
-                    border: '1px solid #4da6ff',
+                    border: '1px solid hsl(var(--primary))',
                     cursor: 'pointer',
                     fontFamily: 'JetBrains Mono, monospace',
                   }}
@@ -267,7 +267,7 @@ export const PositionForm: React.FC<PositionFormProps> = ({
                 style={{
                   display: 'block',
                   marginBottom: '0.5rem',
-                  color: '#4da6ff',
+                  color: 'hsl(var(--primary))',
                   fontSize: '0.875rem',
                 }}
               >
@@ -294,7 +294,7 @@ export const PositionForm: React.FC<PositionFormProps> = ({
                     style={{
                       display: 'block',
                       marginBottom: '0.5rem',
-                      color: '#4da6ff',
+                      color: 'hsl(var(--primary))',
                       fontSize: '0.875rem',
                     }}
                   >
@@ -317,7 +317,7 @@ export const PositionForm: React.FC<PositionFormProps> = ({
                           transform: 'translateY(-50%)',
                         }}
                       >
-                        <Loader size={16} color="#4da6ff" style={{ animation: 'spin 1s linear infinite' }} />
+                        <Loader size={16} className="text-primary animate-spin" />
                       </div>
                     )}
                   </div>
@@ -345,7 +345,7 @@ export const PositionForm: React.FC<PositionFormProps> = ({
                     style={{
                       display: 'block',
                       marginBottom: '0.5rem',
-                      color: '#4da6ff',
+                      color: 'hsl(var(--primary))',
                       fontSize: '0.875rem',
                     }}
                   >
@@ -372,7 +372,7 @@ export const PositionForm: React.FC<PositionFormProps> = ({
                     style={{
                       display: 'block',
                       marginBottom: '0.5rem',
-                      color: '#4da6ff',
+                      color: 'hsl(var(--primary))',
                       fontSize: '0.875rem',
                     }}
                   >
@@ -397,7 +397,7 @@ export const PositionForm: React.FC<PositionFormProps> = ({
                     style={{
                       display: 'block',
                       marginBottom: '0.5rem',
-                      color: '#4da6ff',
+                      color: 'hsl(var(--primary))',
                       fontSize: '0.875rem',
                     }}
                   >
@@ -417,7 +417,7 @@ export const PositionForm: React.FC<PositionFormProps> = ({
                 style={{
                   display: 'block',
                   marginBottom: '0.5rem',
-                  color: '#4da6ff',
+                  color: 'hsl(var(--primary))',
                   fontSize: '0.875rem',
                 }}
               >
@@ -430,8 +430,8 @@ export const PositionForm: React.FC<PositionFormProps> = ({
                 style={{
                   width: '100%',
                   padding: '0.75rem',
-                  backgroundColor: '#1a2a3a',
-                  border: '1px solid rgba(77, 166, 255, 0.3)',
+                  backgroundColor: 'hsl(var(--secondary))',
+                  border: '1px solid hsl(var(--border))',
                   color: '#fff',
                   fontFamily: 'JetBrains Mono, monospace',
                   fontSize: '0.875rem',

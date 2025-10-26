@@ -113,26 +113,12 @@ export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialT
     e.preventDefault()
 
     if (!ticker) {
-      toast.error('Ticker is required', {
-        style: {
-          background: '#1a2a3a',
-          color: '#ff4444',
-          border: '1px solid #ff4444',
-          fontFamily: 'JetBrains Mono, monospace',
-        },
-      })
+      toast.error('Ticker is required')
       return
     }
 
     if (selectedAnalysts.length === 0) {
-      toast.error('Select at least one analyst', {
-        style: {
-          background: '#1a2a3a',
-          color: '#ff4444',
-          border: '1px solid #ff4444',
-          fontFamily: 'JetBrains Mono, monospace',
-        },
-      })
+      toast.error('Select at least one analyst')
       return
     }
 
@@ -159,27 +145,13 @@ export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialT
         research_depth: researchDepth,
       })
 
-      toast.success(`Analysis started: ${analysis.ticker}`, {
-        style: {
-          background: '#1a2a3a',
-          color: '#4da6ff',
-          border: '1px solid #4da6ff',
-          fontFamily: 'JetBrains Mono, monospace',
-        },
-      })
+      toast.success(`Analysis started: ${analysis.ticker}`)
 
       navigate(`/analyses/${analysis.id}`)
     } catch (error: any) {
       const errorMsg =
         error.response?.data?.detail?.[0]?.msg || error.detail || 'Failed to create analysis'
-      toast.error(errorMsg, {
-        style: {
-          background: '#1a2a3a',
-          color: '#ff4444',
-          border: '1px solid #ff4444',
-          fontFamily: 'JetBrains Mono, monospace',
-        },
-      })
+      toast.error(errorMsg)
       setShowConfirm(false)
     }
   }
@@ -187,113 +159,46 @@ export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialT
   const estimatedMinutes = getEstimatedTime()
 
   return (
-    <form onSubmit={handleSubmit} style={{ maxWidth: '900px' }}>
+    <form onSubmit={handleSubmit} className="max-w-[900px]">
       {/* Quick Presets */}
-      <div style={{ marginBottom: '2rem' }}>
-        <div
-          style={{
-            fontSize: '0.875rem',
-            color: '#5a6e7a',
-            fontFamily: 'JetBrains Mono, monospace',
-            marginBottom: '0.75rem',
-          }}
-        >
+      <div className="mb-8">
+        <div className="text-sm text-muted-foreground font-mono mb-3">
           QUICK PRESETS
         </div>
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <div className="flex gap-4 flex-wrap">
           <button
             type="button"
             onClick={() => applyPreset('quick')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.75rem 1.5rem',
-              border: '1px solid rgba(77, 166, 255, 0.3)',
-              backgroundColor: 'transparent',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#4da6ff'
-              e.currentTarget.style.backgroundColor = 'rgba(77, 166, 255, 0.1)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(77, 166, 255, 0.3)'
-              e.currentTarget.style.backgroundColor = 'transparent'
-            }}
+            className="flex items-center gap-2 px-6 py-3 border border-border bg-transparent text-primary font-mono text-sm cursor-pointer transition-all hover:border-primary hover:bg-primary/10"
           >
             <Zap size={16} />
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 'bold' }}>Quick Scan</div>
-              <div style={{ fontSize: '0.7rem', color: '#5a6e7a' }}>Market only • ~2 min</div>
+            <div className="text-left">
+              <div className="font-bold">Quick Scan</div>
+              <div className="text-xs text-muted-foreground">Market only • ~2 min</div>
             </div>
           </button>
 
           <button
             type="button"
             onClick={() => applyPreset('standard')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.75rem 1.5rem',
-              border: '1px solid rgba(77, 166, 255, 0.3)',
-              backgroundColor: 'transparent',
-              color: '#00d4ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#00d4ff'
-              e.currentTarget.style.backgroundColor = 'rgba(0, 212, 255, 0.1)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(77, 166, 255, 0.3)'
-              e.currentTarget.style.backgroundColor = 'transparent'
-            }}
+            className="flex items-center gap-2 px-6 py-3 border border-border bg-transparent text-blue-500 font-mono text-sm cursor-pointer transition-all hover:border-blue-500 hover:bg-blue-500/10"
           >
             <Clock size={16} />
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 'bold' }}>Standard</div>
-              <div style={{ fontSize: '0.7rem', color: '#5a6e7a' }}>4 analysts • ~6 min</div>
+            <div className="text-left">
+              <div className="font-bold">Standard</div>
+              <div className="text-xs text-muted-foreground">4 analysts • ~6 min</div>
             </div>
           </button>
 
           <button
             type="button"
             onClick={() => applyPreset('deep')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.75rem 1.5rem',
-              border: '1px solid rgba(77, 166, 255, 0.3)',
-              backgroundColor: 'transparent',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#4da6ff'
-              e.currentTarget.style.backgroundColor = 'rgba(77, 166, 255, 0.1)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(77, 166, 255, 0.3)'
-              e.currentTarget.style.backgroundColor = 'transparent'
-            }}
+            className="flex items-center gap-2 px-6 py-3 border border-border bg-transparent text-primary font-mono text-sm cursor-pointer transition-all hover:border-primary hover:bg-primary/10"
           >
             <Search size={16} />
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontWeight: 'bold' }}>Deep Research</div>
-              <div style={{ fontSize: '0.7rem', color: '#5a6e7a' }}>5 analysts • ~15 min</div>
+            <div className="text-left">
+              <div className="font-bold">Deep Research</div>
+              <div className="text-xs text-muted-foreground">5 analysts • ~15 min</div>
             </div>
           </button>
         </div>
@@ -312,37 +217,26 @@ export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialT
               required
               autoFocus
               aria-label="Ticker Symbol"
-              style={{ border: '1px solid #4da6ff' }}
-              onFocus={(e) => {
-                e.currentTarget.style.border = '1px solid #00d4ff'
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.border = '1px solid #4da6ff'
-              }}
+              className="border-primary focus:border-blue-500"
             />
 
             {/* Recent Tickers */}
             {recentTickers.length > 0 && (
-              <div style={{ marginTop: '0.5rem' }}>
-                <div style={{ fontSize: '0.7rem', color: '#5a6e7a', marginBottom: '0.25rem' }}>
+              <div className="mt-2">
+                <div className="text-xs text-muted-foreground mb-1">
                   Recent:
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <div className="flex gap-2 flex-wrap">
                   {recentTickers.map((t) => (
                     <button
                       key={t}
                       type="button"
                       onClick={() => setTicker(t)}
-                      style={{
-                        padding: '0.25rem 0.75rem',
-                        border: '1px solid rgba(77, 166, 255, 0.3)',
-                        backgroundColor: ticker === t ? 'rgba(77, 166, 255, 0.1)' : 'transparent',
-                        color: ticker === t ? '#00d4ff' : '#4da6ff',
-                        fontFamily: 'JetBrains Mono, monospace',
-                        fontSize: '0.75rem',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                      }}
+                      className={`px-3 py-1 border font-mono text-xs cursor-pointer transition-all ${
+                        ticker === t
+                          ? 'border-blue-500 bg-blue-500/10 text-blue-500'
+                          : 'border-border bg-transparent text-primary hover:border-primary'
+                      }`}
                     >
                       {t}
                     </button>
@@ -352,26 +246,21 @@ export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialT
             )}
 
             {/* Popular Tickers */}
-            <div style={{ marginTop: '0.5rem' }}>
-              <div style={{ fontSize: '0.7rem', color: '#5a6e7a', marginBottom: '0.25rem' }}>
+            <div className="mt-2">
+              <div className="text-xs text-muted-foreground mb-1">
                 Popular:
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <div className="flex gap-2 flex-wrap">
                 {POPULAR_TICKERS.map((t) => (
                   <button
                     key={t}
                     type="button"
                     onClick={() => setTicker(t)}
-                    style={{
-                      padding: '0.25rem 0.75rem',
-                      border: '1px solid rgba(77, 166, 255, 0.3)',
-                      backgroundColor: ticker === t ? 'rgba(77, 166, 255, 0.1)' : 'transparent',
-                      color: ticker === t ? '#00d4ff' : '#4da6ff',
-                      fontFamily: 'JetBrains Mono, monospace',
-                      fontSize: '0.75rem',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
+                    className={`px-3 py-1 border font-mono text-xs cursor-pointer transition-all ${
+                      ticker === t
+                        ? 'border-blue-500 bg-blue-500/10 text-blue-500'
+                        : 'border-border bg-transparent text-primary hover:border-primary'
+                    }`}
                   >
                     {t}
                   </button>
@@ -389,61 +278,27 @@ export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialT
               onChange={(e) => setAnalysisDate(e.target.value)}
               required
               id="analysisDate"
-              style={{
-                border: '1px solid #4da6ff',
-                colorScheme: 'dark',
-                color: '#4da6ff',
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.border = '1px solid #00d4ff'
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.border = '1px solid #4da6ff'
-              }}
+              className="border-primary focus:border-blue-500 [color-scheme:dark] text-primary"
             />
-            <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
+            <div className="mt-2 flex gap-2">
               <button
                 type="button"
                 onClick={() => setQuickDate(0)}
-                style={{
-                  padding: '0.25rem 0.75rem',
-                  border: '1px solid rgba(77, 166, 255, 0.3)',
-                  backgroundColor: 'transparent',
-                  color: '#4da6ff',
-                  fontFamily: 'JetBrains Mono, monospace',
-                  fontSize: '0.75rem',
-                  cursor: 'pointer',
-                }}
+                className="px-3 py-1 border border-border bg-transparent text-primary font-mono text-xs cursor-pointer hover:border-primary"
               >
                 Today
               </button>
               <button
                 type="button"
                 onClick={() => setQuickDate(1)}
-                style={{
-                  padding: '0.25rem 0.75rem',
-                  border: '1px solid rgba(77, 166, 255, 0.3)',
-                  backgroundColor: 'transparent',
-                  color: '#4da6ff',
-                  fontFamily: 'JetBrains Mono, monospace',
-                  fontSize: '0.75rem',
-                  cursor: 'pointer',
-                }}
+                className="px-3 py-1 border border-border bg-transparent text-primary font-mono text-xs cursor-pointer hover:border-primary"
               >
                 Yesterday
               </button>
               <button
                 type="button"
                 onClick={() => setQuickDate(7)}
-                style={{
-                  padding: '0.25rem 0.75rem',
-                  border: '1px solid rgba(77, 166, 255, 0.3)',
-                  backgroundColor: 'transparent',
-                  color: '#4da6ff',
-                  fontFamily: 'JetBrains Mono, monospace',
-                  fontSize: '0.75rem',
-                  cursor: 'pointer',
-                }}
+                className="px-3 py-1 border border-border bg-transparent text-primary font-mono text-xs cursor-pointer hover:border-primary"
               >
                 Last Week
               </button>
@@ -452,66 +307,36 @@ export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialT
 
           {/* Analysts Selection */}
           <div>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '0.5rem',
-              }}
-            >
-              <label className="text-terminal-fg font-mono text-sm">
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-foreground font-mono text-sm">
                 SELECT ANALYSTS ({selectedAnalysts.length}/{ANALYST_TYPES.length})
               </label>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={handleSelectAll}
-                  style={{
-                    padding: '0.25rem 0.5rem',
-                    border: '1px solid rgba(77, 166, 255, 0.3)',
-                    backgroundColor: 'transparent',
-                    color: '#4da6ff',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    fontSize: '0.7rem',
-                    cursor: 'pointer',
-                  }}
+                  className="px-2 py-1 border border-border bg-transparent text-primary font-mono text-xs cursor-pointer hover:border-primary"
                 >
                   Select All
                 </button>
                 <button
                   type="button"
                   onClick={handleSelectNone}
-                  style={{
-                    padding: '0.25rem 0.5rem',
-                    border: '1px solid rgba(77, 166, 255, 0.3)',
-                    backgroundColor: 'transparent',
-                    color: '#4da6ff',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    fontSize: '0.7rem',
-                    cursor: 'pointer',
-                  }}
+                  className="px-2 py-1 border border-border bg-transparent text-primary font-mono text-xs cursor-pointer hover:border-primary"
                 >
                   Clear
                 </button>
               </div>
             </div>
-            <div className="space-y-2 border border-terminal-border p-3">
+            <div className="space-y-2 border p-3">
               {ANALYST_TYPES.map((analyst) => (
-                <div key={analyst} style={{ display: 'flex', alignItems: 'start', gap: '0.5rem' }}>
+                <div key={analyst} className="flex items-start gap-2">
                   <Checkbox
                     label={analyst.toUpperCase()}
                     checked={selectedAnalysts.includes(analyst)}
                     onChange={() => handleAnalystToggle(analyst)}
                   />
-                  <div
-                    style={{
-                      fontSize: '0.7rem',
-                      color: '#5a6e7a',
-                      marginTop: '0.25rem',
-                      fontFamily: 'JetBrains Mono, monospace',
-                    }}
-                  >
+                  <div className="text-xs text-muted-foreground mt-1 font-mono">
                     {ANALYST_DESCRIPTIONS[analyst]}
                   </div>
                 </div>
@@ -521,7 +346,7 @@ export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialT
 
           {/* Research Depth */}
           <div>
-            <label className="text-terminal-fg font-mono text-sm mb-2 block">
+            <label className="text-foreground font-mono text-sm mb-2 block">
               RESEARCH DEPTH: {getDepthLabel()} (Level {researchDepth})
             </label>
             <div className="space-y-2">
@@ -531,9 +356,9 @@ export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialT
                 max="3"
                 value={researchDepth}
                 onChange={(e) => setResearchDepth(Number(e.target.value))}
-                className="w-full h-2 bg-terminal-highlight border border-terminal-border outline-none slider"
+                className="w-full h-2 bg-muted border outline-none"
               />
-              <div className="flex justify-between text-xs text-terminal-dim">
+              <div className="flex justify-between text-xs text-muted-foreground">
                 <span>
                   Basic
                   <br />
@@ -554,18 +379,11 @@ export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialT
           </div>
 
           {/* Estimated Time */}
-          <div
-            style={{
-              padding: '0.75rem',
-              border: '1px solid rgba(0, 212, 255, 0.3)',
-              backgroundColor: 'rgba(0, 212, 255, 0.05)',
-              fontFamily: 'JetBrains Mono, monospace',
-            }}
-          >
-            <div style={{ fontSize: '0.75rem', color: '#5a6e7a', marginBottom: '0.25rem' }}>
+          <div className="p-3 border border-blue-500/30 bg-blue-500/5 font-mono">
+            <div className="text-xs text-muted-foreground mb-1">
               ESTIMATED COMPLETION TIME
             </div>
-            <div style={{ fontSize: '1.25rem', color: '#00d4ff', fontWeight: 'bold' }}>
+            <div className="text-xl text-blue-500 font-bold">
               ~{estimatedMinutes} minutes
             </div>
           </div>
@@ -574,29 +392,29 @@ export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialT
 
       {/* Confirmation Summary */}
       {showConfirm && (
-        <div style={{ marginTop: '1.5rem' }} ref={confirmSectionRef}>
+        <div className="mt-6" ref={confirmSectionRef}>
           <ASCIIBox title="CONFIRM ANALYSIS" variant="success">
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.875rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '0.5rem' }}>
-                <div style={{ color: '#5a6e7a' }}>Ticker:</div>
-                <div style={{ color: '#00d4ff', fontWeight: 'bold' }}>{ticker.toUpperCase()}</div>
+            <div className="font-mono text-sm">
+              <div className="grid grid-cols-[140px_1fr] gap-2">
+                <div className="text-muted-foreground">Ticker:</div>
+                <div className="text-blue-500 font-bold">{ticker.toUpperCase()}</div>
 
-                <div style={{ color: '#5a6e7a' }}>Date:</div>
-                <div style={{ color: '#4da6ff' }}>{analysisDate}</div>
+                <div className="text-muted-foreground">Date:</div>
+                <div className="text-primary">{analysisDate}</div>
 
-                <div style={{ color: '#5a6e7a' }}>Analysts:</div>
-                <div style={{ color: '#4da6ff' }}>
+                <div className="text-muted-foreground">Analysts:</div>
+                <div className="text-primary">
                   {selectedAnalysts.map((a) => a.toUpperCase()).join(', ')} (
                   {selectedAnalysts.length})
                 </div>
 
-                <div style={{ color: '#5a6e7a' }}>Research Depth:</div>
-                <div style={{ color: '#4da6ff' }}>
+                <div className="text-muted-foreground">Research Depth:</div>
+                <div className="text-primary">
                   {getDepthLabel()} (Level {researchDepth})
                 </div>
 
-                <div style={{ color: '#5a6e7a' }}>Est. Time:</div>
-                <div style={{ color: '#00d4ff', fontWeight: 'bold' }}>
+                <div className="text-muted-foreground">Est. Time:</div>
+                <div className="text-blue-500 font-bold">
                   ~{estimatedMinutes} minutes
                 </div>
               </div>
@@ -606,7 +424,7 @@ export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialT
       )}
 
       {/* Action Buttons */}
-      <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem' }} ref={actionButtonsRef}>
+      <div className="mt-6 flex gap-4" ref={actionButtonsRef}>
         {!showConfirm ? (
           <>
             <Button type="submit">PREVIEW & CONFIRM</Button>

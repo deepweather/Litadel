@@ -1,4 +1,5 @@
 import React from 'react'
+import { cn } from '@/lib/utils'
 
 interface MetricGridProps {
   children: React.ReactNode
@@ -11,24 +12,24 @@ export const MetricGrid: React.FC<MetricGridProps> = ({
   columns,
   gap = 'md',
 }) => {
-  const gapMap = {
-    sm: '0.75rem',
-    md: '1rem',
-    lg: '1.5rem',
+  const gapClasses = {
+    sm: 'gap-3',
+    md: 'gap-4',
+    lg: 'gap-6',
   }
 
-  const gridStyle: React.CSSProperties = {
-    display: 'grid',
-    gap: gapMap[gap],
-    ...(columns
-      ? {
-          gridTemplateColumns: `repeat(${columns}, 1fr)`,
-        }
-      : {
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        }),
-  }
-
-  return <div style={gridStyle}>{children}</div>
+  return (
+    <div
+      className={cn(
+        'grid',
+        gapClasses[gap],
+        columns
+          ? `grid-cols-${columns}`
+          : 'grid-cols-[repeat(auto-fit,minmax(200px,1fr))]'
+      )}
+    >
+      {children}
+    </div>
+  )
 }
 

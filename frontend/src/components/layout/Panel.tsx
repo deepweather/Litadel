@@ -1,4 +1,6 @@
 import React from 'react'
+import { Card, CardContent } from '../ui/card'
+import { cn } from '@/lib/utils'
 
 interface PanelProps {
   children: React.ReactNode
@@ -9,10 +11,10 @@ interface PanelProps {
 }
 
 const paddingClasses = {
-  none: '',
-  sm: 'p-md',
-  md: 'p-base',
-  lg: 'p-lg',
+  none: 'p-0',
+  sm: 'p-3',
+  md: 'p-4',
+  lg: 'p-6',
 }
 
 export const Panel: React.FC<PanelProps> = ({
@@ -22,18 +24,34 @@ export const Panel: React.FC<PanelProps> = ({
   highlighted = false,
   className = '',
 }) => {
-  const baseClasses = [
-    border ? 'border border-border' : '',
-    paddingClasses[padding],
-    highlighted ? 'bg-bg-highlight' : 'bg-transparent',
-    'font-mono',
-    className,
-  ].filter(Boolean).join(' ')
+  if (!border) {
+    return (
+      <div className={cn(
+        paddingClasses[padding],
+        highlighted && 'bg-accent/5',
+        'font-mono',
+        className
+      )}>
+        {children}
+      </div>
+    )
+  }
 
   return (
-    <div className={baseClasses}>
-      {children}
-    </div>
+    <Card className={cn(
+      'font-mono',
+      highlighted && 'bg-accent/5',
+      padding === 'none' && 'p-0',
+      className
+    )}>
+      {padding === 'none' ? (
+        children
+      ) : (
+        <CardContent className={paddingClasses[padding]}>
+          {children}
+        </CardContent>
+      )}
+    </Card>
   )
 }
 

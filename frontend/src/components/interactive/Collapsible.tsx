@@ -26,7 +26,7 @@ export const Collapsible: React.FC<CollapsibleProps> = ({
       <CollapsibleTrigger asChild>
         <button
           className="w-full px-4 py-3 bg-transparent border-none border-b border-border text-primary font-mono text-sm font-bold cursor-pointer flex items-center justify-between transition-all hover:bg-accent/10"
-          style={{ borderBottom: isExpanded ? '1px solid rgba(77, 166, 255, 0.3)' : 'none' }}
+          style={{ borderBottom: isExpanded ? '1px solid hsl(var(--border))' : 'none' }}
         >
           <span>
             {title}

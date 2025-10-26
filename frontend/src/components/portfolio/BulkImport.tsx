@@ -77,13 +77,13 @@ TSLA,50,200.00,2024-03-10,Tesla position`
       {/* Instructions */}
         <div
           style={{
-            backgroundColor: '#1a2a3a',
-            border: '1px solid rgba(77, 166, 255, 0.3)',
+            backgroundColor: 'hsl(var(--secondary))',
+            border: '1px solid hsl(var(--border))',
             padding: '1rem',
             marginBottom: '1.5rem',
           }}
         >
-          <h3 style={{ fontSize: '0.875rem', color: '#4da6ff', marginBottom: '0.5rem' }}>
+          <h3 className="text-sm text-primary mb-2">
             HOW TO IMPORT:
           </h3>
           <ol
@@ -109,8 +109,8 @@ TSLA,50,200.00,2024-03-10,Tesla position`
                 gap: '0.5rem',
                 padding: '0.5rem 1rem',
                 backgroundColor: 'transparent',
-                border: '1px solid #4da6ff',
-                color: '#4da6ff',
+                border: '1px solid hsl(var(--primary))',
+                color: 'hsl(var(--primary))',
                 cursor: 'pointer',
                 fontSize: '0.75rem',
                 fontFamily: 'JetBrains Mono, monospace',
@@ -129,7 +129,7 @@ TSLA,50,200.00,2024-03-10,Tesla position`
               style={{
                 display: 'block',
                 marginBottom: '0.5rem',
-                color: '#4da6ff',
+                color: 'hsl(var(--primary))',
                 fontSize: '0.875rem',
               }}
             >
@@ -145,23 +145,23 @@ TSLA,50,200.00,2024-03-10,Tesla position`
             <div
               onClick={() => fileInputRef.current?.click()}
               style={{
-                border: '2px dashed rgba(77, 166, 255, 0.3)',
+                border: '2px dashed hsl(var(--border))',
                 padding: '2rem',
                 textAlign: 'center',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#4da6ff'
-                e.currentTarget.style.backgroundColor = 'rgba(77, 166, 255, 0.05)'
+                e.currentTarget.style.borderColor = 'hsl(var(--primary))'
+                e.currentTarget.style.backgroundColor = 'hsl(var(--primary) / 0.05)'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(77, 166, 255, 0.3)'
+                e.currentTarget.style.borderColor = 'hsl(var(--border))'
                 e.currentTarget.style.backgroundColor = 'transparent'
               }}
             >
-              <Upload size={48} color="#4da6ff" style={{ margin: '0 auto 1rem' }} />
-              <p style={{ color: '#4da6ff', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+              <Upload size={48} className="text-primary mx-auto mb-4" />
+              <p className="text-primary text-sm mb-2">
                 {file ? file.name : 'Click to select CSV file'}
               </p>
               <p style={{ color: '#2a3e4a', fontSize: '0.75rem' }}>
@@ -175,7 +175,7 @@ TSLA,50,200.00,2024-03-10,Tesla position`
         {result && (
           <div
             style={{
-              backgroundColor: '#1a2a3a',
+              backgroundColor: 'hsl(var(--secondary))',
               border: `2px solid ${result.added_count > 0 ? '#00ff00' : '#ff0000'}`,
               padding: '1.5rem',
               marginBottom: '1.5rem',

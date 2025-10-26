@@ -10,7 +10,7 @@ import { useRealTimeStatus } from '../hooks/useRealTimeStatus'
 import { AnalysisStatusCard } from '../components/analysis/AnalysisStatusCard'
 import { AgentPipeline } from '../components/agents/AgentPipeline'
 import { ReportViewer } from '../components/analysis/ReportViewer'
-import PriceChart from '../components/analysis/PriceChart.tsx'
+import { PriceChart } from '../components/analysis/PriceChart'
 import { useMarketData } from '../hooks/useMarketData'
 import { LogViewer } from '../components/analysis/LogViewer'
 import { TradingDecisionCard } from '../components/trading/TradingDecisionCard'
@@ -102,14 +102,7 @@ export const AnalysisDetail: React.FC = () => {
   const handleCopyId = () => {
     if (analysisId) {
       navigator.clipboard.writeText(analysisId)
-      toast.success('Analysis ID copied', {
-        style: {
-          background: '#1a2a3a',
-          color: '#4da6ff',
-          border: '1px solid #4da6ff',
-          fontFamily: 'JetBrains Mono, monospace',
-        },
-      })
+      toast.success('Analysis ID copied')
     }
   }
 
@@ -142,14 +135,7 @@ export const AnalysisDetail: React.FC = () => {
     a.click()
     URL.revokeObjectURL(url)
 
-    toast.success('Analysis exported', {
-      style: {
-        background: '#1a2a3a',
-        color: '#4da6ff',
-        border: '1px solid #4da6ff',
-        fontFamily: 'JetBrains Mono, monospace',
-      },
-    })
+    toast.success('Analysis exported')
   }
 
   const handleDelete = async () => {
@@ -158,24 +144,10 @@ export const AnalysisDetail: React.FC = () => {
     if (confirm('Are you sure you want to delete this analysis?')) {
       try {
         await deleteMutation.mutateAsync(analysisId)
-        toast.success('Analysis deleted', {
-          style: {
-            background: '#1a2a3a',
-            color: '#4da6ff',
-            border: '1px solid #4da6ff',
-            fontFamily: 'JetBrains Mono, monospace',
-          },
-        })
+        toast.success('Analysis deleted')
         navigate('/analyses')
       } catch (error: any) {
-        toast.error(error.detail || 'Failed to delete analysis', {
-          style: {
-            background: '#1a2a3a',
-            color: '#ff4444',
-            border: '1px solid #ff4444',
-            fontFamily: 'JetBrains Mono, monospace',
-          },
-        })
+        toast.error(error.detail || 'Failed to delete analysis')
       }
     }
   }
@@ -184,45 +156,29 @@ export const AnalysisDetail: React.FC = () => {
   const tradeDecision = analysis?.trading_decision
 
   if (isLoading) {
-    return <div className="text-terminal-accent text-center py-12">Loading analysis...</div>
+    return <div className="text-center py-12 text-muted-foreground">Loading analysis...</div>
   }
 
   if (!analysis) {
-    return <div className="text-terminal-error text-center py-12">Analysis not found</div>
+    return <div className="text-center py-12 text-destructive">Analysis not found</div>
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="flex flex-col h-full">
       {/* Header - Minimal */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingBottom: '1rem',
-          marginBottom: '1rem',
-          borderBottom: '1px solid rgba(77, 166, 255, 0.3)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+      <div className="flex items-center justify-between pb-4 mb-4 border-b">
+        <div className="flex items-center gap-4">
           <Button onClick={() => navigate('/analyses')}>
             <ArrowLeft size={16} />
           </Button>
           <div>
-            <h1
-              style={{
-                fontSize: '1.25rem',
-                fontWeight: 'bold',
-                color: '#4da6ff',
-                fontFamily: 'JetBrains Mono, monospace',
-              }}
-            >
+            <h1 className="text-xl font-bold text-primary font-mono">
               {analysis.ticker} • {analysis.analysis_date}
             </h1>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div className="flex gap-2">
           <IconButton
             icon={<Copy size={16} />}
             onClick={handleCopyId}
@@ -259,9 +215,9 @@ export const AnalysisDetail: React.FC = () => {
       )}
 
       {/* Main Content Area */}
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', gap: '1.5rem' }}>
+      <div className="flex-1 min-h-0 flex gap-6">
         {/* Left: Reports (Primary Content) */}
-        <div style={{ flex: '1 1 70%', minWidth: 0, overflow: 'auto', paddingRight: '1rem' }}>
+        <div className="flex-1 min-w-0 overflow-auto pr-4">
           {/* Trading Decision Card */}
           {tradeDecision && analysis.status === 'completed' && marketMetrics && (
             <TradingDecisionCard
@@ -274,15 +230,8 @@ export const AnalysisDetail: React.FC = () => {
 
           {/* Price Chart - Now smaller and below decision */}
           {marketData?.data && marketData.data.length > 0 && (
-            <div style={{ marginBottom: '1.5rem' }}>
-              <div
-                style={{
-                  fontSize: '0.875rem',
-                  color: '#5a6e7a',
-                  fontFamily: 'JetBrains Mono, monospace',
-                  marginBottom: '0.5rem',
-                }}
-              >
+            <div className="mb-6">
+              <div className="text-sm text-muted-foreground font-mono mb-2">
                 PRICE ACTION (60 DAYS)
               </div>
               <PriceChart
@@ -309,57 +258,21 @@ export const AnalysisDetail: React.FC = () => {
             </div>
           )}
 
-          <div
-            style={{
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              marginBottom: '1rem',
-              paddingBottom: '0.5rem',
-              borderBottom: '1px solid rgba(77, 166, 255, 0.3)',
-            }}
-          >
+          <div className="text-base font-bold text-primary font-mono mb-4 pb-2 border-b">
             ANALYSIS REPORTS
           </div>
           {reports.length > 0 ? (
             <ReportViewer reports={reports} />
           ) : (
-            <div
-              style={{
-                border: '1px solid rgba(77, 166, 255, 0.3)',
-                padding: '2rem',
-                textAlign: 'center',
-                color: '#2a3e4a',
-                fontFamily: 'JetBrains Mono, monospace',
-              }}
-            >
+            <div className="border p-8 text-center text-muted-foreground font-mono">
               {analysis.status === 'running' ? 'Analysis in progress...' : 'No reports available'}
             </div>
           )}
         </div>
 
         {/* Right: Status + Pipeline (Secondary) */}
-        <div
-          style={{
-            flex: '0 0 300px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem',
-            overflow: 'auto',
-          }}
-        >
-          <div
-            style={{
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              marginBottom: '0.5rem',
-              paddingBottom: '0.5rem',
-              borderBottom: '1px solid rgba(77, 166, 255, 0.3)',
-            }}
-          >
+        <div className="flex-none w-[300px] flex flex-col gap-4 overflow-auto">
+          <div className="text-base font-bold text-primary font-mono mb-2 pb-2 border-b">
             ANALYSIS STATUS
           </div>
           <AnalysisStatusCard analysis={analysis} />
@@ -374,7 +287,7 @@ export const AnalysisDetail: React.FC = () => {
 
       {/* Logs Section (Collapsible) */}
       {logs.length > 0 && (
-        <div style={{ marginTop: '1.5rem' }}>
+        <div className="mt-6">
           <Collapsible title="EXECUTION LOGS" count={logs.length} defaultExpanded={false}>
             <LogViewer logs={logs} analysisStartTime={analysis.created_at || undefined} />
           </Collapsible>

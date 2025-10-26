@@ -1,4 +1,5 @@
 import React from 'react'
+import { cn } from '@/lib/utils'
 
 interface KeyValueRowProps {
   label: string
@@ -7,45 +8,38 @@ interface KeyValueRowProps {
   valueColor?: string
   valueBold?: boolean
   divider?: boolean
-  style?: React.CSSProperties
+  className?: string
 }
 
 export const KeyValueRow: React.FC<KeyValueRowProps> = ({
   label,
   value,
-  labelColor = '#5a6e7a',
-  valueColor = '#4da6ff',
+  labelColor,
+  valueColor,
   valueBold = false,
   divider = true,
-  style = {},
+  className = '',
 }) => {
   return (
     <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingBottom: divider ? '1rem' : '0',
-        borderBottom: divider ? '1px solid rgba(77, 166, 255, 0.2)' : 'none',
-        ...style,
-      }}
+      className={cn(
+        'flex justify-between items-center font-mono text-sm',
+        divider && 'pb-4 border-b border-border',
+        className
+      )}
     >
       <span
-        style={{
-          color: labelColor,
-          fontFamily: 'JetBrains Mono, monospace',
-          fontSize: '0.875rem',
-        }}
+        className={labelColor ? '' : 'text-muted-foreground'}
+        style={labelColor ? { color: labelColor } : undefined}
       >
         {label}
       </span>
       <span
-        style={{
-          color: valueColor,
-          fontFamily: 'JetBrains Mono, monospace',
-          fontSize: '0.875rem',
-          fontWeight: valueBold ? 'bold' : 'normal',
-        }}
+        className={cn(
+          valueColor ? '' : 'text-foreground',
+          valueBold && 'font-bold'
+        )}
+        style={valueColor ? { color: valueColor } : undefined}
       >
         {value}
       </span>

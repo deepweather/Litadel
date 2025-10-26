@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { AlertCircle, Check, CheckCircle2, ChevronDown, ChevronUp, X } from 'lucide-react'
 import type { ExtractedParameters } from '../../types/trading'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 interface ParameterApprovalCardProps {
   parameters: ExtractedParameters
@@ -19,10 +21,10 @@ export const ParameterApprovalCard: React.FC<ParameterApprovalCardProps> = ({
 }) => {
   const [showAdvanced, setShowAdvanced] = useState(false)
 
-  const getConfidenceColor = (score: number) => {
-    if (score >= 0.8) return '#00d4ff' // High
-    if (score >= 0.6) return '#ffa500' // Medium
-    return '#ff6b6b' // Low
+  const getConfidenceColorClass = (score: number) => {
+    if (score >= 0.8) return 'text-blue-500' // High
+    if (score >= 0.6) return 'text-orange-500' // Medium
+    return 'text-red-500' // Low
   }
 
   const getConfidenceIcon = (score: number) => {
@@ -31,28 +33,16 @@ export const ParameterApprovalCard: React.FC<ParameterApprovalCardProps> = ({
   }
 
   const getIntentBadge = (intent?: string) => {
-    const badgeColors: Record<string, { bg: string; color: string; emoji: string }> = {
-      backtest: { bg: 'rgba(77, 166, 255, 0.2)', color: '#4da6ff', emoji: '🧪' },
-      live_trading: { bg: 'rgba(255, 107, 107, 0.2)', color: '#ff6b6b', emoji: '🔴' },
-      analysis: { bg: 'rgba(76, 175, 80, 0.2)', color: '#4caf50', emoji: '📊' }
+    const badgeStyles: Record<string, { className: string; emoji: string }> = {
+      backtest: { className: 'bg-primary/20 border-primary text-primary', emoji: '🧪' },
+      live_trading: { className: 'bg-red-500/20 border-red-500 text-red-500', emoji: '🔴' },
+      analysis: { className: 'bg-green-500/20 border-green-500 text-green-500', emoji: '📊' }
     }
 
-    const config = badgeColors[intent || 'backtest'] || badgeColors.backtest
+    const config = badgeStyles[intent || 'backtest'] || badgeStyles.backtest
 
     return (
-      <div style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '0.5rem',
-        padding: '0.5rem 1rem',
-        backgroundColor: config.bg,
-        border: `1px solid ${config.color}`,
-        borderRadius: '20px',
-        color: config.color,
-        fontSize: '0.875rem',
-        fontWeight: 'bold',
-        fontFamily: 'JetBrains Mono, monospace'
-      }}>
+      <div className={`inline-flex items-center gap-2 px-4 py-2 border rounded-full text-sm font-bold font-mono ${config.className}`}>
         <span>{config.emoji}</span>
         <span>{intent?.toUpperCase().replace('_', ' ')}</span>
       </div>
@@ -62,27 +52,15 @@ export const ParameterApprovalCard: React.FC<ParameterApprovalCardProps> = ({
   const getStrategyTypeBadge = (strategyType?: string) => {
     if (!strategyType) return null
 
-    const badgeColors: Record<string, { bg: string; color: string; emoji: string; label: string }> = {
-      agent_managed: { bg: 'rgba(147, 51, 234, 0.2)', color: '#a78bfa', emoji: '🤖', label: 'AI-Managed' },
-      technical_dsl: { bg: 'rgba(0, 212, 255, 0.2)', color: '#00d4ff', emoji: '📊', label: 'Technical DSL' }
+    const badgeStyles: Record<string, { className: string; emoji: string; label: string }> = {
+      agent_managed: { className: 'bg-purple-500/20 border-purple-400 text-purple-400', emoji: '🤖', label: 'AI-Managed' },
+      technical_dsl: { className: 'bg-blue-500/20 border-blue-500 text-blue-500', emoji: '📊', label: 'Technical DSL' }
     }
 
-    const config = badgeColors[strategyType] || badgeColors.agent_managed
+    const config = badgeStyles[strategyType] || badgeStyles.agent_managed
 
     return (
-      <div style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '0.5rem',
-        padding: '0.5rem 1rem',
-        backgroundColor: config.bg,
-        border: `1px solid ${config.color}`,
-        borderRadius: '20px',
-        color: config.color,
-        fontSize: '0.875rem',
-        fontWeight: 'bold',
-        fontFamily: 'JetBrains Mono, monospace'
-      }}>
+      <div className={`inline-flex items-center gap-2 px-4 py-2 border rounded-full text-sm font-bold font-mono ${config.className}`}>
         <span>{config.emoji}</span>
         <span>{config.label}</span>
       </div>
@@ -114,43 +92,20 @@ export const ParameterApprovalCard: React.FC<ParameterApprovalCardProps> = ({
   })
 
   return (
-    <div style={{
-      padding: '1.5rem',
-      border: '2px solid #00d4ff',
-      borderRadius: '8px',
-      backgroundColor: 'rgba(0, 212, 255, 0.05)',
-      fontFamily: 'JetBrains Mono, monospace'
-    }}>
+    <Card className="p-6 border-2 border-blue-500 bg-blue-500/5 font-mono">
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '1.5rem',
-        flexWrap: 'wrap',
-        gap: '0.75rem'
-      }}>
-        <h3 style={{
-          color: '#00d4ff',
-          fontSize: '1rem',
-          fontWeight: 'bold',
-          margin: 0
-        }}>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <h3 className="text-blue-500 text-base font-bold m-0">
           ✓ I've extracted these parameters:
         </h3>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <div className="flex gap-2 flex-wrap">
           {getIntentBadge(parameters.intent)}
           {getStrategyTypeBadge(parameters.strategy_type)}
         </div>
       </div>
 
       {/* Main Parameters */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
-        marginBottom: '1.5rem'
-      }}>
+      <div className="flex flex-col gap-4 mb-6">
         {displayParams.map(([key, value]) => {
           const confidenceScore = confidence[key] || 1.0
           const formattedKey = key.replace(/_/g, ' ').toUpperCase()
@@ -158,40 +113,20 @@ export const ParameterApprovalCard: React.FC<ParameterApprovalCardProps> = ({
           return (
             <div
               key={key}
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '0.75rem',
-                padding: '0.75rem',
-                backgroundColor: 'rgba(0, 212, 255, 0.05)',
-                border: '1px solid rgba(0, 212, 255, 0.2)',
-                borderRadius: '4px'
-              }}
+              className="flex items-start gap-3 p-3 bg-blue-500/5 border border-blue-500/20 rounded"
             >
-              <div style={{ color: getConfidenceColor(confidenceScore), marginTop: '0.125rem' }}>
+              <div className={`mt-0.5 ${getConfidenceColorClass(confidenceScore)}`}>
                 {getConfidenceIcon(confidenceScore)}
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{
-                  color: '#8899aa',
-                  fontSize: '0.75rem',
-                  marginBottom: '0.25rem'
-                }}>
+              <div className="flex-1">
+                <div className="text-muted-foreground text-xs mb-1">
                   {formattedKey}
                 </div>
-                <div style={{
-                  color: '#fff',
-                  fontSize: '0.875rem',
-                  wordBreak: 'break-word'
-                }}>
+                <div className="text-foreground text-sm break-words">
                   {formatValue(key, value)}
                 </div>
               </div>
-              <div style={{
-                fontSize: '0.7rem',
-                color: getConfidenceColor(confidenceScore),
-                opacity: 0.7
-              }}>
+              <div className={`text-xs opacity-70 ${getConfidenceColorClass(confidenceScore)}`}>
                 {Math.round(confidenceScore * 100)}%
               </div>
             </div>
@@ -201,50 +136,26 @@ export const ParameterApprovalCard: React.FC<ParameterApprovalCardProps> = ({
 
       {/* Advanced Options Toggle */}
       {Object.keys(suggestedDefaults).length > 0 && (
-        <div style={{ marginBottom: '1.5rem' }}>
+        <div className="mb-6">
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '0.75rem',
-              backgroundColor: 'rgba(77, 166, 255, 0.05)',
-              border: '1px solid rgba(77, 166, 255, 0.3)',
-              borderRadius: '4px',
-              color: '#4da6ff',
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              fontFamily: 'JetBrains Mono, monospace'
-            }}
+            className="w-full flex items-center justify-between p-3 bg-primary/5 border border-border rounded text-primary text-sm cursor-pointer font-mono hover:bg-primary/10"
           >
             <span>Advanced Options (Auto-Defaults)</span>
             {showAdvanced ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </button>
 
           {showAdvanced && (
-            <div style={{
-              marginTop: '0.75rem',
-              padding: '1rem',
-              backgroundColor: 'rgba(77, 166, 255, 0.03)',
-              border: '1px solid rgba(77, 166, 255, 0.2)',
-              borderRadius: '4px'
-            }}>
+            <div className="mt-3 p-4 bg-primary/[0.03] border border-primary/20 rounded">
               {Object.entries(suggestedDefaults).map(([key, value]) => (
                 <div
                   key={key}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    padding: '0.5rem 0',
-                    borderBottom: '1px solid rgba(77, 166, 255, 0.1)'
-                  }}
+                  className="flex justify-between py-2 border-b border-primary/10"
                 >
-                  <span style={{ color: '#8899aa', fontSize: '0.75rem' }}>
+                  <span className="text-muted-foreground text-xs">
                     {key.replace(/_/g, ' ')}:
                   </span>
-                  <span style={{ color: '#4da6ff', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                  <span className="text-primary text-xs font-bold">
                     {String(value)}
                   </span>
                 </div>
@@ -255,67 +166,24 @@ export const ParameterApprovalCard: React.FC<ParameterApprovalCardProps> = ({
       )}
 
       {/* Action Buttons */}
-      <div style={{
-        display: 'flex',
-        gap: '0.75rem'
-      }}>
-        <button
+      <div className="flex gap-3">
+        <Button
           onClick={onApprove}
-          style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.5rem',
-            padding: '1rem',
-            backgroundColor: 'rgba(0, 212, 255, 0.2)',
-            border: '2px solid #00d4ff',
-            borderRadius: '8px',
-            color: '#00d4ff',
-            fontSize: '1rem',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            fontFamily: 'JetBrains Mono, monospace',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(0, 212, 255, 0.3)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(0, 212, 255, 0.2)'
-          }}
+          className="flex-1 flex items-center justify-center gap-2 p-4 bg-blue-500/20 border-2 border-blue-500 text-blue-500 text-base font-bold font-mono rounded-lg hover:bg-blue-500/30 transition-all"
         >
           <Check size={20} />
           <span>OK - Looks Good!</span>
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={onCancel}
-          style={{
-            padding: '1rem 1.5rem',
-            backgroundColor: 'transparent',
-            border: '2px solid #666',
-            borderRadius: '8px',
-            color: '#666',
-            fontSize: '1rem',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            fontFamily: 'JetBrains Mono, monospace',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = '#ff6b6b'
-            e.currentTarget.style.color = '#ff6b6b'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = '#666'
-            e.currentTarget.style.color = '#666'
-          }}
+          variant="outline"
+          className="px-6 py-4 border-2 border-muted-foreground/50 text-muted-foreground/50 text-base font-bold font-mono rounded-lg hover:border-red-500 hover:text-red-500 transition-all"
         >
           <X size={20} />
-        </button>
+        </Button>
       </div>
-    </div>
+    </Card>
   )
 }
 

@@ -128,12 +128,12 @@ export const LogViewer: React.FC<LogViewerProps> = ({
               {transition && (
                 <div
                   style={{
-                    borderTop: '1px solid rgba(77, 166, 255, 0.3)',
+                    borderTop: '1px solid hsl(var(--border))',
                     padding: '0.25rem',
                     textAlign: 'center',
                     fontFamily: 'JetBrains Mono, monospace',
                     fontSize: '0.65rem',
-                    color: '#00d4ff',
+                    color: 'hsl(var(--accent))',
                     fontWeight: 'bold',
                   }}
                 >

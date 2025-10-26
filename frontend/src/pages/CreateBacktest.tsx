@@ -249,57 +249,32 @@ export const CreateBacktest: React.FC = () => {
           <ArrowLeft size={18} />
         </Button>
         <div>
-          <h1
-            style={{
-              fontSize: '1.5rem',
-              fontWeight: 'bold',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-            }}
-          >
+          <h1 className="text-2xl font-bold text-primary font-mono">
             CREATE BACKTEST
           </h1>
-          <p
-            style={{
-              color: '#2a3e4a',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '0.875rem',
-            }}
-          >
+          <p className="text-muted-foreground font-mono text-sm">
             Step {step} of 4
           </p>
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div style={{ border: '1px solid rgba(77, 166, 255, 0.3)', padding: '1rem' }}>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+      <div className="border p-4">
+        <div className="flex gap-2">
           {[1, 2, 3, 4].map((s) => (
             <div
               key={s}
-              style={{
-                flex: 1,
-                height: '4px',
-                backgroundColor: s <= step ? '#4da6ff' : 'rgba(77, 166, 255, 0.2)',
-              }}
+              className={`flex-1 h-1 ${s <= step ? 'bg-primary' : 'bg-primary/20'}`}
             />
           ))}
         </div>
       </div>
 
       {/* Form Content */}
-      <div style={{ border: '1px solid rgba(77, 166, 255, 0.3)', padding: '2rem' }}>
+      <div style={{ border: '1px solid hsl(var(--border))', padding: '2rem' }}>
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <h2
-              style={{
-                fontSize: '1.125rem',
-                marginBottom: '1rem',
-                color: '#4da6ff',
-                fontFamily: 'JetBrains Mono, monospace',
-                fontWeight: 'bold',
-              }}
-            >
+            <h2 className="text-lg mb-4 text-primary font-mono font-bold">
               Basic Information
             </h2>
 
@@ -324,15 +299,7 @@ export const CreateBacktest: React.FC = () => {
 
         {step === 2 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <h2
-              style={{
-                fontSize: '1.125rem',
-                marginBottom: '1rem',
-                color: '#4da6ff',
-                fontFamily: 'JetBrains Mono, monospace',
-                fontWeight: 'bold',
-              }}
-            >
+            <h2 className="text-lg mb-4 text-primary font-mono font-bold">
               Strategy Definition
             </h2>
 
@@ -355,15 +322,8 @@ export const CreateBacktest: React.FC = () => {
                 <button
                   onClick={handleGenerateYAML}
                   disabled={isGenerating}
+                  className="flex items-center gap-2 p-3 px-6 border-2 border-accent bg-accent/10 text-accent text-base font-bold font-mono cursor-pointer rounded-lg hover:bg-accent/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '0.75rem 1.5rem',
-                    border: '2px solid #00d4ff',
-                    backgroundColor: 'rgba(0, 212, 255, 0.1)',
-                    color: '#00d4ff',
-                    fontSize: '1rem',
                     fontWeight: 'bold',
                     cursor: isGenerating ? 'not-allowed' : 'pointer',
                     fontFamily: 'JetBrains Mono, monospace',
@@ -378,30 +338,13 @@ export const CreateBacktest: React.FC = () => {
 
               {/* Loading indicator overlay */}
               {isGenerating && (
-                <div style={{
-                  position: 'relative',
-                  marginBottom: '0.5rem',
-                  padding: '1rem',
-                  border: '2px solid #00d4ff',
-                  backgroundColor: 'rgba(0, 212, 255, 0.1)',
-                  borderRadius: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                }}>
-                  <div style={{
-                    width: '20px',
-                    height: '20px',
-                    border: '3px solid rgba(0, 212, 255, 0.3)',
-                    borderTop: '3px solid #00d4ff',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite',
-                  }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ color: '#00d4ff', fontWeight: 'bold', marginBottom: '0.25rem' }}>
+                <div className="relative mb-2 p-4 border-2 border-blue-500 bg-blue-500/10 rounded flex items-center gap-3">
+                  <div className="w-5 h-5 border-[3px] border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                  <div className="flex-1">
+                    <div className="text-blue-500 font-bold mb-1">
                       🤖 AI is generating your strategy...
                     </div>
-                    <div style={{ color: '#2a3e4a', fontSize: '0.75rem' }}>
+                    <div className="text-muted-foreground text-xs">
                       Watch the YAML appear in real-time below
                     </div>
                   </div>
@@ -411,9 +354,8 @@ export const CreateBacktest: React.FC = () => {
               {/* Strategy Visualization - Real-time streaming preview */}
               {formData.strategy_dsl_yaml && formData.strategy_dsl_yaml.trim().length > 0 ? (
                 <div style={{ marginTop: '1rem' }}>
-                  <h3 style={{
-                    color: '#00d4ff',
-                    fontSize: '1rem',
+                  <h3 className="text-accent text-base"
+                    style={{
                     fontWeight: 'bold',
                     marginBottom: '1rem',
                     display: 'flex',
@@ -429,16 +371,16 @@ export const CreateBacktest: React.FC = () => {
                 <div style={{
                   marginTop: '1rem',
                   padding: '3rem 2rem',
-                  border: '2px dashed #4da6ff',
+                  border: '2px dashed hsl(var(--primary))',
                   borderRadius: '8px',
                   textAlign: 'center',
                   backgroundColor: 'rgba(0, 212, 255, 0.05)',
                 }}>
-                  <Sparkles size={48} style={{ color: '#00d4ff', margin: '0 auto 1rem' }} />
-                  <p style={{ color: '#00d4ff', fontSize: '1rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                  <Sparkles size={48} className="text-accent mx-auto mb-4" />
+                  <p className="text-accent text-base font-bold mb-2">
                     No Strategy Generated Yet
                   </p>
-                  <p style={{ color: '#8899aa', fontSize: '0.875rem' }}>
+                  <p className="text-muted-foreground text-sm">
                     Click the "GENERATE YAML ✨" button above to create your strategy from your description
                   </p>
                 </div>
@@ -462,11 +404,8 @@ export const CreateBacktest: React.FC = () => {
         {step === 3 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <h2
+              className="text-lg mb-4 text-primary font-mono"
               style={{
-                fontSize: '1.125rem',
-                marginBottom: '1rem',
-                color: '#4da6ff',
-                fontFamily: 'JetBrains Mono, monospace',
                 fontWeight: 'bold',
               }}
             >
@@ -582,11 +521,8 @@ export const CreateBacktest: React.FC = () => {
         {step === 4 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <h2
+              className="text-lg mb-4 text-primary font-mono"
               style={{
-                fontSize: '1.125rem',
-                marginBottom: '1rem',
-                color: '#4da6ff',
-                fontFamily: 'JetBrains Mono, monospace',
                 fontWeight: 'bold',
               }}
             >
@@ -599,7 +535,6 @@ export const CreateBacktest: React.FC = () => {
                 value={formData.name || ''}
                 labelColor="#2a3e4a"
                 valueColor="#fff"
-                style={{ paddingBottom: '0.5rem' }}
               />
 
               {formData.description && (
@@ -608,7 +543,6 @@ export const CreateBacktest: React.FC = () => {
                   value={formData.description}
                   labelColor="#2a3e4a"
                   valueColor="#fff"
-                  style={{ paddingBottom: '0.5rem' }}
                 />
               )}
 
@@ -617,7 +551,6 @@ export const CreateBacktest: React.FC = () => {
                 value={formData.ticker_list?.join(', ') || ''}
                 labelColor="#2a3e4a"
                 valueColor="#fff"
-                style={{ paddingBottom: '0.5rem' }}
               />
 
               <KeyValueRow
@@ -625,7 +558,6 @@ export const CreateBacktest: React.FC = () => {
                 value={`${formData.start_date} to ${formData.end_date}`}
                 labelColor="#2a3e4a"
                 valueColor="#fff"
-                style={{ paddingBottom: '0.5rem' }}
               />
 
               <KeyValueRow
@@ -633,7 +565,6 @@ export const CreateBacktest: React.FC = () => {
                 value={`$${formData.initial_capital?.toLocaleString()}`}
                 labelColor="#2a3e4a"
                 valueColor="#fff"
-                style={{ paddingBottom: '0.5rem' }}
               />
 
               <KeyValueRow

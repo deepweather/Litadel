@@ -1,4 +1,6 @@
 import React from 'react'
+import { Button } from './button'
+import { cn } from '@/lib/utils'
 
 interface IconButtonProps {
   icon: React.ReactNode
@@ -8,7 +10,6 @@ interface IconButtonProps {
   title?: string
   disabled?: boolean
   className?: string
-  style?: React.CSSProperties
 }
 
 export const IconButton: React.FC<IconButtonProps> = ({
@@ -19,86 +20,33 @@ export const IconButton: React.FC<IconButtonProps> = ({
   title,
   disabled = false,
   className = '',
-  style = {},
 }) => {
-  const variantStyles = {
-    primary: {
-      border: '1px solid #4da6ff',
-      color: '#4da6ff',
-      hoverBg: 'rgba(77, 166, 255, 0.1)',
-    },
-    danger: {
-      border: '1px solid #ff0000',
-      color: '#ff0000',
-      hoverBg: 'rgba(255, 0, 0, 0.1)',
-    },
-    secondary: {
-      border: '1px solid rgba(77, 166, 255, 0.3)',
-      color: '#4da6ff',
-      hoverBg: 'rgba(77, 166, 255, 0.1)',
-    },
-    ghost: {
-      border: 'none',
-      color: '#4da6ff',
-      hoverBg: 'rgba(77, 166, 255, 0.1)',
-    },
+  // Map old variant names to shadcn Button variants
+  const variantMap = {
+    primary: 'outline' as const,
+    danger: 'destructive' as const,
+    secondary: 'ghost' as const,
+    ghost: 'ghost' as const,
   }
 
-  const sizeStyles = {
-    sm: {
-      padding: '0.25rem',
-    },
-    md: {
-      padding: '0.5rem',
-    },
-    lg: {
-      padding: '0.75rem',
-    },
-  }
-
-  const currentVariant = variantStyles[variant]
-  const currentSize = sizeStyles[size]
-
-  const baseStyle: React.CSSProperties = {
-    ...currentSize,
-    border: currentVariant.border,
-    backgroundColor: 'transparent',
-    color: currentVariant.color,
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    fontFamily: 'JetBrains Mono, monospace',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'all 0.2s',
-    opacity: disabled ? 0.5 : 1,
-    ...style,
-  }
-
-  const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!disabled) {
-      e.currentTarget.style.backgroundColor = currentVariant.hoverBg
-    }
-  }
-
-  const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!disabled) {
-      e.currentTarget.style.backgroundColor = 'transparent'
-    }
+  // Map old size names to shadcn Button sizes
+  const sizeMap = {
+    sm: 'icon-sm' as const,
+    md: 'icon' as const,
+    lg: 'icon-lg' as const,
   }
 
   return (
-    <button
-      className={className}
-      style={baseStyle}
+    <Button
+      variant={variantMap[variant]}
+      size={sizeMap[size]}
       onClick={onClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       disabled={disabled}
       title={title}
-      type="button"
+      className={cn('shrink-0', className)}
     >
       {icon}
-    </button>
+    </Button>
   )
 }
 

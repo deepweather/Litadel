@@ -27,10 +27,10 @@ export const PortfolioList: React.FC = () => {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="PORTFOLIOS"
-        icon={<Briefcase size={24} color="#4da6ff" />}
+        icon={<Briefcase size={24} />}
         actions={
           <Button onClick={() => navigate('/portfolio/create')}>
             <Plus size={18} />
@@ -42,26 +42,12 @@ export const PortfolioList: React.FC = () => {
       {/* Portfolio Grid */}
       {!portfolios || portfolios.length === 0 ? (
         <Panel padding="lg">
-          <div style={{ textAlign: 'center' }}>
-            <Briefcase size={48} color="#2a3e4a" style={{ margin: '0 auto 1rem' }} />
-            <h3
-              style={{
-                fontSize: '1.125rem',
-                color: '#4da6ff',
-                fontFamily: 'JetBrains Mono, monospace',
-                marginBottom: '0.5rem',
-              }}
-            >
+          <div className="text-center">
+            <Briefcase size={48} className="mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-lg text-primary font-mono mb-2">
               No portfolios yet
             </h3>
-            <p
-              style={{
-                color: '#2a3e4a',
-                fontFamily: 'JetBrains Mono, monospace',
-                fontSize: '0.875rem',
-                marginBottom: '1.5rem',
-              }}
-            >
+            <p className="text-muted-foreground font-mono text-sm mb-6">
               Create your first portfolio to start tracking your investments
             </p>
             <Button onClick={() => navigate('/portfolio/create')}>
@@ -71,13 +57,7 @@ export const PortfolioList: React.FC = () => {
           </div>
         </Panel>
       ) : (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-            gap: '1.5rem',
-          }}
-        >
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-6">
           {portfolios.map((portfolio) => (
             <PortfolioCard key={portfolio.id} portfolio={portfolio} />
           ))}

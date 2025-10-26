@@ -10,7 +10,7 @@ import { PageHeader } from '../components/layout/PageHeader'
 import { Panel } from '../components/layout/Panel'
 import { StatusBadge } from '../components/data-display/StatusBadge'
 import { LoadingState } from '../components/data-display/LoadingState'
-import { Table, TableBody, TableCell, TableHeader, TableRow } from '../components/ui/Table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table'
 import { formatDateShort, formatPercentageWithSign } from '../utils/formatters'
 
 export const BacktestList: React.FC = () => {
@@ -45,17 +45,12 @@ export const BacktestList: React.FC = () => {
     return true
   })
 
-  const getReturnColor = (value: number | null) => {
-    if (value === null) return '#2a3e4a'
-    return value >= 0 ? '#00ff00' : '#ff0000'
-  }
-
   if (isLoading) {
     return <LoadingState message="Loading backtests..." />
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="BACKTESTS"
         subtitle="Manage and analyze your trading strategy backtests"
@@ -63,11 +58,8 @@ export const BacktestList: React.FC = () => {
           <>
             <Button
               onClick={() => navigate('/backtests/chat')}
-              style={{
-                backgroundColor: 'rgba(0, 212, 255, 0.2)',
-                borderColor: '#00d4ff',
-                color: '#00d4ff'
-              }}
+              variant="outline"
+              className="bg-primary/10 border-primary/50 text-primary hover:bg-primary/20"
             >
               <Sparkles size={18} />
               <span>CREATE WITH AI CHAT</span>
@@ -82,27 +74,14 @@ export const BacktestList: React.FC = () => {
 
       {/* Filters */}
       <Panel>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <label
-            style={{
-              color: '#2a3e4a',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '0.875rem',
-            }}
-          >
+        <div className="flex gap-4 items-center">
+          <label className="text-muted-foreground font-mono text-sm">
             STATUS:
           </label>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            style={{
-              padding: '0.5rem',
-              backgroundColor: '#1a2a3a',
-              border: '1px solid #4da6ff',
-              color: '#4da6ff',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '0.875rem',
-            }}
+            className="px-3 py-2 bg-background border border-input text-foreground font-mono text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <option value="">All</option>
             <option value="pending">Pending</option>
@@ -116,25 +95,15 @@ export const BacktestList: React.FC = () => {
       {/* Table */}
       {!filteredBacktests || filteredBacktests.length === 0 ? (
         <Panel padding="lg">
-          <div style={{ textAlign: 'center' }}>
-            <p
-              style={{
-                color: '#2a3e4a',
-                fontFamily: 'JetBrains Mono, monospace',
-                fontSize: '1rem',
-                marginBottom: '1rem',
-              }}
-            >
+          <div className="text-center">
+            <p className="text-muted-foreground font-mono text-base mb-4">
               No backtests found
             </p>
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+            <div className="flex gap-3 justify-center">
               <Button
                 onClick={() => navigate('/backtests/chat')}
-                style={{
-                  backgroundColor: 'rgba(0, 212, 255, 0.2)',
-                  borderColor: '#00d4ff',
-                  color: '#00d4ff'
-                }}
+                variant="outline"
+                className="bg-primary/10 border-primary/50 text-primary hover:bg-primary/20"
               >
                 <Sparkles size={18} />
                 <span>CREATE WITH AI CHAT</span>
@@ -148,58 +117,61 @@ export const BacktestList: React.FC = () => {
         </Panel>
       ) : (
         <Panel padding="none" className="overflow-auto">
-          <Table bordered={false}>
+          <Table>
             <TableHeader>
-              <TableCell header align="left">NAME</TableCell>
-              <TableCell header align="left">DATE RANGE</TableCell>
-              <TableCell header align="center">STATUS</TableCell>
-              <TableCell header align="right">RETURN</TableCell>
-              <TableCell header align="right">SHARPE</TableCell>
-              <TableCell header align="right">MAX DD</TableCell>
-              <TableCell header align="right">TRADES</TableCell>
-              <TableCell header align="center">ACTIONS</TableCell>
+              <TableRow>
+                <TableHead>NAME</TableHead>
+                <TableHead>DATE RANGE</TableHead>
+                <TableHead className="text-center">STATUS</TableHead>
+                <TableHead className="text-right">RETURN</TableHead>
+                <TableHead className="text-right">SHARPE</TableHead>
+                <TableHead className="text-right">MAX DD</TableHead>
+                <TableHead className="text-right">TRADES</TableHead>
+                <TableHead className="text-center">ACTIONS</TableHead>
+              </TableRow>
             </TableHeader>
             <TableBody>
               {filteredBacktests.map((backtest) => (
                 <TableRow
                   key={backtest.id}
                   onClick={() => navigate(`/backtests/${backtest.id}`)}
+                  className="cursor-pointer"
                 >
                   <TableCell>
-                    <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
-                      {backtest.name}
-                    </div>
+                    <div className="font-bold mb-1">{backtest.name}</div>
                     {backtest.description && (
-                      <div style={{ color: '#2a3e4a', fontSize: '0.75rem' }}>
+                      <div className="text-muted-foreground text-xs">
                         {backtest.description.substring(0, 50)}
                         {backtest.description.length > 50 ? '...' : ''}
                       </div>
                     )}
                   </TableCell>
-                  <TableCell color="#2a3e4a">
+                  <TableCell className="text-muted-foreground">
                     {formatDateShort(backtest.start_date)} - {formatDateShort(backtest.end_date)}
                   </TableCell>
-                  <TableCell align="center">
+                  <TableCell className="text-center">
                     <StatusBadge status={backtest.status as 'pending' | 'running' | 'completed' | 'failed'} />
                   </TableCell>
-                  <TableCell
-                    align="right"
-                    color={getReturnColor(backtest.total_return_pct)}
-                    bold
-                  >
+                  <TableCell className={`text-right font-bold ${
+                    backtest.total_return_pct === null
+                      ? 'text-muted-foreground'
+                      : backtest.total_return_pct >= 0
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-red-600 dark:text-red-400'
+                  }`}>
                     {formatPercentageWithSign(backtest.total_return_pct)}
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell className="text-right">
                     {backtest.sharpe_ratio !== null ? backtest.sharpe_ratio.toFixed(2) : 'N/A'}
                   </TableCell>
-                  <TableCell align="right" color="#ff0000">
+                  <TableCell className="text-right text-red-600 dark:text-red-400">
                     {formatPercentageWithSign(backtest.max_drawdown_pct)}
                   </TableCell>
-                  <TableCell align="right" color="#2a3e4a">
+                  <TableCell className="text-right text-muted-foreground">
                     {backtest.total_trades !== null ? backtest.total_trades : 'N/A'}
                   </TableCell>
                   <TableCell
-                    align="center"
+                    className="text-center"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <IconButton

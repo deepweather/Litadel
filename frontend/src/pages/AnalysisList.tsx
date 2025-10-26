@@ -10,7 +10,6 @@ import { MetricGrid } from '../components/layout/MetricGrid'
 import { EmptyState } from '../components/data-display/EmptyState'
 import { Activity, Plus, RefreshCw } from 'lucide-react'
 import type { Analysis } from '../types/api'
-import { themeColors } from '../utils/colors'
 
 export const AnalysisList: React.FC = () => {
   const navigate = useNavigate()
@@ -71,11 +70,11 @@ export const AnalysisList: React.FC = () => {
   }, [analyses, groupedAnalyses.active])
 
   if (isLoading) {
-    return <div className="text-terminal-accent text-center py-12">Loading analyses...</div>
+    return <div className="text-center py-12 text-muted-foreground">Loading analyses...</div>
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1.5rem' }}>
+    <div className="flex flex-col h-full gap-6">
       <PageHeader
         title="ANALYSES COMMAND CENTER"
         actions={
@@ -98,10 +97,8 @@ export const AnalysisList: React.FC = () => {
         <MetricCard
           label="ACTIVE ANALYSES"
           value={stats.activeCount}
-          color={themeColors.accent}
-          icon={<Activity size={16} color={themeColors.accent} />}
+          icon={<Activity size={16} />}
           highlighted={stats.activeCount > 0}
-          borderColor={stats.activeCount > 0 ? themeColors.border : undefined}
           subValue={
             stats.activeCount === 1
               ? 'Running now'
@@ -115,7 +112,6 @@ export const AnalysisList: React.FC = () => {
         <MetricCard
           label="TODAY'S ANALYSES"
           value={stats.todayCount}
-          color={themeColors.primary}
           subValue={`${stats.successRate}% success rate`}
         />
 
@@ -124,7 +120,6 @@ export const AnalysisList: React.FC = () => {
           <MetricCard
             label="TOP TICKER"
             value={stats.topTicker.ticker}
-            color={themeColors.accent}
             subValue={`${stats.topTicker.count} analyses`}
           />
         )}
@@ -133,23 +128,22 @@ export const AnalysisList: React.FC = () => {
         <MetricCard
           label="TOTAL ANALYSES"
           value={stats.totalAnalyses}
-          color={themeColors.primary}
           subValue="All time"
         />
       </MetricGrid>
 
       {/* Main Content Area */}
-      <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+      <div className="flex-1 min-h-0 overflow-auto">
         {/* Active Analyses Section */}
         {groupedAnalyses.active.length > 0 && (
-          <div style={{ marginBottom: '2rem' }}>
+          <div className="mb-8">
             <SectionHeader
               title="ACTIVE ANALYSES"
               count={groupedAnalyses.active.length}
               icon={<Activity size={18} />}
               variant="accent"
             />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div className="flex flex-col gap-3">
               {groupedAnalyses.active.map((analysis: Analysis) => (
                 <AnalysisCard key={analysis.id} analysis={analysis} />
               ))}
@@ -163,24 +157,14 @@ export const AnalysisList: React.FC = () => {
             <SectionHeader title="RECENT DECISIONS" />
 
             {groupedAnalyses.sortedDates.map((date) => (
-              <div key={date} style={{ marginBottom: '1.5rem' }}>
-                <div
-                  style={{
-                    fontSize: '0.875rem',
-                    color: '#5a6e7a',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    marginBottom: '0.5rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                  }}
-                >
+              <div key={date} className="mb-6">
+                <div className="text-sm text-muted-foreground font-mono mb-2 flex items-center gap-2">
                   <span>{date === groupedAnalyses.today ? 'TODAY' : date}</span>
-                  <span style={{ fontSize: '0.7rem' }}>
+                  <span className="text-xs">
                     ({groupedAnalyses.byDate[date].length} analyses)
                   </span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div className="flex flex-col gap-3">
                   {groupedAnalyses.byDate[date].map((analysis) => (
                     <AnalysisCard key={analysis.id} analysis={analysis} />
                   ))}

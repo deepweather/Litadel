@@ -60,8 +60,7 @@ export const TradingDecisionCard: React.FC<TradingDecisionCardProps> = ({
             {ticker} @ ${marketMetrics.currentPrice.toFixed(2)}
           </span>
           <span
-            className="text-md ml-base"
-            style={{ color: marketMetrics.dailyChangePositive ? '#00ff00' : '#ff4444' }}
+            className={`text-md ml-base ${marketMetrics.dailyChangePositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
           >
             {marketMetrics.dailyChangePositive ? '↑' : '↓'}{' '}
             {Math.abs(marketMetrics.dailyChange).toFixed(2)}%

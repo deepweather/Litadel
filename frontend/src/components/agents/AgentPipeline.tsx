@@ -163,7 +163,7 @@ export const AgentPipeline: React.FC<AgentPipelineProps> = ({
                   <div
                     style={{
                       fontSize: '0.5rem',
-                      color: 'rgba(77, 166, 255, 0.2)',
+                      color: 'hsl(var(--primary) / 0.2)',
                       fontFamily: 'JetBrains Mono, monospace',
                       paddingLeft: '0.5rem',
                       lineHeight: '0.8',

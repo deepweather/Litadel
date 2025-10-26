@@ -1,4 +1,6 @@
 import React from 'react'
+import { Input } from '../input'
+import { cn } from '@/lib/utils'
 
 interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   className?: string
@@ -6,23 +8,12 @@ interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export const TextInput: React.FC<TextInputProps> = ({
   className = '',
-  style,
   ...props
 }) => {
   return (
-    <input
+    <Input
       type="text"
-      className={className}
-      style={{
-        width: '100%',
-        padding: '0.75rem',
-        backgroundColor: '#1a2a3a',
-        border: '1px solid #4da6ff',
-        color: '#fff',
-        fontFamily: 'JetBrains Mono, monospace',
-        fontSize: '0.875rem',
-        ...style,
-      }}
+      className={cn('w-full font-mono', className)}
       {...props}
     />
   )

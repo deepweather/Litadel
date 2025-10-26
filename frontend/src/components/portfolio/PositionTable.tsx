@@ -2,6 +2,8 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Edit, Trash2, XCircle } from 'lucide-react'
 import type { Position } from '../../types/portfolio'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
 
 interface PositionTableProps {
   positions: Position[]
@@ -34,177 +36,114 @@ export const PositionTable: React.FC<PositionTableProps> = ({
     return `${sign}${value.toFixed(2)}%`
   }
 
-  const getPnLColor = (value: number | null | undefined) => {
-    if (value === null || value === undefined) return '#2a3e4a'
-    return value >= 0 ? '#00ff00' : '#ff0000'
+  const getPnLColorClass = (value: number | null | undefined) => {
+    if (value === null || value === undefined) return 'text-muted-foreground'
+    return value >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
   }
 
   if (positions.length === 0) {
     return (
-      <div
-        style={{
-          padding: '2rem',
-          textAlign: 'center',
-          color: '#2a3e4a',
-          fontFamily: 'JetBrains Mono, monospace',
-          border: '1px solid rgba(77, 166, 255, 0.3)',
-        }}
-      >
+      <div className="p-8 text-center text-muted-foreground font-mono border">
         No positions in this portfolio
       </div>
     )
   }
 
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table
-        style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-          fontFamily: 'JetBrains Mono, monospace',
-          fontSize: '0.875rem',
-        }}
-      >
-        <thead>
-          <tr style={{ borderBottom: '2px solid #4da6ff' }}>
-            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#4da6ff' }}>TICKER</th>
-            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#4da6ff' }}>ASSET</th>
-            <th style={{ padding: '0.75rem', textAlign: 'right', color: '#4da6ff' }}>QTY</th>
-            <th style={{ padding: '0.75rem', textAlign: 'right', color: '#4da6ff' }}>ENTRY</th>
-            <th style={{ padding: '0.75rem', textAlign: 'right', color: '#4da6ff' }}>CURRENT</th>
-            <th style={{ padding: '0.75rem', textAlign: 'right', color: '#4da6ff' }}>P&L</th>
-            <th style={{ padding: '0.75rem', textAlign: 'right', color: '#4da6ff' }}>P&L %</th>
-            <th style={{ padding: '0.75rem', textAlign: 'center', color: '#4da6ff' }}>STATUS</th>
-            <th style={{ padding: '0.75rem', textAlign: 'center', color: '#4da6ff' }}>ACTIONS</th>
-          </tr>
-        </thead>
-        <tbody>
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>TICKER</TableHead>
+            <TableHead>ASSET</TableHead>
+            <TableHead className="text-right">QTY</TableHead>
+            <TableHead className="text-right">ENTRY</TableHead>
+            <TableHead className="text-right">CURRENT</TableHead>
+            <TableHead className="text-right">P&L</TableHead>
+            <TableHead className="text-right">P&L %</TableHead>
+            <TableHead className="text-center">STATUS</TableHead>
+            <TableHead className="text-center">ACTIONS</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {positions.map((position) => (
-            <tr
-              key={position.id}
-              style={{
-                borderBottom: '1px solid rgba(77, 166, 255, 0.2)',
-                transition: 'background-color 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(77, 166, 255, 0.05)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent'
-              }}
-            >
-              <td
-                style={{
-                  padding: '0.75rem',
-                  color: '#4da6ff',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  textDecoration: 'underline',
-                }}
+            <TableRow key={position.id}>
+              <TableCell
+                className="font-bold text-primary cursor-pointer underline"
                 onClick={() => navigate(`/asset/${position.ticker}`)}
                 title="View asset details"
               >
                 {position.ticker}
-              </td>
-              <td style={{ padding: '0.75rem', color: '#2a3e4a' }}>
+              </TableCell>
+              <TableCell className="text-muted-foreground">
                 {position.asset_class.toUpperCase()}
-              </td>
-              <td style={{ padding: '0.75rem', textAlign: 'right', color: '#fff' }}>
+              </TableCell>
+              <TableCell className="text-right">
                 {position.quantity.toFixed(4)}
-              </td>
-              <td style={{ padding: '0.75rem', textAlign: 'right', color: '#fff' }}>
+              </TableCell>
+              <TableCell className="text-right">
                 {formatCurrency(position.entry_price)}
-              </td>
-              <td style={{ padding: '0.75rem', textAlign: 'right', color: '#fff' }}>
+              </TableCell>
+              <TableCell className="text-right">
                 {position.status === 'open'
                   ? formatCurrency(position.current_price)
                   : formatCurrency(position.exit_price)}
-              </td>
-              <td
-                style={{
-                  padding: '0.75rem',
-                  textAlign: 'right',
-                  fontWeight: 'bold',
-                  color: getPnLColor(
-                    position.status === 'open' ? position.unrealized_pnl : position.realized_pnl
-                  ),
-                }}
-              >
+              </TableCell>
+              <TableCell className={`text-right font-bold ${getPnLColorClass(position.status === 'open' ? position.unrealized_pnl : position.realized_pnl)}`}>
                 {position.status === 'open'
                   ? formatCurrency(position.unrealized_pnl)
                   : formatCurrency(position.realized_pnl)}
-              </td>
-              <td
-                style={{
-                  padding: '0.75rem',
-                  textAlign: 'right',
-                  fontWeight: 'bold',
-                  color: getPnLColor(position.pnl_percentage),
-                }}
-              >
+              </TableCell>
+              <TableCell className={`text-right font-bold ${getPnLColorClass(position.pnl_percentage)}`}>
                 {formatPercentage(position.pnl_percentage)}
-              </td>
-              <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+              </TableCell>
+              <TableCell className="text-center">
                 <span
-                  style={{
-                    padding: '0.25rem 0.5rem',
-                    fontSize: '0.75rem',
-                    border: `1px solid ${position.status === 'open' ? '#00ff00' : '#2a3e4a'}`,
-                    color: position.status === 'open' ? '#00ff00' : '#2a3e4a',
-                  }}
+                  className={`px-2 py-1 text-xs border ${
+                    position.status === 'open'
+                      ? 'border-green-600 text-green-600 dark:border-green-400 dark:text-green-400'
+                      : 'border-muted-foreground text-muted-foreground'
+                  }`}
                 >
                   {position.status.toUpperCase()}
                 </span>
-              </td>
-              <td style={{ padding: '0.75rem', textAlign: 'center' }}>
-                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                  <button
+              </TableCell>
+              <TableCell className="text-center">
+                <div className="flex gap-2 justify-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => onEdit(position)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#4da6ff',
-                      cursor: 'pointer',
-                      padding: '0.25rem',
-                    }}
                     title="Edit"
                   >
                     <Edit size={16} />
-                  </button>
+                  </Button>
                   {position.status === 'open' && (
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={() => onClose(position)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#ffaa00',
-                        cursor: 'pointer',
-                        padding: '0.25rem',
-                      }}
                       title="Close Position"
+                      className="text-yellow-600 hover:text-yellow-600"
                     >
                       <XCircle size={16} />
-                    </button>
+                    </Button>
                   )}
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => onDelete(position.id)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#ff0000',
-                      cursor: 'pointer',
-                      padding: '0.25rem',
-                    }}
                     title="Delete"
+                    className="text-destructive hover:text-destructive"
                   >
                     <Trash2 size={16} />
-                  </button>
+                  </Button>
                 </div>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   )
 }

@@ -212,7 +212,7 @@ export const AssetDetail: React.FC = () => {
           {positions && positions.length > 0 && (
             <div
               style={{
-                border: '1px solid rgba(77, 166, 255, 0.3)',
+                border: '1px solid hsl(var(--border))',
                 padding: '1rem',
               }}
             >
@@ -243,7 +243,7 @@ export const AssetDetail: React.FC = () => {
                       fontSize: '0.875rem',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(77, 166, 255, 0.1)'
+                      e.currentTarget.style.backgroundColor = 'hsl(var(--primary) / 0.1)'
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = '#1a2a3a'
@@ -405,7 +405,7 @@ export const AssetDetail: React.FC = () => {
         ) : (
           <div
             style={{
-              border: '1px solid rgba(77, 166, 255, 0.3)',
+              border: '1px solid hsl(var(--border))',
               padding: '2rem',
               textAlign: 'center',
               fontFamily: 'JetBrains Mono, monospace',

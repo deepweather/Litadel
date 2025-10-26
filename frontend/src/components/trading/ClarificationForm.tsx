@@ -2,6 +2,11 @@ import React, { useState } from 'react'
 import { AlertCircle, Send } from 'lucide-react'
 import type { ClarificationQuestion } from '../../types/trading'
 import { SmartDatePicker } from './SmartDatePicker'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Card } from '@/components/ui/card'
 
 interface ClarificationFormProps {
   questions: ClarificationQuestion[]
@@ -18,7 +23,6 @@ export const ClarificationForm: React.FC<ClarificationFormProps> = ({
   const [showDatePicker, setShowDatePicker] = useState(false)
 
   const handleSubmit = () => {
-    // Check if at least one required field is answered
     const hasAnswers = Object.keys(answers).length > 0
     if (hasAnswers) {
       onSubmit(answers)
@@ -63,40 +67,19 @@ export const ClarificationForm: React.FC<ClarificationFormProps> = ({
   const renderInput = (question: ClarificationQuestion) => {
     const { field, field_type, suggestions } = question
 
-    // Special handling for date fields
+    // Date fields
     if (field === 'dates' || field === 'start_date' || field === 'end_date') {
       const hasDateSelection = answers.start_date && answers.end_date
 
-      // Show preset buttons if suggestions provided
       if (field_type === 'select' && suggestions && suggestions.length > 0 && !hasDateSelection) {
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-              gap: '0.5rem'
-            }}>
+          <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2">
               {suggestions.map((preset) => (
                 <button
                   key={String(preset)}
                   onClick={() => handleDatePresetSelect(String(preset))}
-                  style={{
-                    padding: '0.75rem',
-                    border: '1px solid #4da6ff',
-                    backgroundColor: 'rgba(77, 166, 255, 0.1)',
-                    color: '#4da6ff',
-                    fontSize: '0.875rem',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    cursor: 'pointer',
-                    borderRadius: '4px',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(77, 166, 255, 0.2)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(77, 166, 255, 0.1)'
-                  }}
+                  className="p-3 border border-primary bg-primary/10 text-primary text-sm font-mono cursor-pointer rounded transition-all hover:bg-primary/20"
                 >
                   {String(preset)}
                 </button>
@@ -107,49 +90,20 @@ export const ClarificationForm: React.FC<ClarificationFormProps> = ({
       }
 
       if (hasDateSelection && !showDatePicker) {
-        // Show selected dates with option to change
         return (
-          <div style={{
-            padding: '1rem',
-            border: '1px solid #00d4ff',
-            backgroundColor: 'rgba(0, 212, 255, 0.1)',
-            borderRadius: '4px'
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '0.5rem'
-            }}>
-              <div style={{
-                color: '#00d4ff',
-                fontSize: '0.875rem',
-                fontFamily: 'JetBrains Mono, monospace',
-                fontWeight: 'bold'
-              }}>
+          <div className="p-4 border border-blue-500 bg-blue-500/10 rounded">
+            <div className="flex justify-between items-center mb-2">
+              <div className="text-blue-500 text-sm font-mono font-bold">
                 Selected Date Range:
               </div>
               <button
                 onClick={() => setShowDatePicker(true)}
-                style={{
-                  padding: '0.25rem 0.75rem',
-                  border: '1px solid #4da6ff',
-                  backgroundColor: 'transparent',
-                  color: '#4da6ff',
-                  fontSize: '0.75rem',
-                  fontFamily: 'JetBrains Mono, monospace',
-                  cursor: 'pointer',
-                  borderRadius: '4px'
-                }}
+                className="px-3 py-1 border border-primary bg-transparent text-primary text-xs font-mono cursor-pointer rounded hover:bg-primary/10"
               >
                 Change
               </button>
             </div>
-            <div style={{
-              color: '#fff',
-              fontSize: '0.875rem',
-              fontFamily: 'JetBrains Mono, monospace'
-            }}>
+            <div className="text-foreground text-sm font-mono">
               {new Date(answers.start_date).toLocaleDateString('en-US')} to {new Date(answers.end_date).toLocaleDateString('en-US')}
             </div>
           </div>
@@ -172,12 +126,12 @@ export const ClarificationForm: React.FC<ClarificationFormProps> = ({
       )
     }
 
-    // Capital field with suggestions
+    // Capital field
     if (field === 'capital' && suggestions && suggestions.length > 0) {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div className="flex flex-col gap-3">
           <div>
-            <input
+            <Input
               type="number"
               placeholder="Enter amount (e.g., 100000)..."
               value={answers[field] || ''}
@@ -187,48 +141,24 @@ export const ClarificationForm: React.FC<ClarificationFormProps> = ({
                   setAnswers(prev => ({ ...prev, [field]: value }))
                 }
               }}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                backgroundColor: '#1a2a3a',
-                border: '1px solid #4da6ff',
-                color: '#fff',
-                fontFamily: 'JetBrains Mono, monospace',
-                fontSize: '0.875rem'
-              }}
+              className="w-full"
             />
             {answers[field] && (
-              <div style={{
-                fontSize: '0.75rem',
-                color: '#4da6ff',
-                marginTop: '0.25rem',
-                fontFamily: 'JetBrains Mono, monospace'
-              }}>
+              <div className="text-xs text-primary mt-1 font-mono">
                 = ${answers[field].toLocaleString('en-US')}
               </div>
             )}
           </div>
-          <div style={{
-            display: 'flex',
-            gap: '0.5rem',
-            flexWrap: 'wrap'
-          }}>
+          <div className="flex gap-2 flex-wrap">
             {suggestions.map((amount) => {
               const numAmount = typeof amount === 'number' ? amount : Number(amount)
               return (
                 <button
                   key={numAmount}
                   onClick={() => setAnswers(prev => ({ ...prev, [field]: numAmount }))}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    border: '1px solid #4da6ff',
-                    backgroundColor: answers[field] === numAmount ? 'rgba(77, 166, 255, 0.3)' : 'rgba(77, 166, 255, 0.1)',
-                    color: '#4da6ff',
-                    fontSize: '0.875rem',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    cursor: 'pointer',
-                    borderRadius: '4px'
-                  }}
+                  className={`px-4 py-2 border border-primary font-mono text-sm cursor-pointer rounded ${
+                    answers[field] === numAmount ? 'bg-primary/30' : 'bg-primary/10'
+                  } hover:bg-primary/20`}
                 >
                   ${(numAmount / 1000).toFixed(0)}k
                 </button>
@@ -242,25 +172,14 @@ export const ClarificationForm: React.FC<ClarificationFormProps> = ({
     // Select field
     if (field_type === 'select' && suggestions && suggestions.length > 0) {
       return (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
-          gap: '0.5rem'
-        }}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2">
           {suggestions.map((option) => (
             <button
               key={String(option)}
               onClick={() => setAnswers(prev => ({ ...prev, [field]: option }))}
-              style={{
-                padding: '0.75rem',
-                border: '1px solid #4da6ff',
-                backgroundColor: answers[field] === option ? 'rgba(77, 166, 255, 0.3)' : 'rgba(77, 166, 255, 0.1)',
-                color: '#4da6ff',
-                fontSize: '0.875rem',
-                fontFamily: 'JetBrains Mono, monospace',
-                cursor: 'pointer',
-                borderRadius: '4px'
-              }}
+              className={`p-3 border border-primary font-mono text-sm cursor-pointer rounded ${
+                answers[field] === option ? 'bg-primary/30' : 'bg-primary/10'
+              } hover:bg-primary/20`}
             >
               {String(option)}
             </button>
@@ -272,21 +191,12 @@ export const ClarificationForm: React.FC<ClarificationFormProps> = ({
     // Textarea
     if (field_type === 'textarea') {
       return (
-        <textarea
+        <Textarea
           placeholder="Enter details..."
           value={answers[field] || ''}
           onChange={(e) => setAnswers(prev => ({ ...prev, [field]: e.target.value }))}
           rows={4}
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            backgroundColor: '#1a2a3a',
-            border: '1px solid #4da6ff',
-            color: '#fff',
-            fontFamily: 'JetBrains Mono, monospace',
-            fontSize: '0.875rem',
-            resize: 'vertical'
-          }}
+          className="w-full resize-y"
         />
       )
     }
@@ -294,7 +204,7 @@ export const ClarificationForm: React.FC<ClarificationFormProps> = ({
     // Array (comma-separated)
     if (field_type === 'array') {
       return (
-        <input
+        <Input
           type="text"
           placeholder="Enter tickers separated by commas..."
           value={Array.isArray(answers[field]) ? answers[field].join(', ') : answers[field] || ''}
@@ -303,15 +213,7 @@ export const ClarificationForm: React.FC<ClarificationFormProps> = ({
             const array = value.split(',').map(s => s.trim().toUpperCase()).filter(Boolean)
             setAnswers(prev => ({ ...prev, [field]: array }))
           }}
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            backgroundColor: '#1a2a3a',
-            border: '1px solid #4da6ff',
-            color: '#fff',
-            fontFamily: 'JetBrains Mono, monospace',
-            fontSize: '0.875rem'
-          }}
+          className="w-full"
         />
       )
     }
@@ -319,135 +221,70 @@ export const ClarificationForm: React.FC<ClarificationFormProps> = ({
     // Number
     if (field_type === 'number') {
       return (
-        <input
+        <Input
           type="number"
           placeholder="Enter number..."
           value={answers[field] || ''}
           onChange={(e) => setAnswers(prev => ({ ...prev, [field]: parseFloat(e.target.value) }))}
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            backgroundColor: '#1a2a3a',
-            border: '1px solid #4da6ff',
-            color: '#fff',
-            fontFamily: 'JetBrains Mono, monospace',
-            fontSize: '0.875rem'
-          }}
+          className="w-full"
         />
       )
     }
 
     // Default text input
     return (
-      <input
+      <Input
         type="text"
         placeholder="Enter value..."
         value={answers[field] || ''}
         onChange={(e) => setAnswers(prev => ({ ...prev, [field]: e.target.value }))}
-        style={{
-          width: '100%',
-          padding: '0.75rem',
-          backgroundColor: '#1a2a3a',
-          border: '1px solid #4da6ff',
-          color: '#fff',
-          fontFamily: 'JetBrains Mono, monospace',
-          fontSize: '0.875rem'
-        }}
+        className="w-full"
       />
     )
   }
 
   return (
-    <div style={{
-      padding: '1.5rem',
-      border: '2px solid #ffa500',
-      borderRadius: '8px',
-      backgroundColor: 'rgba(255, 165, 0, 0.05)',
-      fontFamily: 'JetBrains Mono, monospace'
-    }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.5rem',
-        marginBottom: '1.5rem',
-        color: '#ffa500',
-        fontSize: '1rem',
-        fontWeight: 'bold'
-      }}>
+    <Card className="p-6 border-2 border-orange-500 bg-orange-500/5 font-mono">
+      <div className="flex items-center gap-2 mb-6 text-orange-500 text-base font-bold">
         <AlertCircle size={20} />
         <span>Need more information:</span>
       </div>
 
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1.5rem'
-      }}>
+      <div className="flex flex-col gap-6">
         {questions.map((question, index) => (
           <div key={index}>
-            <label style={{
-              display: 'block',
-              marginBottom: '0.75rem',
-              color: '#ffa500',
-              fontSize: '0.875rem',
-              fontWeight: 'bold'
-            }}>
+            <Label className="block mb-3 text-orange-500 text-sm font-bold">
               {question.question}
-            </label>
+            </Label>
             {renderInput(question)}
           </div>
         ))}
       </div>
 
-      <div style={{
-        display: 'flex',
-        gap: '0.75rem',
-        marginTop: '1.5rem'
-      }}>
-        <button
+      <div className="flex gap-3 mt-6">
+        <Button
           onClick={handleSubmit}
           disabled={Object.keys(answers).length === 0}
-          style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.5rem',
-            padding: '0.75rem',
-            backgroundColor: Object.keys(answers).length === 0 ? 'rgba(77, 166, 255, 0.05)' : 'rgba(0, 212, 255, 0.2)',
-            border: `2px solid ${Object.keys(answers).length === 0 ? '#666' : '#00d4ff'}`,
-            borderRadius: '8px',
-            color: Object.keys(answers).length === 0 ? '#666' : '#00d4ff',
-            fontSize: '0.875rem',
-            fontWeight: 'bold',
-            cursor: Object.keys(answers).length === 0 ? 'not-allowed' : 'pointer',
-            fontFamily: 'JetBrains Mono, monospace'
-          }}
+          className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 text-sm font-bold font-mono rounded-lg ${
+            Object.keys(answers).length === 0
+              ? 'bg-muted/5 border-muted-foreground/50 text-muted-foreground/50 cursor-not-allowed'
+              : 'bg-blue-500/20 border-blue-500 text-blue-500 hover:bg-blue-500/30'
+          }`}
         >
           <Send size={16} />
           <span>Submit</span>
-        </button>
+        </Button>
 
         {onSkip && (
-          <button
+          <Button
             onClick={onSkip}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: 'transparent',
-              border: '2px solid #666',
-              borderRadius: '8px',
-              color: '#666',
-              fontSize: '0.875rem',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              fontFamily: 'JetBrains Mono, monospace'
-            }}
+            variant="outline"
+            className="px-6 py-3 border-2 border-muted-foreground/50 text-muted-foreground/50 text-sm font-bold font-mono rounded-lg hover:border-red-500 hover:text-red-500"
           >
             Skip
-          </button>
+          </Button>
         )}
       </div>
-    </div>
+    </Card>
   )
 }
-

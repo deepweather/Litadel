@@ -335,77 +335,37 @@ export const ChatTradingInterface: React.FC = () => {
   }
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100vh',
-      maxWidth: '900px',
-      margin: '0 auto',
-      padding: '1rem'
-    }}>
+    <div className="flex flex-col h-screen max-w-[900px] mx-auto p-4">
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '1rem',
-        padding: '1rem',
-        borderBottom: '1px solid rgba(77, 166, 255, 0.3)',
-        marginBottom: '1rem'
-      }}>
+      <div className="flex items-center gap-4 p-4 border-b mb-4">
         <Button
           onClick={() => navigate('/backtests')}
-          style={{ padding: '0.5rem' }}
+          className="p-2"
         >
           <ArrowLeft size={18} />
         </Button>
 
-        <div style={{ flex: 1 }}>
-          <h1 style={{
-            color: '#4da6ff',
-            fontFamily: 'JetBrains Mono, monospace',
-            fontSize: '1.5rem',
-            margin: 0,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem'
-          }}>
+        <div className="flex-1">
+          <h1 className="text-primary font-mono text-2xl m-0 flex items-center gap-2">
             <Sparkles size={24} />
             AI Trading Assistant
           </h1>
-          <p style={{
-            color: '#8899aa',
-            fontSize: '0.875rem',
-            margin: '0.25rem 0 0 0',
-            fontFamily: 'JetBrains Mono, monospace'
-          }}>
+          <p className="text-muted-foreground text-sm mt-1 font-mono">
             Describe your strategy in natural language
           </p>
         </div>
       </div>
 
       {/* Messages Area */}
-      <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        padding: '1rem',
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col">
         {state.messages.map((message, idx) => (
           <ChatMessage key={idx} message={message} />
         ))}
 
         {state.isProcessing && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.5rem',
-            padding: '1rem',
-            color: '#00d4ff'
-          }}>
+          <div className="flex items-center justify-center gap-2 p-4 text-blue-500">
             <Loader2 className="animate-spin" size={20} />
-            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.875rem' }}>
+            <span className="font-mono text-sm">
               Processing...
             </span>
           </div>
@@ -413,7 +373,7 @@ export const ChatTradingInterface: React.FC = () => {
 
         {/* Parameter Approval Card */}
         {state.pendingApproval && !state.isProcessing && (
-          <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="mt-4 flex flex-col gap-4">
             <ParameterApprovalCard
               parameters={state.extractedParams}
               confidence={{}} // Could pass actual confidence scores
@@ -428,46 +388,20 @@ export const ChatTradingInterface: React.FC = () => {
 
             {/* Strategy DSL Visualization - Show for ALL strategy types */}
             {state.generatedYaml && (
-              <div style={{
-                border: state.extractedParams.strategy_type === 'agent_managed'
-                  ? '2px solid #a78bfa'
-                  : '2px solid #00d4ff',
-                borderRadius: '8px',
-                padding: '1.5rem',
-                backgroundColor: state.extractedParams.strategy_type === 'agent_managed'
-                  ? 'rgba(147, 51, 234, 0.05)'
-                  : 'rgba(0, 212, 255, 0.05)'
-              }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '1rem'
-                }}>
-                  <h3 style={{
-                    color: state.extractedParams.strategy_type === 'agent_managed' ? '#a78bfa' : '#00d4ff',
-                    fontSize: '1rem',
-                    fontWeight: 'bold',
-                    margin: 0,
-                    fontFamily: 'JetBrains Mono, monospace',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}>
+              <div className={`border-2 rounded-lg p-6 ${
+                state.extractedParams.strategy_type === 'agent_managed'
+                  ? 'border-purple-400 bg-purple-500/5'
+                  : 'border-blue-500 bg-blue-500/5'
+              }`}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className={`text-base font-bold m-0 font-mono flex items-center gap-2 ${
+                    state.extractedParams.strategy_type === 'agent_managed' ? 'text-purple-400' : 'text-blue-500'
+                  }`}>
                     {state.extractedParams.strategy_type === 'agent_managed' ? '🤖 AI-Managed Strategy DSL' : '📊 Technical Strategy DSL'}
                   </h3>
                   <button
                     onClick={() => generateYAMLForApproval()}
-                    style={{
-                      padding: '0.5rem 1rem',
-                      border: '1px solid #4da6ff',
-                      backgroundColor: 'transparent',
-                      color: '#4da6ff',
-                      fontSize: '0.75rem',
-                      fontFamily: 'JetBrains Mono, monospace',
-                      cursor: 'pointer',
-                      borderRadius: '4px'
-                    }}
+                    className="px-4 py-2 border border-primary bg-transparent text-primary text-xs font-mono cursor-pointer rounded hover:bg-primary/10"
                   >
                     🔄 Regenerate
                   </button>
@@ -478,20 +412,9 @@ export const ChatTradingInterface: React.FC = () => {
 
             {/* Additional note for agent-managed strategies */}
             {state.extractedParams.strategy_type === 'agent_managed' && state.generatedYaml && (
-              <div style={{
-                padding: '1rem',
-                border: '1px solid rgba(167, 139, 250, 0.3)',
-                borderRadius: '4px',
-                backgroundColor: 'rgba(147, 51, 234, 0.05)'
-              }}>
-                <p style={{
-                  color: '#8899aa',
-                  fontSize: '0.8rem',
-                  margin: 0,
-                  fontFamily: 'JetBrains Mono, monospace',
-                  lineHeight: '1.5'
-                }}>
-                  💡 <strong style={{ color: '#a78bfa' }}>Note:</strong> Your trading agents will use the DSL above as a flexible framework.
+              <div className="p-4 border border-purple-400/30 rounded bg-purple-500/5">
+                <p className="text-muted-foreground text-sm m-0 font-mono leading-relaxed">
+                  💡 <strong className="text-purple-400">Note:</strong> Your trading agents will use the DSL above as a flexible framework.
                   They'll analyze market conditions, sentiment, and technical indicators in real-time to make intelligent
                   trading decisions within your specified risk parameters.
                 </p>
@@ -502,7 +425,7 @@ export const ChatTradingInterface: React.FC = () => {
 
         {/* Clarification Form */}
         {state.pendingClarification && !state.isProcessing && (
-          <div style={{ marginTop: '1rem' }}>
+          <div className="mt-4">
             <ClarificationForm
               questions={state.pendingClarification.questions}
               onSubmit={handleClarificationSubmit}
@@ -515,12 +438,7 @@ export const ChatTradingInterface: React.FC = () => {
       </div>
 
       {/* Input Area */}
-      <div style={{
-        display: 'flex',
-        gap: '0.5rem',
-        padding: '1rem',
-        borderTop: '1px solid rgba(77, 166, 255, 0.3)'
-      }}>
+      <div className="flex gap-2 p-4 border-t">
         <input
           ref={inputRef}
           type="text"
@@ -529,22 +447,12 @@ export const ChatTradingInterface: React.FC = () => {
           onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
           placeholder="Describe your trading strategy..."
           disabled={state.isProcessing || state.pendingApproval}
-          style={{
-            flex: 1,
-            padding: '0.75rem',
-            backgroundColor: '#1a2a3a',
-            border: '1px solid #4da6ff',
-            color: '#fff',
-            fontFamily: 'JetBrains Mono, monospace',
-            fontSize: '0.875rem',
-            outline: 'none',
-            borderRadius: '4px'
-          }}
+          className="flex-1 p-3 bg-background border border-primary text-foreground font-mono text-sm outline-none rounded focus:border-blue-500"
         />
         <Button
           onClick={handleSendMessage}
           disabled={!input.trim() || state.isProcessing || state.pendingApproval}
-          style={{ padding: '0.75rem 1.5rem' }}
+          className="px-6 py-3"
         >
           <Send size={18} />
         </Button>

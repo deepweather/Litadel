@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import {
   ChevronRight,
   Code,
@@ -10,23 +10,23 @@ import {
   TrendingUp,
   Zap
 } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Badge } from '@/components/ui/badge'
 
-// Custom YAML syntax highlighter component
 const YAMLHighlighter: React.FC<{ code: string }> = ({ code }) => {
   const highlightYAML = (yamlCode: string) => {
     const lines = yamlCode.split('\n')
 
     return lines.map((line, idx) => {
-      // Comments
       if (line.trim().startsWith('#')) {
         return (
-          <div key={idx} style={{ color: '#6a9955' }}>
+          <div key={idx} className="text-green-600">
             {line}
           </div>
         )
       }
 
-      // Keys (everything before :)
       const keyMatch = line.match(/^(\s*)([a-zA-Z_][a-zA-Z0-9_]*):/)
       if (keyMatch) {
         const indent = keyMatch[1]
@@ -36,14 +36,13 @@ const YAMLHighlighter: React.FC<{ code: string }> = ({ code }) => {
         return (
           <div key={idx}>
             <span>{indent}</span>
-            <span style={{ color: '#9cdcfe' }}>{key}</span>
-            <span style={{ color: '#d4d4d4' }}>:</span>
-            <span style={{ color: rest.trim().startsWith('#') ? '#6a9955' : '#ce9178' }}>{rest}</span>
+            <span className="text-blue-400">{key}</span>
+            <span className="text-foreground">:</span>
+            <span className={rest.trim().startsWith('#') ? 'text-green-600' : 'text-orange-400'}>{rest}</span>
           </div>
         )
       }
 
-      // List items
       if (line.trim().startsWith('- ')) {
         const indent = line.match(/^(\s*)/)?.[1] || ''
         const rest = line.substring(indent.length + 2)
@@ -51,15 +50,14 @@ const YAMLHighlighter: React.FC<{ code: string }> = ({ code }) => {
         return (
           <div key={idx}>
             <span>{indent}</span>
-            <span style={{ color: '#569cd6' }}>- </span>
-            <span style={{ color: '#ce9178' }}>{rest}</span>
+            <span className="text-blue-500">- </span>
+            <span className="text-orange-400">{rest}</span>
           </div>
         )
       }
 
-      // Default
       return (
-        <div key={idx} style={{ color: '#d4d4d4' }}>
+        <div key={idx} className="text-muted-foreground">
           {line}
         </div>
       )
@@ -67,31 +65,15 @@ const YAMLHighlighter: React.FC<{ code: string }> = ({ code }) => {
   }
 
   return (
-    <div style={{
-      backgroundColor: '#1e1e1e',
-      padding: '1.5rem',
-      borderRadius: '8px',
-      overflow: 'auto',
-      maxHeight: '600px',
-      fontFamily: 'Consolas, Monaco, monospace',
-      fontSize: '0.875rem',
-      lineHeight: '1.5',
-    }}>
-      <div style={{ display: 'table', width: '100%' }}>
-        <div style={{ display: 'table-row-group' }}>
+    <div className="bg-secondary p-6 rounded-lg overflow-auto max-h-[600px] font-mono text-sm leading-relaxed">
+      <div className="table w-full">
+        <div className="table-row-group">
           {code.split('\n').map((_, idx) => (
-            <div key={idx} style={{ display: 'table-row' }}>
-              <div style={{
-                display: 'table-cell',
-                paddingRight: '1rem',
-                textAlign: 'right',
-                color: '#858585',
-                userSelect: 'none',
-                minWidth: '3em',
-              }}>
+            <div key={idx} className="table-row">
+              <div className="table-cell pr-4 text-right text-muted-foreground select-none min-w-[3em]">
                 {idx + 1}
               </div>
-              <div style={{ display: 'table-cell', width: '100%' }}>
+              <div className="table-cell w-full">
                 {highlightYAML(code)[idx]}
               </div>
             </div>
@@ -107,9 +89,6 @@ interface StrategyVisualizerProps {
 }
 
 export const StrategyVisualizer: React.FC<StrategyVisualizerProps> = ({ yamlContent }) => {
-  const [viewMode, setViewMode] = useState<'visual' | 'yaml'>('visual')
-
-  // Parse YAML to extract strategy details
   interface StrategyRule {
     type: string
     description?: string
@@ -200,284 +179,201 @@ export const StrategyVisualizer: React.FC<StrategyVisualizerProps> = ({ yamlCont
 
   if (!strategy) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>
+      <div className="p-8 text-center text-muted-foreground">
         Unable to parse strategy. Please check YAML format.
       </div>
     )
   }
 
-  const cardStyle: React.CSSProperties = {
-    backgroundColor: '#1a2a3a',
-    border: '1px solid #4da6ff',
-    borderRadius: '8px',
-    padding: '1.5rem',
-    marginBottom: '1rem',
-  }
-
-  const sectionTitleStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    fontSize: '0.875rem',
-    fontWeight: 'bold',
-    color: '#00d4ff',
-    marginBottom: '0.75rem',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-  }
-
-  const ruleItemStyle: React.CSSProperties = {
-    backgroundColor: 'rgba(0, 212, 255, 0.05)',
-    border: '1px solid rgba(0, 212, 255, 0.2)',
-    borderRadius: '4px',
-    padding: '0.75rem',
-    marginBottom: '0.5rem',
-  }
-
-  const badgeStyle: React.CSSProperties = {
-    display: 'inline-block',
-    backgroundColor: 'rgba(0, 212, 255, 0.2)',
-    color: '#00d4ff',
-    padding: '0.25rem 0.75rem',
-    borderRadius: '12px',
-    fontSize: '0.75rem',
-    fontWeight: 'bold',
-    marginRight: '0.5rem',
-    marginBottom: '0.5rem',
-  }
-
   return (
-    <div style={{ marginTop: '1rem' }}>
-      {/* View Mode Toggle */}
-      <div style={{
-        display: 'flex',
-        gap: '0.5rem',
-        marginBottom: '1rem',
-        borderBottom: '1px solid #2a3e4a',
-        paddingBottom: '0.5rem',
-      }}>
-        <button
-          onClick={() => setViewMode('visual')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.5rem 1rem',
-            backgroundColor: viewMode === 'visual' ? 'rgba(0, 212, 255, 0.2)' : 'transparent',
-            border: viewMode === 'visual' ? '1px solid #00d4ff' : '1px solid transparent',
-            borderRadius: '4px',
-            color: viewMode === 'visual' ? '#00d4ff' : '#666',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontFamily: 'JetBrains Mono, monospace',
-          }}
-        >
-          <Eye size={16} />
-          Visual View
-        </button>
-        <button
-          onClick={() => setViewMode('yaml')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.5rem 1rem',
-            backgroundColor: viewMode === 'yaml' ? 'rgba(0, 212, 255, 0.2)' : 'transparent',
-            border: viewMode === 'yaml' ? '1px solid #00d4ff' : '1px solid transparent',
-            borderRadius: '4px',
-            color: viewMode === 'yaml' ? '#00d4ff' : '#666',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontFamily: 'JetBrains Mono, monospace',
-          }}
-        >
-          <Code size={16} />
-          YAML Source
-        </button>
-      </div>
+    <div className="mt-4">
+      <Tabs defaultValue="visual" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="visual" className="flex items-center gap-2">
+            <Eye size={16} />
+            Visual View
+          </TabsTrigger>
+          <TabsTrigger value="yaml" className="flex items-center gap-2">
+            <Code size={16} />
+            YAML Source
+          </TabsTrigger>
+        </TabsList>
 
-      {viewMode === 'visual' ? (
-        <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
+        <TabsContent value="visual" className="max-h-[600px] overflow-y-auto space-y-4">
           {/* Strategy Header */}
-          <div style={{ ...cardStyle, borderColor: '#00d4ff', borderWidth: '2px' }}>
-            <h3 style={{ color: '#00d4ff', fontSize: '1.25rem', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-              {strategy.name}
-            </h3>
-            <p style={{ color: '#8899aa', fontSize: '0.875rem', lineHeight: '1.5' }}>
-              {strategy.description}
-            </p>
-          </div>
+          <Card className="border-2 border-blue-500">
+            <CardHeader>
+              <CardTitle className="text-blue-500 text-xl">{strategy.name}</CardTitle>
+              <p className="text-sm text-muted-foreground leading-relaxed">{strategy.description}</p>
+            </CardHeader>
+          </Card>
 
           {/* Universe */}
-          <div style={cardStyle}>
-            <div style={sectionTitleStyle}>
-              <Target size={16} />
-              Trading Universe
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-              {strategy.universe[0] === 'AI_MANAGED' ? (
-                <div style={{
-                  ...badgeStyle,
-                  backgroundColor: 'rgba(147, 51, 234, 0.2)',
-                  color: '#a78bfa',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                }}>
-                  <Zap size={14} />
-                  AI_MANAGED - AI will select assets
-                </div>
-              ) : (
-                strategy.universe.map((ticker: string, idx: number) => (
-                  <span key={idx} style={badgeStyle}>
-                    {ticker}
-                  </span>
-                ))
-              )}
-            </div>
-          </div>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2 text-sm font-bold text-primary uppercase tracking-wide">
+                <Target size={16} />
+                Trading Universe
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {strategy.universe[0] === 'AI_MANAGED' ? (
+                  <Badge variant="secondary" className="flex items-center gap-2 bg-purple-500/20 text-purple-400 border-purple-400">
+                    <Zap size={14} />
+                    AI_MANAGED - AI will select assets
+                  </Badge>
+                ) : (
+                  strategy.universe.map((ticker: string, idx: number) => (
+                    <Badge key={idx} variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-400">
+                      {ticker}
+                    </Badge>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Entry Rules */}
-          <div style={cardStyle}>
-            <div style={sectionTitleStyle}>
-              <TrendingUp size={16} />
-              Entry Rules
-            </div>
-            {strategy.entry_rules.length > 0 ? (
-              strategy.entry_rules.map((rule: any, idx: number) => (
-                <div key={idx} style={ruleItemStyle}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <ChevronRight size={14} color="#00d4ff" />
-                    <span style={{
-                      backgroundColor: 'rgba(0, 212, 255, 0.3)',
-                      color: '#00d4ff',
-                      padding: '0.125rem 0.5rem',
-                      borderRadius: '4px',
-                      fontSize: '0.75rem',
-                      fontWeight: 'bold',
-                    }}>
-                      {rule.type.toUpperCase()}
-                    </span>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2 text-sm font-bold text-primary uppercase tracking-wide">
+                <TrendingUp size={16} />
+                Entry Rules
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {strategy.entry_rules.length > 0 ? (
+                strategy.entry_rules.map((rule: any, idx: number) => (
+                  <div key={idx} className="bg-blue-500/5 border border-blue-500/20 rounded p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <ChevronRight size={14} className="text-blue-400" />
+                      <Badge variant="secondary" className="bg-blue-500/30 text-blue-400 text-xs">
+                        {rule.type.toUpperCase()}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground ml-6">
+                      {rule.description || 'No description provided'}
+                    </p>
                   </div>
-                  <p style={{ color: '#8899aa', fontSize: '0.875rem', marginLeft: '1.25rem' }}>
-                    {rule.description || 'No description provided'}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <p style={{ color: '#666', fontSize: '0.875rem', fontStyle: 'italic' }}>
-                No entry rules defined
-              </p>
-            )}
-          </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground italic">No entry rules defined</p>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Exit Rules */}
-          <div style={cardStyle}>
-            <div style={sectionTitleStyle}>
-              <TrendingDown size={16} />
-              Exit Rules
-            </div>
-            {strategy.exit_rules.length > 0 ? (
-              strategy.exit_rules.map((rule: any, idx: number) => (
-                <div key={idx} style={ruleItemStyle}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <ChevronRight size={14} color="#00d4ff" />
-                    <span style={{
-                      backgroundColor: 'rgba(0, 212, 255, 0.3)',
-                      color: '#00d4ff',
-                      padding: '0.125rem 0.5rem',
-                      borderRadius: '4px',
-                      fontSize: '0.75rem',
-                      fontWeight: 'bold',
-                    }}>
-                      {rule.type.toUpperCase()}
-                    </span>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2 text-sm font-bold text-primary uppercase tracking-wide">
+                <TrendingDown size={16} />
+                Exit Rules
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {strategy.exit_rules.length > 0 ? (
+                strategy.exit_rules.map((rule: any, idx: number) => (
+                  <div key={idx} className="bg-blue-500/5 border border-blue-500/20 rounded p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <ChevronRight size={14} className="text-blue-400" />
+                      <Badge variant="secondary" className="bg-blue-500/30 text-blue-400 text-xs">
+                        {rule.type.toUpperCase()}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground ml-6">
+                      {rule.description || 'No description provided'}
+                    </p>
                   </div>
-                  <p style={{ color: '#8899aa', fontSize: '0.875rem', marginLeft: '1.25rem' }}>
-                    {rule.description || 'No description provided'}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <p style={{ color: '#666', fontSize: '0.875rem', fontStyle: 'italic' }}>
-                No exit rules defined
-              </p>
-            )}
-          </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground italic">No exit rules defined</p>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Risk Management */}
           {Object.keys(strategy.risk_management).length > 0 && (
-            <div style={cardStyle}>
-              <div style={sectionTitleStyle}>
-                <Shield size={16} />
-                Risk Management
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                {Object.entries(strategy.risk_management).map(([key, value]: [string, any], idx) => (
-                  <div key={idx} style={{ ...ruleItemStyle, marginBottom: 0 }}>
-                    <div style={{ color: '#00d4ff', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
-                      {key.replace(/_/g, ' ').toUpperCase()}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2 text-sm font-bold text-primary uppercase tracking-wide">
+                  <Shield size={16} />
+                  Risk Management
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-3">
+                  {Object.entries(strategy.risk_management).map(([key, value]: [string, any], idx) => (
+                    <div key={idx} className="bg-blue-500/5 border border-blue-500/20 rounded p-3">
+                      <div className="text-blue-400 text-xs mb-1">
+                        {key.replace(/_/g, ' ').toUpperCase()}
+                      </div>
+                      <div className="text-foreground text-sm font-bold">
+                        {value}
+                      </div>
                     </div>
-                    <div style={{ color: '#fff', fontSize: '0.875rem', fontWeight: 'bold' }}>
-                      {value}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {/* Parameters & Preferences */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="grid grid-cols-2 gap-4">
             {Object.keys(strategy.parameters).length > 0 && (
-              <div style={cardStyle}>
-                <div style={sectionTitleStyle}>
-                  <Settings size={16} />
-                  Parameters
-                </div>
-                {Object.entries(strategy.parameters).map(([key, value]: [string, any], idx) => (
-                  <div key={idx} style={{ marginBottom: '0.5rem' }}>
-                    <span style={{ color: '#666', fontSize: '0.75rem' }}>
-                      {key.replace(/_/g, ' ')}:
-                    </span>
-                    <span style={{ color: '#00d4ff', fontSize: '0.875rem', marginLeft: '0.5rem', fontWeight: 'bold' }}>
-                      {value}
-                    </span>
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2 text-sm font-bold text-primary uppercase tracking-wide">
+                    <Settings size={16} />
+                    Parameters
                   </div>
-                ))}
-              </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {Object.entries(strategy.parameters).map(([key, value]: [string, any], idx) => (
+                    <div key={idx}>
+                      <span className="text-muted-foreground text-xs">
+                        {key.replace(/_/g, ' ')}:
+                      </span>
+                      <span className="text-blue-400 text-sm ml-2 font-bold">
+                        {value}
+                      </span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
             )}
 
             {Object.keys(strategy.preferences).length > 0 && (
-              <div style={cardStyle}>
-                <div style={sectionTitleStyle}>
-                  <Settings size={16} />
-                  Preferences
-                </div>
-                {Object.entries(strategy.preferences).map(([key, value]: [string, any], idx) => (
-                  <div key={idx} style={{ marginBottom: '0.5rem' }}>
-                    <span style={{ color: '#666', fontSize: '0.75rem' }}>
-                      {key.replace(/_/g, ' ')}:
-                    </span>
-                    <span style={{ color: '#00d4ff', fontSize: '0.875rem', marginLeft: '0.5rem', fontWeight: 'bold' }}>
-                      {value}
-                    </span>
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2 text-sm font-bold text-primary uppercase tracking-wide">
+                    <Settings size={16} />
+                    Preferences
                   </div>
-                ))}
-              </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {Object.entries(strategy.preferences).map(([key, value]: [string, any], idx) => (
+                    <div key={idx}>
+                      <span className="text-muted-foreground text-xs">
+                        {key.replace(/_/g, ' ')}:
+                      </span>
+                      <span className="text-blue-400 text-sm ml-2 font-bold">
+                        {value}
+                      </span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
             )}
           </div>
-        </div>
-      ) : (
-        <div style={{
-          borderRadius: '8px',
-          overflow: 'hidden',
-          border: '1px solid #4da6ff',
-        }}>
-          <YAMLHighlighter code={yamlContent} />
-        </div>
-      )}
+        </TabsContent>
+
+        <TabsContent value="yaml">
+          <div className="rounded-lg overflow-hidden border border-primary">
+            <YAMLHighlighter code={yamlContent} />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
-

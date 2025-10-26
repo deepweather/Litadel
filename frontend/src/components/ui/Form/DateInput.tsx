@@ -1,4 +1,6 @@
 import React from 'react'
+import { Input } from '../input'
+import { cn } from '@/lib/utils'
 
 interface DateInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   className?: string
@@ -6,23 +8,12 @@ interface DateInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export const DateInput: React.FC<DateInputProps> = ({
   className = '',
-  style,
   ...props
 }) => {
   return (
-    <input
+    <Input
       type="date"
-      className={className}
-      style={{
-        width: '100%',
-        padding: '0.75rem',
-        backgroundColor: '#1a2a3a',
-        border: '1px solid #4da6ff',
-        color: '#fff',
-        fontFamily: 'JetBrains Mono, monospace',
-        fontSize: '0.875rem',
-        ...style,
-      }}
+      className={cn('w-full font-mono', className)}
       {...props}
     />
   )

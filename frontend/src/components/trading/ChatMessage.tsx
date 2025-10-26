@@ -10,26 +10,14 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const isUser = message.role === 'user'
   const isSystem = message.role === 'system'
 
-  const getMessageStyle = () => {
+  const getMessageClasses = () => {
     if (isUser) {
-      return {
-        backgroundColor: 'rgba(77, 166, 255, 0.2)',
-        border: '1px solid #4da6ff',
-        alignSelf: 'flex-end' as const
-      }
+      return 'bg-primary/20 border-primary self-end'
     }
     if (isSystem) {
-      return {
-        backgroundColor: 'rgba(0, 212, 255, 0.1)',
-        border: '1px solid #00d4ff',
-        alignSelf: 'center' as const
-      }
+      return 'bg-blue-500/10 border-blue-500 self-center'
     }
-    return {
-      backgroundColor: 'rgba(0, 212, 255, 0.05)',
-      border: '1px solid rgba(77, 166, 255, 0.3)',
-      alignSelf: 'flex-start' as const
-    }
+    return 'bg-blue-500/5 border-border self-start'
   }
 
   const getIcon = () => {
@@ -38,58 +26,28 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
     return <Bot size={16} />
   }
 
-  const getIconColor = () => {
-    if (isUser) return '#4da6ff'
-    if (isSystem) return '#00d4ff'
-    return '#00d4ff'
+  const getIconColorClass = () => {
+    if (isUser) return 'text-primary'
+    if (isSystem) return 'text-blue-500'
+    return 'text-blue-500'
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: isUser ? 'flex-end' : isSystem ? 'center' : 'flex-start',
-        marginBottom: '1rem'
-      }}
-    >
+    <div className={`flex mb-4 ${isUser ? 'justify-end' : isSystem ? 'justify-center' : 'justify-start'}`}>
       <div
-        style={{
-          maxWidth: isSystem ? '90%' : '75%',
-          padding: '1rem',
-          borderRadius: '8px',
-          ...getMessageStyle(),
-          fontFamily: 'JetBrains Mono, monospace',
-          fontSize: '0.875rem'
-        }}
+        className={`max-w-[${isSystem ? '90%' : '75%'}] p-4 rounded-lg border font-mono text-sm ${getMessageClasses()}`}
       >
-        <div style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: '0.75rem'
-        }}>
-          <div style={{
-            color: getIconColor(),
-            marginTop: '0.125rem',
-            flexShrink: 0
-          }}>
+        <div className="flex items-start gap-3">
+          <div className={`mt-0.5 flex-shrink-0 ${getIconColorClass()}`}>
             {getIcon()}
           </div>
 
-          <div style={{ flex: 1 }}>
-            <div style={{
-              color: '#fff',
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word'
-            }}>
+          <div className="flex-1">
+            <div className="text-foreground whitespace-pre-wrap break-words">
               {message.content}
             </div>
 
-            <div style={{
-              marginTop: '0.5rem',
-              color: '#8899aa',
-              fontSize: '0.7rem',
-              opacity: 0.7
-            }}>
+            <div className="mt-2 text-muted-foreground text-xs opacity-70">
               {message.timestamp.toLocaleTimeString()}
             </div>
           </div>
