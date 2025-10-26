@@ -10,7 +10,7 @@
 
 > *Citadel was built by quants. Litadel was built by vibes.* 🚀
 
-> **About Litadel:** Built on the foundation of TradingAgents, Litadel is an AI-native hedge fund platform that combines deep market analysis, automated strategy generation, and rigorous backtesting. While TradingAgents provided an excellent proof-of-concept for multi-agent trading analysis, Litadel extends it into a complete trading system with: multi-asset support (stocks, crypto & commodities), AI-powered strategy code generation, secure backtesting engine, modern web interface, parallel execution, persistent storage, REST API, and portfolio management. From research to execution, Litadel handles the entire trading workflow.
+> **About Litadel:** An AI-native hedge fund platform that handles the complete trading workflow: multi-agent market research, automated strategy generation from natural language, rigorous backtesting with historical data, and portfolio management. Supports equities, cryptocurrencies, and commodities with professional-grade tools and insights.
 
 <div align="center">
 
