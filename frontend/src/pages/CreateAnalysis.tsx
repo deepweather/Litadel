@@ -1,23 +1,21 @@
 import React, { useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { CreateAnalysisForm } from '../components/analysis/CreateAnalysisForm'
-import { Heading, Text } from '../design-system'
+import { PageHeader } from '../components/layout/PageHeader'
 
 export const CreateAnalysis: React.FC = () => {
   const [searchParams] = useSearchParams()
   const prefilledTicker = useMemo(() => searchParams.get('ticker'), [searchParams])
 
   return (
-    <div className="flex flex-col gap-lg h-full">
-      <div className="pb-base border-b border-border">
-        <Heading level={1} className="mb-sm">
-          {prefilledTicker ? `ANALYZE ${prefilledTicker}` : 'CREATE NEW ANALYSIS'}
-        </Heading>
-        <Text variant="subdued" size="base">
-          Configure your multi-agent trading analysis
-        </Text>
+    <div className="flex flex-col gap-6 h-full">
+      <PageHeader
+        title={prefilledTicker ? `ANALYZE ${prefilledTicker}` : 'CREATE NEW ANALYSIS'}
+        subtitle="Configure your multi-agent trading analysis"
+      />
+      <div className="flex-1 overflow-auto">
+        <CreateAnalysisForm initialTicker={prefilledTicker || undefined} />
       </div>
-      <CreateAnalysisForm initialTicker={prefilledTicker || undefined} />
     </div>
   )
 }

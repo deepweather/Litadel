@@ -43,13 +43,24 @@ def get_user_selections():
     with open("./cli/static/welcome.txt") as f:
         welcome_ascii = f.read()
 
-    # Create welcome box content
-    welcome_content = f"{welcome_ascii}\n"
-    welcome_content += "[bold green]Litadel: Multi-Agents LLM Financial Trading Framework - CLI[/bold green]\n\n"
-    welcome_content += "[dim]Successor of TradingAgents by TaurusResearch[/dim]\n\n"
-    welcome_content += "[bold]Workflow Steps:[/bold]\n"
-    welcome_content += (
+    # Create centered welcome content using Align
+    from rich.text import Text
+
+    ascii_centered = Align.center(welcome_ascii)
+    title_centered = Align.center(
+        Text("Litadel: Multi-Agents LLM Financial Trading Framework - CLI", style="bold green")
+    )
+    subtitle_centered = Align.center(Text("Successor of TradingAgents by TaurusResearch", style="dim"))
+    workflow_title = Align.center(Text("Workflow Steps:", style="bold"))
+    workflow_content = Align.center(
         "I. Analyst Team → II. Research Team → III. Trader → IV. Risk Management → V. Portfolio Management"
+    )
+
+    # Create welcome box content
+    from rich.console import Group
+
+    welcome_content = Group(
+        ascii_centered, Text(), title_centered, Text(), subtitle_centered, Text(), workflow_title, workflow_content
     )
 
     # Create and center the welcome box

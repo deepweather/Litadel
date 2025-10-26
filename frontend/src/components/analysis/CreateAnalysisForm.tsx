@@ -1,13 +1,21 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAnalyses, useCreateAnalysis } from '../../hooks/useAnalyses'
+import { useAnalysisDefaults } from '../../hooks/useAnalysisDefaults'
 import { ANALYST_TYPES, type AnalystType } from '../../types/analysis'
 import { Button } from '@/components/ui/button'
 import { FormInput as Input } from '@/components/ui/form-input'
-import { FormCheckbox as Checkbox } from '@/components/ui/form-checkbox'
-import { ASCIIBox } from '../ui/ASCIIBox'
-import { Clock, Search, Zap } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { Slider } from '@/components/ui/slider'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Clock, RotateCcw, Save, Search, Zap } from 'lucide-react'
 import { toast } from 'sonner'
+import { TickerPill } from './TickerPill'
+import { PresetCard } from './PresetCard'
+import { AnalystSelectionCard } from './AnalystSelectionCard'
+import { LivePreviewSidebar } from './LivePreviewSidebar'
+import { FormProgressIndicator } from './FormProgressIndicator'
 
 type Preset = 'quick' | 'standard' | 'deep'
 
@@ -28,7 +36,8 @@ interface CreateAnalysisFormProps {
 export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialTicker }) => {
   const navigate = useNavigate()
   const createMutation = useCreateAnalysis()
-  const { data: analysesData } = useAnalyses()
+  const { data: analysesData, isLoading: isLoadingAnalyses } = useAnalyses()
+  const { defaults, saveDefaults, hasDefaults } = useAnalysisDefaults()
 
   const [ticker, setTicker] = useState(initialTicker || '')
   const [analysisDate, setAnalysisDate] = useState(new Date().toISOString().split('T')[0])
@@ -39,11 +48,15 @@ export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialT
     'social',
   ])
   const [researchDepth, setResearchDepth] = useState(1)
-  const [showConfirm, setShowConfirm] = useState(false)
+  const [activePreset, setActivePreset] = useState<Preset | null>(null)
 
-  // Refs for guided UX
-  const confirmSectionRef = useRef<HTMLDivElement | null>(null)
-  const actionButtonsRef = useRef<HTMLDivElement | null>(null)
+  // Apply saved defaults on mount if available
+  useEffect(() => {
+    if (defaults && !initialTicker) {
+      setSelectedAnalysts(defaults.selectedAnalysts)
+      setResearchDepth(defaults.researchDepth)
+    }
+  }, [defaults, initialTicker])
 
   // Get recent tickers from analyses
   const recentTickers = React.useMemo(() => {
@@ -56,17 +69,21 @@ export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialT
     setSelectedAnalysts((prev) =>
       prev.includes(analyst) ? prev.filter((a) => a !== analyst) : [...prev, analyst]
     )
+    setActivePreset(null) // Clear preset when manually changing
   }
 
   const handleSelectAll = () => {
     setSelectedAnalysts([...ANALYST_TYPES])
+    setActivePreset(null)
   }
 
   const handleSelectNone = () => {
     setSelectedAnalysts([])
+    setActivePreset(null)
   }
 
   const applyPreset = (preset: Preset) => {
+    setActivePreset(preset)
     switch (preset) {
       case 'quick':
         setSelectedAnalysts(['market'])
@@ -109,9 +126,15 @@ export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialT
     setAnalysisDate(date.toISOString().split('T')[0])
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSaveAsDefault = () => {
+    saveDefaults({
+      selectedAnalysts,
+      researchDepth,
+    })
+    toast.success('Configuration saved as default')
+  }
 
+  const handleSubmit = async () => {
     if (!ticker) {
       toast.error('Ticker is required')
       return
@@ -122,22 +145,13 @@ export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialT
       return
     }
 
-    // Show confirmation summary
-    if (!showConfirm) {
-      setShowConfirm(true)
-      // Ensure user sees the confirmation and start button without manual scrolling
-      setTimeout(() => {
-        if (confirmSectionRef.current) {
-          confirmSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        }
-        if (actionButtonsRef.current) {
-          actionButtonsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        }
-      }, 50)
-      return
-    }
-
     try {
+      // Save successful configuration as default
+      saveDefaults({
+        selectedAnalysts,
+        researchDepth,
+      })
+
       const analysis = await createMutation.mutateAsync({
         ticker: ticker.toUpperCase(),
         analysis_date: analysisDate,
@@ -146,303 +160,332 @@ export const CreateAnalysisForm: React.FC<CreateAnalysisFormProps> = ({ initialT
       })
 
       toast.success(`Analysis started: ${analysis.ticker}`)
-
       navigate(`/analyses/${analysis.id}`)
     } catch (error: any) {
       const errorMsg =
         error.response?.data?.detail?.[0]?.msg || error.detail || 'Failed to create analysis'
       toast.error(errorMsg)
-      setShowConfirm(false)
     }
   }
 
   const estimatedMinutes = getEstimatedTime()
+  const isValid = Boolean(ticker && selectedAnalysts.length > 0)
+
+  // Calculate progress steps
+  const progressSteps = [
+    { label: 'Ticker selected', completed: Boolean(ticker) },
+    { label: 'Date selected', completed: Boolean(analysisDate) },
+    { label: 'Analysts selected', completed: selectedAnalysts.length > 0 },
+    { label: 'Research depth set', completed: true }, // Always has default
+  ]
+
+  const completedSteps = progressSteps.filter(s => s.completed).length
+  const completionPercentage = Math.round((completedSteps / progressSteps.length) * 100)
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-[900px]">
-      {/* Quick Presets */}
-      <div className="mb-8">
-        <div className="text-sm text-muted-foreground font-mono mb-3">
-          QUICK PRESETS
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+      {/* Main Form Column */}
+      <div className="space-y-4">
+        {/* Progress Indicator - Mobile Only */}
+        <div className="lg:hidden">
+          <FormProgressIndicator steps={progressSteps} />
         </div>
-        <div className="flex gap-4 flex-wrap">
-          <button
-            type="button"
-            onClick={() => applyPreset('quick')}
-            className="flex items-center gap-2 px-6 py-3 border border-border bg-transparent text-primary font-mono text-sm cursor-pointer transition-all hover:border-primary hover:bg-primary/10"
-          >
-            <Zap size={16} />
-            <div className="text-left">
-              <div className="font-bold">Quick Scan</div>
-              <div className="text-xs text-muted-foreground">Market only • ~2 min</div>
+        {/* Quick Presets */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-sm">Quick Presets</CardTitle>
+                <CardDescription className="text-xs">Start with a pre-configured analysis</CardDescription>
+              </div>
+              {hasDefaults && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (defaults) {
+                      setSelectedAnalysts(defaults.selectedAnalysts)
+                      setResearchDepth(defaults.researchDepth)
+                      setActivePreset(null)
+                      toast.success('Loaded your saved configuration')
+                    }
+                  }}
+                >
+                  <RotateCcw size={14} />
+                  Load Last Used
+                </Button>
+              )}
             </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => applyPreset('standard')}
-            className="flex items-center gap-2 px-6 py-3 border border-border bg-transparent text-blue-500 font-mono text-sm cursor-pointer transition-all hover:border-blue-500 hover:bg-blue-500/10"
-          >
-            <Clock size={16} />
-            <div className="text-left">
-              <div className="font-bold">Standard</div>
-              <div className="text-xs text-muted-foreground">4 analysts • ~6 min</div>
+          </CardHeader>
+          <CardContent className="pt-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
+              <PresetCard
+                icon={Zap}
+                title="Quick Scan"
+                description="Market only • ~2 min"
+                onClick={() => applyPreset('quick')}
+                variant="primary"
+                isLoading={activePreset === 'quick' && createMutation.isPending}
+              />
+              <PresetCard
+                icon={Clock}
+                title="Standard"
+                description="4 analysts • ~6 min"
+                onClick={() => applyPreset('standard')}
+                variant="default"
+                isLoading={activePreset === 'standard' && createMutation.isPending}
+              />
+              <PresetCard
+                icon={Search}
+                title="Deep Research"
+                description="5 analysts • ~15 min"
+                onClick={() => applyPreset('deep')}
+                variant="accent"
+                isLoading={activePreset === 'deep' && createMutation.isPending}
+              />
             </div>
-          </button>
+          </CardContent>
+        </Card>
 
-          <button
-            type="button"
-            onClick={() => applyPreset('deep')}
-            className="flex items-center gap-2 px-6 py-3 border border-border bg-transparent text-primary font-mono text-sm cursor-pointer transition-all hover:border-primary hover:bg-primary/10"
-          >
-            <Search size={16} />
-            <div className="text-left">
-              <div className="font-bold">Deep Research</div>
-              <div className="text-xs text-muted-foreground">5 analysts • ~15 min</div>
-            </div>
-          </button>
-        </div>
-      </div>
+        {/* Asset Selection */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Asset Selection</CardTitle>
+            <CardDescription className="text-xs">Choose the ticker and analysis date</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 pt-3">
+            {/* Ticker Input */}
+            <div>
+              <Input
+                label="TICKER SYMBOL"
+                value={ticker}
+                onChange={(e) => setTicker(e.target.value.toUpperCase())}
+                placeholder="e.g., AAPL, BTC, TSLA"
+                required
+                autoFocus
+                aria-label="Ticker Symbol"
+              />
 
-      {/* Main Form */}
-      <ASCIIBox title="ANALYSIS CONFIGURATION">
-        <div className="space-y-4">
-          {/* Ticker Input with Quick Picks */}
-          <div>
-            <Input
-              label="TICKER SYMBOL"
-              value={ticker}
-              onChange={(e) => setTicker(e.target.value.toUpperCase())}
-              placeholder="e.g., AAPL, BTC, TSLA"
-              required
-              autoFocus
-              aria-label="Ticker Symbol"
-              className="border-primary focus:border-blue-500"
-            />
-
-            {/* Recent Tickers */}
-            {recentTickers.length > 0 && (
-              <div className="mt-2">
-                <div className="text-xs text-muted-foreground mb-1">
-                  Recent:
+              {/* Recent Tickers */}
+              {isLoadingAnalyses ? (
+                <div className="mt-2 space-y-1.5">
+                  <Skeleton className="h-3 w-16" />
+                  <div className="flex gap-1.5">
+                    <Skeleton className="h-6 w-14" />
+                    <Skeleton className="h-6 w-14" />
+                    <Skeleton className="h-6 w-14" />
+                  </div>
                 </div>
-                <div className="flex gap-2 flex-wrap">
-                  {recentTickers.map((t) => (
-                    <button
+              ) : (
+                recentTickers.length > 0 && (
+                  <div className="mt-2">
+                    <div className="text-[10px] text-muted-foreground mb-1.5 font-mono">Recent:</div>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {recentTickers.map((t) => (
+                        <TickerPill
+                          key={t}
+                          ticker={t}
+                          selected={ticker === t}
+                          onClick={() => setTicker(t)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )
+              )}
+
+              {/* Popular Tickers */}
+              <div className="mt-2">
+                <div className="text-[10px] text-muted-foreground mb-1.5 font-mono">Popular:</div>
+                <div className="flex gap-1.5 flex-wrap">
+                  {POPULAR_TICKERS.map((t) => (
+                    <TickerPill
                       key={t}
-                      type="button"
+                      ticker={t}
+                      selected={ticker === t}
                       onClick={() => setTicker(t)}
-                      className={`px-3 py-1 border font-mono text-xs cursor-pointer transition-all ${
-                        ticker === t
-                          ? 'border-blue-500 bg-blue-500/10 text-blue-500'
-                          : 'border-border bg-transparent text-primary hover:border-primary'
-                      }`}
-                    >
-                      {t}
-                    </button>
+                    />
                   ))}
                 </div>
               </div>
-            )}
-
-            {/* Popular Tickers */}
-            <div className="mt-2">
-              <div className="text-xs text-muted-foreground mb-1">
-                Popular:
-              </div>
-              <div className="flex gap-2 flex-wrap">
-                {POPULAR_TICKERS.map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setTicker(t)}
-                    className={`px-3 py-1 border font-mono text-xs cursor-pointer transition-all ${
-                      ticker === t
-                        ? 'border-blue-500 bg-blue-500/10 text-blue-500'
-                        : 'border-border bg-transparent text-primary hover:border-primary'
-                    }`}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
             </div>
-          </div>
 
-          {/* Date Input with Quick Picks */}
-          <div>
-            <Input
-              label="ANALYSIS DATE"
-              type="date"
-              value={analysisDate}
-              onChange={(e) => setAnalysisDate(e.target.value)}
-              required
-              id="analysisDate"
-              className="border-primary focus:border-blue-500 [color-scheme:dark] text-primary"
-            />
-            <div className="mt-2 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setQuickDate(0)}
-                className="px-3 py-1 border border-border bg-transparent text-primary font-mono text-xs cursor-pointer hover:border-primary"
-              >
-                Today
-              </button>
-              <button
-                type="button"
-                onClick={() => setQuickDate(1)}
-                className="px-3 py-1 border border-border bg-transparent text-primary font-mono text-xs cursor-pointer hover:border-primary"
-              >
-                Yesterday
-              </button>
-              <button
-                type="button"
-                onClick={() => setQuickDate(7)}
-                className="px-3 py-1 border border-border bg-transparent text-primary font-mono text-xs cursor-pointer hover:border-primary"
-              >
-                Last Week
-              </button>
-            </div>
-          </div>
+            <Separator />
 
-          {/* Analysts Selection */}
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-foreground font-mono text-sm">
-                SELECT ANALYSTS ({selectedAnalysts.length}/{ANALYST_TYPES.length})
-              </label>
-              <div className="flex gap-2">
-                <button
+            {/* Date Input */}
+            <div>
+              <Input
+                label="ANALYSIS DATE"
+                type="date"
+                value={analysisDate}
+                onChange={(e) => setAnalysisDate(e.target.value)}
+                required
+                id="analysisDate"
+                className="[color-scheme:dark]"
+              />
+              <div className="mt-2 flex gap-1.5 flex-wrap">
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setQuickDate(0)}
+                >
+                  Today
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setQuickDate(1)}
+                >
+                  Yesterday
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setQuickDate(7)}
+                >
+                  Last Week
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Analyst Configuration */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-sm">Analyst Configuration</CardTitle>
+                <CardDescription className="text-xs">
+                  Select analysts ({selectedAnalysts.length}/{ANALYST_TYPES.length})
+                </CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={handleSelectAll}
-                  className="px-2 py-1 border border-border bg-transparent text-primary font-mono text-xs cursor-pointer hover:border-primary"
                 >
                   Select All
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={handleSelectNone}
-                  className="px-2 py-1 border border-border bg-transparent text-primary font-mono text-xs cursor-pointer hover:border-primary"
                 >
                   Clear
-                </button>
+                </Button>
               </div>
             </div>
-            <div className="space-y-2 border p-3">
+          </CardHeader>
+          <CardContent className="pt-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
               {ANALYST_TYPES.map((analyst) => (
-                <div key={analyst} className="flex items-start gap-2">
-                  <Checkbox
-                    label={analyst.toUpperCase()}
-                    checked={selectedAnalysts.includes(analyst)}
-                    onChange={() => handleAnalystToggle(analyst)}
-                  />
-                  <div className="text-xs text-muted-foreground mt-1 font-mono">
-                    {ANALYST_DESCRIPTIONS[analyst]}
-                  </div>
-                </div>
+                <AnalystSelectionCard
+                  key={analyst}
+                  analystType={analyst}
+                  description={ANALYST_DESCRIPTIONS[analyst]}
+                  selected={selectedAnalysts.includes(analyst)}
+                  onToggle={() => handleAnalystToggle(analyst)}
+                />
               ))}
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* Research Depth */}
-          <div>
-            <label className="text-foreground font-mono text-sm mb-2 block">
-              RESEARCH DEPTH: {getDepthLabel()} (Level {researchDepth})
-            </label>
+        {/* Research Parameters */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-sm">Research Parameters</CardTitle>
+                <CardDescription className="text-xs">
+                  Depth: {getDepthLabel()} (Level {researchDepth})
+                </CardDescription>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleSaveAsDefault}
+              >
+                <Save size={14} />
+                Save as Default
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3 pt-3">
             <div className="space-y-2">
-              <input
-                type="range"
-                min="1"
-                max="3"
-                value={researchDepth}
-                onChange={(e) => setResearchDepth(Number(e.target.value))}
-                className="w-full h-2 bg-muted border outline-none"
+              <Slider
+                value={[researchDepth]}
+                onValueChange={(value: number[]) => {
+                  setResearchDepth(value[0])
+                  setActivePreset(null)
+                }}
+                min={1}
+                max={3}
+                step={1}
+                className="w-full"
               />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>
-                  Basic
-                  <br />
-                  (1-2 min/analyst)
-                </span>
-                <span>
-                  Standard
-                  <br />
-                  (2-3 min/analyst)
-                </span>
-                <span>
-                  Deep
-                  <br />
-                  (4-5 min/analyst)
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Estimated Time */}
-          <div className="p-3 border border-blue-500/30 bg-blue-500/5 font-mono">
-            <div className="text-xs text-muted-foreground mb-1">
-              ESTIMATED COMPLETION TIME
-            </div>
-            <div className="text-xl text-blue-500 font-bold">
-              ~{estimatedMinutes} minutes
-            </div>
-          </div>
-        </div>
-      </ASCIIBox>
-
-      {/* Confirmation Summary */}
-      {showConfirm && (
-        <div className="mt-6" ref={confirmSectionRef}>
-          <ASCIIBox title="CONFIRM ANALYSIS" variant="success">
-            <div className="font-mono text-sm">
-              <div className="grid grid-cols-[140px_1fr] gap-2">
-                <div className="text-muted-foreground">Ticker:</div>
-                <div className="text-blue-500 font-bold">{ticker.toUpperCase()}</div>
-
-                <div className="text-muted-foreground">Date:</div>
-                <div className="text-primary">{analysisDate}</div>
-
-                <div className="text-muted-foreground">Analysts:</div>
-                <div className="text-primary">
-                  {selectedAnalysts.map((a) => a.toUpperCase()).join(', ')} (
-                  {selectedAnalysts.length})
+              <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground font-mono">
+                <div className="text-center">
+                  <div className="font-bold">Basic</div>
+                  <div>1-2 min/analyst</div>
                 </div>
-
-                <div className="text-muted-foreground">Research Depth:</div>
-                <div className="text-primary">
-                  {getDepthLabel()} (Level {researchDepth})
+                <div className="text-center">
+                  <div className="font-bold">Standard</div>
+                  <div>2-3 min/analyst</div>
                 </div>
-
-                <div className="text-muted-foreground">Est. Time:</div>
-                <div className="text-blue-500 font-bold">
-                  ~{estimatedMinutes} minutes
+                <div className="text-center">
+                  <div className="font-bold">Deep</div>
+                  <div>4-5 min/analyst</div>
                 </div>
               </div>
             </div>
-          </ASCIIBox>
-        </div>
-      )}
+          </CardContent>
+        </Card>
 
-      {/* Action Buttons */}
-      <div className="mt-6 flex gap-4" ref={actionButtonsRef}>
-        {!showConfirm ? (
-          <>
-            <Button type="submit">PREVIEW & CONFIRM</Button>
-            <Button type="button" variant="outline" onClick={() => navigate('/analyses')}>
-              CANCEL
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? 'STARTING ANALYSIS...' : 'START ANALYSIS'}
-            </Button>
-            <Button type="button" onClick={() => setShowConfirm(false)}>
-              BACK TO EDIT
-            </Button>
-          </>
-        )}
+        {/* Action Buttons (Mobile Only) */}
+        <div className="flex gap-3 lg:hidden">
+          <Button
+            onClick={handleSubmit}
+            disabled={!isValid || createMutation.isPending}
+            className="flex-1"
+            size="lg"
+          >
+            {createMutation.isPending ? 'STARTING ANALYSIS...' : 'START ANALYSIS'}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate('/analyses')}
+            size="lg"
+          >
+            CANCEL
+          </Button>
+        </div>
       </div>
-    </form>
+
+      {/* Live Preview Sidebar - Desktop Only */}
+      <div className="hidden lg:block">
+        <LivePreviewSidebar
+          ticker={ticker}
+          analysisDate={analysisDate}
+          selectedAnalysts={selectedAnalysts}
+          researchDepth={researchDepth}
+          estimatedMinutes={estimatedMinutes}
+          onSubmit={handleSubmit}
+          isSubmitting={createMutation.isPending}
+          isValid={isValid}
+          completionPercentage={completionPercentage}
+        />
+      </div>
+    </div>
   )
 }

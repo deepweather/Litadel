@@ -141,7 +141,7 @@ export const AnalysisList: React.FC = () => {
               title="ACTIVE ANALYSES"
               count={groupedAnalyses.active.length}
               icon={<Activity size={18} />}
-              variant="accent"
+              variant="primary"
             />
             <div className="flex flex-col gap-3">
               {groupedAnalyses.active.map((analysis: Analysis) => (

@@ -18,22 +18,22 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   variant = 'primary',
 }) => {
   return (
-    <div className="flex items-center justify-between pb-base border-b border-border gap-base flex-wrap">
-      <div className="flex items-center gap-md flex-1">
+    <div className="flex items-center justify-between pb-3 border-b border-border gap-3 flex-wrap">
+      <div className="flex items-center gap-3 flex-1">
         {icon && <div className="flex items-center">{icon}</div>}
         <div>
-          <Heading level={1} variant={variant} className={subtitle ? 'mb-sm' : ''}>
+          <Heading level={1} variant={variant} className={subtitle ? 'mb-1' : ''}>
             {title}
           </Heading>
           {subtitle && (
-            <Text variant="dim" size="base">
+            <Text variant="subdued" size="sm">
               {subtitle}
             </Text>
           )}
         </div>
       </div>
       {actions && (
-        <div className="flex gap-sm flex-wrap">{actions}</div>
+        <div className="flex gap-2 flex-wrap">{actions}</div>
       )}
     </div>
   )

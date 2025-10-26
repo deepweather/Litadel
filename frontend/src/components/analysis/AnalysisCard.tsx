@@ -2,7 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Analysis } from '../../types/api'
 import { formatDuration } from '../../utils/formatters'
-import { ChevronRight, Clock, Minus, TrendingDown, TrendingUp } from 'lucide-react'
+import { ChevronRight, Clock, Loader2, Minus, TrendingDown, TrendingUp } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 
 interface AnalysisCardProps {
@@ -20,7 +20,7 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({ analysis }) => {
       case 'completed':
         return 'text-green-600 dark:text-green-400'
       case 'running':
-        return 'text-blue-600 dark:text-blue-400'
+        return 'text-primary'
       case 'failed':
         return 'text-destructive'
       case 'pending':
@@ -63,8 +63,8 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({ analysis }) => {
   return (
     <Card
       onClick={() => navigate(`/analyses/${analysis.id}`)}
-      className={`cursor-pointer transition-all hover:shadow-md p-4 ${
-        analysis.status === 'running' ? 'border-blue-500 border-2 bg-blue-500/5' : ''
+      className={`cursor-pointer transition-all hover:shadow-md p-4 border-border ${
+        analysis.status === 'running' ? '!border-2 !border-primary bg-primary/10 shadow-lg' : ''
       }`}
     >
       <div className="flex justify-between items-start">
@@ -105,9 +105,14 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({ analysis }) => {
                 )}
               </div>
             ) : (
-              <span className={`text-sm font-bold ${getStatusColorClass(analysis.status)}`}>
-                {analysis.status.toUpperCase()}
-              </span>
+              <div className="flex items-center gap-2">
+                {analysis.status === 'running' && (
+                  <Loader2 size={16} className="animate-spin text-primary" />
+                )}
+                <span className={`text-sm font-bold ${getStatusColorClass(analysis.status)}`}>
+                  {analysis.status.toUpperCase()}
+                </span>
+              </div>
             )}
           </div>
 
@@ -132,16 +137,16 @@ export const AnalysisCard: React.FC<AnalysisCardProps> = ({ analysis }) => {
           {analysis.status === 'running' && analysis.progress_percentage !== undefined && (
             <div className="mt-3">
               <div className="flex justify-between mb-1">
-                <span className="text-[0.7rem] text-blue-600 dark:text-blue-400">
+                <span className="text-[0.7rem] text-primary">
                   {analysis.current_agent || 'Processing...'}
                 </span>
-                <span className="text-[0.7rem] text-blue-600 dark:text-blue-400">
+                <span className="text-[0.7rem] text-primary">
                   {analysis.progress_percentage}%
                 </span>
               </div>
-              <div className="h-1 bg-blue-500/20 relative">
+              <div className="h-1 bg-primary/20 relative">
                 <div
-                  className="absolute left-0 top-0 h-full bg-blue-500 transition-all duration-300 ease-out"
+                  className="absolute left-0 top-0 h-full bg-primary transition-all duration-300 ease-out"
                   style={{ width: `${analysis.progress_percentage}%` }}
                 />
               </div>
