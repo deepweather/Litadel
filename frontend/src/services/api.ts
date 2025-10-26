@@ -42,6 +42,14 @@ class APIService {
       const { apiKey, jwtToken, apiUrl, authMethod } = useAuthStore.getState()
       config.baseURL = apiUrl
 
+      console.log('🔐 Auth State:', {
+        authMethod,
+        hasApiKey: !!apiKey,
+        hasJwtToken: !!jwtToken,
+        apiUrl,
+        url: config.url,
+      })
+
       // Add appropriate auth header based on method
       if (authMethod === 'jwt' && jwtToken) {
         config.headers['Authorization'] = `Bearer ${jwtToken}`
@@ -78,18 +86,31 @@ class APIService {
   // Analysis endpoints
   async getAnalyses(page = 1, pageSize = 50): Promise<PaginatedResponse<Analysis>> {
     const offset = (page - 1) * pageSize
-    const response = await this.client.get<Analysis[]>('/api/v1/analyses', {
-      params: { limit: pageSize, offset },
-    })
+    console.log('🔍 API: Fetching analyses with params:', { limit: pageSize, offset })
 
-    // API returns a plain array, so we wrap it in pagination structure
-    const items = response.data
-    return {
-      items,
-      total: items.length, // API doesn't provide total, so we use current count
-      page,
-      page_size: pageSize,
-      total_pages: Math.ceil(items.length / pageSize),
+    try {
+      const response = await this.client.get<Analysis[]>('/api/v1/analyses', {
+        params: { limit: pageSize, offset },
+      })
+
+      console.log('✅ API: Received analyses response:', {
+        status: response.status,
+        count: response.data?.length,
+        data: response.data,
+      })
+
+      // API returns a plain array, so we wrap it in pagination structure
+      const items = response.data
+      return {
+        items,
+        total: items.length, // API doesn't provide total, so we use current count
+        page,
+        page_size: pageSize,
+        total_pages: Math.ceil(items.length / pageSize),
+      }
+    } catch (error) {
+      console.error('❌ API: Error fetching analyses:', error)
+      throw error
     }
   }
 

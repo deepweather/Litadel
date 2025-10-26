@@ -141,12 +141,12 @@ def get_crypto(
 
         csv_text = out.getvalue()
 
-        # If still empty after widening, return recent data without filtering
-        if csv_text.strip() == "time,open,high,low,close,volume":
+        # If no data in requested range, fetch ALL data and let caller filter
+        # DON'T just return last 90 days - that breaks historical backtests!
+        if csv_text.strip() == "time,open,high,low,close,volume" or len(rows) == 0:
+            # Return ALL available data - let the caller filter by date
             out = io.StringIO()
             out.write("time,open,high,low,close,volume\n")
-            # Get last 90 days
-            sorted_dates = sorted(time_series.keys(), reverse=True)[:90]
 
             def find_value(vals, patterns):
                 """Try multiple key patterns and return first match."""
@@ -155,7 +155,10 @@ def get_crypto(
                         return vals[pattern]
                 return ""
 
-            for date_str in reversed(sorted_dates):
+            # Get ALL dates, sorted oldest to newest
+            all_dates = sorted(time_series.keys())
+
+            for date_str in all_dates:
                 values = time_series[date_str]
 
                 open_price = find_value(

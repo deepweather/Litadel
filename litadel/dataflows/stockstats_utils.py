@@ -24,6 +24,15 @@ class StockstatsUtils:
         data = None
 
         if not online:
+            # Check if DATA_DIR is configured
+            if DATA_DIR is None:
+                msg = (
+                    "Local data directory (data_dir) is not configured. "
+                    "Please set 'data_dir' in your config.ini under the [storage] section, "
+                    "or use online data vendors instead of 'local'."
+                )
+                raise FileNotFoundError(msg)
+
             try:
                 data = pd.read_csv(
                     os.path.join(

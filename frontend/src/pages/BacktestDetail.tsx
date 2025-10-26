@@ -30,16 +30,13 @@ export const BacktestDetail: React.FC = () => {
     queryKey: ['backtest', backtestId],
     queryFn: () => api.getBacktest(backtestId),
     enabled: backtestId > 0,
-    refetchInterval: (query) => {
-      const data = query.state.data
-      if (!data) return false
-      if (data.status === 'running' || data.status === 'pending') return 2000
-      return false
-    },
+    // No polling - WebSocket handles real-time updates
   })
 
   useEffect(() => {
     if (wsStatus) {
+      console.log('[BacktestDetail] WebSocket update:', wsStatus.status, 'Previous:', previousStatus)
+
       queryClient.setQueryData(['backtest', backtestId], (old: any) => {
         if (!old) return old
         return {
@@ -49,10 +46,20 @@ export const BacktestDetail: React.FC = () => {
         }
       })
 
+      // Refetch backtest data when status changes
+      if (wsStatus.status === 'pending' && previousStatus === 'validating') {
+        console.log('[BacktestDetail] Validation complete, refetching backtest...')
+        queryClient.invalidateQueries({ queryKey: ['backtest', backtestId] })
+        toast.success('✅ Strategy validated!')
+      }
+
+      // Refetch ALL data when backtest execution completes
       if (wsStatus.status === 'completed' && previousStatus === 'running') {
+        console.log('[BacktestDetail] Backtest complete, refetching all data...')
         queryClient.invalidateQueries({ queryKey: ['backtest', backtestId] })
         queryClient.invalidateQueries({ queryKey: ['backtest-trades', backtestId] })
         queryClient.invalidateQueries({ queryKey: ['backtest-equity-curve', backtestId] })
+        queryClient.invalidateQueries({ queryKey: ['backtest-performance', backtestId] })
         toast.success('Backtest completed successfully!')
       }
 

@@ -13,9 +13,17 @@ import type { Analysis } from '../types/api'
 
 export const AnalysisList: React.FC = () => {
   const navigate = useNavigate()
-  const { data: analysesData, isLoading, refetch } = useAnalyses()
+  const { data: analysesData, isLoading, error, refetch } = useAnalyses()
 
   const analyses = analysesData?.items || []
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('AnalysisList - Loading:', isLoading)
+    console.log('AnalysisList - Error:', error)
+    console.log('AnalysisList - Data:', analysesData)
+    console.log('AnalysisList - Analyses count:', analyses.length)
+  }, [isLoading, error, analysesData, analyses])
 
   // Group analyses by status and date
   const groupedAnalyses = useMemo(() => {
@@ -71,6 +79,27 @@ export const AnalysisList: React.FC = () => {
 
   if (isLoading) {
     return <div className="text-center py-12 text-muted-foreground">Loading analyses...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col h-full gap-6">
+        <PageHeader title="ANALYSES COMMAND CENTER" />
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
+          <div className="text-destructive text-lg font-mono">❌ Error Loading Analyses</div>
+          <div className="text-muted-foreground font-mono text-sm max-w-lg">
+            {error instanceof Error ? error.message : 'An unknown error occurred'}
+          </div>
+          <div className="text-xs text-muted-foreground font-mono bg-muted p-4 rounded max-w-2xl overflow-auto">
+            <pre>{JSON.stringify(error, null, 2)}</pre>
+          </div>
+          <Button onClick={() => refetch()} className="mt-4">
+            <RefreshCw size={16} />
+            TRY AGAIN
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (

@@ -71,3 +71,28 @@ def detect_asset_class(symbol: str) -> str:
 def get_asset_class_display_name(asset_class: str) -> str:
     """Get a human-friendly display name for the asset class."""
     return asset_class.capitalize()
+
+
+def normalize_ticker(symbol: str, asset_class: str | None = None) -> str:
+    """
+    Normalize ticker symbol for the appropriate data vendor.
+
+    For crypto: Ensures -USD suffix for yfinance compatibility
+    For stocks/commodities: Returns as-is
+
+    Args:
+        symbol: Ticker symbol (BTC, BTC-USD, AAPL, etc.)
+        asset_class: Asset class (auto-detected if None)
+
+    Returns:
+        Normalized ticker symbol
+    """
+    if asset_class is None:
+        asset_class = detect_asset_class(symbol)
+
+    if asset_class == "crypto":
+        # Add -USD suffix if not present
+        if not symbol.upper().endswith(("-USD", "-USDT", "-EUR", "-GBP")):
+            return f"{symbol}-USD"
+
+    return symbol

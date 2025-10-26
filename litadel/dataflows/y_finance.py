@@ -216,7 +216,8 @@ def _get_stock_stats_bulk(
         curr_date_dt = pd.to_datetime(curr_date)
 
         end_date = curr_date_dt  # Use analysis date, NOT today
-        start_date = curr_date_dt - pd.DateOffset(years=15)
+        # Fetch last 5 years for indicators (15 years is excessive)
+        start_date = curr_date_dt - pd.DateOffset(years=5)
         start_date_str = start_date.strftime("%Y-%m-%d")
         end_date_str = end_date.strftime("%Y-%m-%d")
 

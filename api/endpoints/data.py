@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from api.auth import get_current_auth
 from api.models.responses import CachedDataResponse, CachedTickerInfo
-from cli.asset_detection import detect_asset_class
+from cli.asset_detection import detect_asset_class, normalize_ticker
 from litadel.dataflows.interface import route_to_vendor
 
 router = APIRouter(prefix="/api/v1/data", tags=["data"])
@@ -255,13 +255,17 @@ def _update_cache_incrementally(cache_file: Path, ticker: str, asset_class: str)
                 if date_str:
                     existing_dates.add(date_str)
 
+        # Normalize ticker (adds -USD for crypto)
+        normalized_ticker = normalize_ticker(ticker, asset_class)
+
         # Fetch new data
         if asset_class == "crypto":
-            csv_text = route_to_vendor("get_crypto_data", ticker.upper(), start_date, end_date, "USD")
+            # Use get_stock_data for crypto (yfinance with -USD suffix)
+            csv_text = route_to_vendor("get_stock_data", normalized_ticker.upper(), start_date, end_date)
         elif asset_class == "commodity":
-            csv_text = route_to_vendor("get_commodity_data", ticker.upper(), start_date, end_date, "daily")
+            csv_text = route_to_vendor("get_commodity_data", normalized_ticker.upper(), start_date, end_date, "daily")
         else:
-            csv_text = route_to_vendor("get_stock_data", ticker.upper(), start_date, end_date)
+            csv_text = route_to_vendor("get_stock_data", normalized_ticker.upper(), start_date, end_date)
 
         # Parse new rows and filter out duplicates
         new_rows = _normalize_ohlcv_rows_from_csv(csv_text)
@@ -372,9 +376,15 @@ def _ensure_cached_data(
         logger.debug(f"Using cached data for {ticker} - already checked in last 5 minutes")
         return None
 
-    # Determine date window if not provided: last ~15 years
+    # Determine date window if not provided
     today = datetime.now(tz=timezone.utc).date()
-    default_start = (today - timedelta(days=365 * 15)).strftime("%Y-%m-%d")
+    asset_class = detect_asset_class(ticker)
+
+    # Crypto: 5 years max (most didn't exist before 2015-2020)
+    # Stocks: 10 years (enough for analysis, not excessive)
+    years_back = 5 if asset_class == "crypto" else 10
+
+    default_start = (today - timedelta(days=365 * years_back)).strftime("%Y-%m-%d")
     default_end = today.strftime("%Y-%m-%d")
     start = start_date or default_start
     end = end_date or default_end
@@ -405,15 +415,18 @@ def _ensure_cached_data(
     # Cache doesn't exist, create it
     logger.info(f"Creating new cache for {ticker} from {start} to {end}")
 
-    # Detect asset class and fetch
+    # Detect asset class and normalize ticker
     asset_class = detect_asset_class(ticker)
+    normalized_ticker = normalize_ticker(ticker, asset_class)
+
     try:
         if asset_class == "crypto":
-            csv_text = route_to_vendor("get_crypto_data", ticker.upper(), start, end, "USD")
+            # Use get_stock_data for crypto (yfinance with -USD suffix)
+            csv_text = route_to_vendor("get_stock_data", normalized_ticker.upper(), start, end)
         elif asset_class == "commodity":
-            csv_text = route_to_vendor("get_commodity_data", ticker.upper(), start, end, "daily")
+            csv_text = route_to_vendor("get_commodity_data", normalized_ticker.upper(), start, end, "daily")
         else:
-            csv_text = route_to_vendor("get_stock_data", ticker.upper(), start, end)
+            csv_text = route_to_vendor("get_stock_data", normalized_ticker.upper(), start, end)
     except Exception as e:
         # Log the error for debugging
         logger.exception(f"Failed to fetch data for {ticker}: {e}")

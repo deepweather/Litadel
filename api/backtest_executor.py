@@ -107,6 +107,11 @@ class BacktestExecutor:
 
     def _cleanup_backtest(self, backtest_id: int):
         """Clean up after backtest completes."""
+        # Small delay to ensure final status update is broadcast before cleanup
+        import time
+
+        time.sleep(0.5)  # Wait for final WebSocket broadcast
+
         with self._lock:
             if backtest_id in self.active_backtests:
                 del self.active_backtests[backtest_id]

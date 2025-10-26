@@ -294,9 +294,21 @@ def route_to_vendor(method: str, *args, **kwargs):
 
             except AlphaVantageRateLimitError as e:
                 if vendor == "alpha_vantage":
-                    print("RATE_LIMIT: Alpha Vantage rate limit exceeded, falling back to next available vendor")
+                    print("RATE_LIMIT: Alpha Vantage rate limit exceeded")
                     print(f"DEBUG: Rate limit details: {e}")
-                # Continue to next vendor for fallback
+                    # For rate limits, we should stop trying rather than hammer other vendors
+                    # The user needs to wait or upgrade their plan
+                    print("INFO: Stopping execution due to rate limit. Please wait or upgrade your Alpha Vantage plan.")
+                    # Still try to fall back to local cache if available, but don't continue to online vendors
+                    # Only allow fallback to 'local' vendor for cache
+                    remaining_vendors = fallback_vendors[fallback_vendors.index(vendor) + 1 :]
+                    if "local" not in remaining_vendors:
+                        # No local cache available, stop here
+                        raise RuntimeError(
+                            f"Alpha Vantage rate limit exceeded and no local cache available: {e}"
+                        ) from e
+                    # Continue only to local vendor for cache lookup
+                    print("INFO: Attempting to use local cache as fallback...")
                 continue
             except Exception as e:
                 # Log error but continue with other implementations
