@@ -13,6 +13,7 @@ import { ReportViewer } from '../components/analysis/ReportViewer'
 import PriceChart from '../components/analysis/PriceChart.tsx'
 import { useMarketData } from '../hooks/useMarketData'
 import { LogViewer } from '../components/analysis/LogViewer'
+import { TradingDecisionCard } from '../components/trading/TradingDecisionCard'
 import { Button } from '../components/ui/Button'
 import { IconButton } from '../components/ui/IconButton'
 import { Collapsible } from '../components/interactive/Collapsible'
@@ -21,11 +22,8 @@ import {
   ArrowLeft,
   Copy,
   Download,
-  Minus,
   RefreshCw,
   Trash2,
-  TrendingDown,
-  TrendingUp,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -264,151 +262,14 @@ export const AnalysisDetail: React.FC = () => {
       <div style={{ flex: 1, minHeight: 0, display: 'flex', gap: '1.5rem' }}>
         {/* Left: Reports (Primary Content) */}
         <div style={{ flex: '1 1 70%', minWidth: 0, overflow: 'auto', paddingRight: '1rem' }}>
-          {/* Enhanced Trading Decision Card - Now at TOP */}
+          {/* Trading Decision Card */}
           {tradeDecision && analysis.status === 'completed' && marketMetrics && (
-            <div
-              style={{
-                border: '2px solid #4da6ff',
-                backgroundColor: 'rgba(77, 166, 255, 0.05)',
-                padding: '1.5rem',
-                marginBottom: '1.5rem',
-                fontFamily: 'JetBrains Mono, monospace',
-              }}
-            >
-              {/* Header Row: Decision + Ticker + Price */}
-              <div
-                style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}
-              >
-                {tradeDecision.decision === 'BUY' && <TrendingUp size={32} color="#00ff00" />}
-                {tradeDecision.decision === 'SELL' && <TrendingDown size={32} color="#ff4444" />}
-                {tradeDecision.decision === 'HOLD' && <Minus size={32} color="#ffaa00" />}
-                <div>
-                  <span
-                    style={{
-                      fontSize: '2rem',
-                      fontWeight: 'bold',
-                      color:
-                        tradeDecision.decision === 'BUY'
-                          ? '#00ff00'
-                          : tradeDecision.decision === 'SELL'
-                            ? '#ff4444'
-                            : '#ffaa00',
-                    }}
-                  >
-                    {tradeDecision.decision}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '1.5rem',
-                      color: '#4da6ff',
-                      marginLeft: '1rem',
-                    }}
-                  >
-                    {analysis.ticker} @ ${marketMetrics.currentPrice.toFixed(2)}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '1rem',
-                      color: marketMetrics.dailyChangePositive ? '#00ff00' : '#ff4444',
-                      marginLeft: '1rem',
-                    }}
-                  >
-                    {marketMetrics.dailyChangePositive ? '↑' : '↓'}{' '}
-                    {Math.abs(marketMetrics.dailyChange).toFixed(2)}%
-                  </span>
-                </div>
-                {tradeDecision.confidence && (
-                  <div
-                    style={{
-                      border: '1px solid rgba(77, 166, 255, 0.3)',
-                      padding: '0.5rem 1rem',
-                      backgroundColor: 'rgba(77, 166, 255, 0.1)',
-                      marginLeft: 'auto',
-                    }}
-                  >
-                    <div style={{ fontSize: '0.75rem', color: '#5a6e7a' }}>CONFIDENCE</div>
-                    <div style={{ fontSize: '1.25rem', color: '#00d4ff', fontWeight: 'bold' }}>
-                      {tradeDecision.confidence}%
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Market Metrics Row */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(4, 1fr)',
-                  gap: '1rem',
-                  marginBottom: '1rem',
-                  paddingBottom: '1rem',
-                  borderBottom: '1px solid rgba(77, 166, 255, 0.3)',
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: '0.7rem', color: '#5a6e7a' }}>CURRENT PRICE</div>
-                  <div style={{ fontSize: '1rem', color: '#4da6ff', fontWeight: 'bold' }}>
-                    ${marketMetrics.currentPrice.toFixed(2)}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '0.7rem', color: '#5a6e7a' }}>DAY RANGE</div>
-                  <div style={{ fontSize: '0.875rem', color: '#4da6ff' }}>
-                    ${marketMetrics.dayLow.toFixed(2)} - ${marketMetrics.dayHigh.toFixed(2)}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '0.7rem', color: '#5a6e7a' }}>VOLUME</div>
-                  <div style={{ fontSize: '0.875rem', color: '#4da6ff' }}>
-                    {(marketMetrics.volume / 1000000).toFixed(1)}M
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '0.7rem', color: '#5a6e7a' }}>52W RANGE</div>
-                  <div style={{ fontSize: '0.875rem', color: '#4da6ff' }}>
-                    ${marketMetrics.yearLow.toFixed(0)} - ${marketMetrics.yearHigh.toFixed(0)}
-                  </div>
-                </div>
-              </div>
-
-              {/* Analysis Context */}
-              {marketMetrics.analysisPrice && (
-                <div
-                  style={{
-                    fontSize: '0.75rem',
-                    color: '#5a6e7a',
-                    marginBottom: '0.75rem',
-                  }}
-                >
-                  Analysis performed at ${marketMetrics.analysisPrice.toFixed(2)} on{' '}
-                  {analysis.analysis_date}
-                  {' • '}
-                  Price {marketMetrics.currentPrice > marketMetrics.analysisPrice
-                    ? 'up'
-                    : 'down'}{' '}
-                  {Math.abs(
-                    ((marketMetrics.currentPrice - marketMetrics.analysisPrice) /
-                      marketMetrics.analysisPrice) *
-                      100
-                  ).toFixed(1)}
-                  % since analysis
-                </div>
-              )}
-
-              {/* Rationale */}
-              {tradeDecision.rationale && (
-                <div
-                  style={{
-                    fontSize: '0.875rem',
-                    color: '#4da6ff',
-                    borderTop: '1px solid rgba(77, 166, 255, 0.3)',
-                    paddingTop: '0.75rem',
-                  }}
-                >
-                  {tradeDecision.rationale}
-                </div>
-              )}
-            </div>
+            <TradingDecisionCard
+              decision={tradeDecision}
+              ticker={analysis.ticker}
+              analysisDate={analysis.analysis_date}
+              marketMetrics={marketMetrics}
+            />
           )}
 
           {/* Price Chart - Now smaller and below decision */}

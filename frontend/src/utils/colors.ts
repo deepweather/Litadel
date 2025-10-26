@@ -1,14 +1,21 @@
-// Terminal color scheme
+/**
+ * Color utilities for the Trading Agents application
+ *
+ * This file now imports from the centralized design system theme.
+ * Direct color constants are kept for backward compatibility during migration.
+ */
+import { colors as themeColorConstants, getDecisionColor as themeDecisionColor, getPnLColor as themePnLColor } from '../design-system/theme'
 
+// Terminal color scheme - kept for backward compatibility
 export const colors = {
-  bg: '#0a0e14',
-  fg: '#00ff00',
-  accent: '#00ffff',
-  warning: '#ffff00',
-  error: '#ff0000',
-  dim: '#2a3e4a',
-  highlight: '#1a2a3a',
-  border: '#00ff0050',
+  bg: themeColorConstants.bgPrimary,
+  fg: themeColorConstants.success,
+  accent: themeColorConstants.accent,
+  warning: themeColorConstants.warning,
+  error: themeColorConstants.danger,
+  dim: themeColorConstants.dim,
+  highlight: themeColorConstants.bgSecondary,
+  border: themeColorConstants.border,
 }
 
 export const statusColors = {
@@ -37,27 +44,19 @@ export const getTailwindColor = (status: string): string => {
 
 // Theme colors for consistent styling across the app
 export const themeColors = {
-  primary: '#4da6ff',
-  accent: '#00d4ff',
-  success: '#00ff00',
-  error: '#ff4444',
-  warning: '#ffaa00',
-  muted: '#2a3e4a',
-  mutedText: '#5a6e7a',
-  background: '#0a0e14',
-  backgroundAlt: '#1a2a3a',
-  border: 'rgba(77, 166, 255, 0.3)',
-  borderSolid: '#4da6ff',
+  primary: themeColorConstants.primary,
+  accent: themeColorConstants.accent,
+  success: themeColorConstants.success,
+  error: themeColorConstants.danger,
+  warning: themeColorConstants.warning,
+  muted: themeColorConstants.dim,
+  mutedText: themeColorConstants.subdued,
+  background: themeColorConstants.bgPrimary,
+  backgroundAlt: themeColorConstants.bgSecondary,
+  border: themeColorConstants.border,
+  borderSolid: themeColorConstants.borderBright,
 }
 
-export const getDecisionColor = (decision: string): string => {
-  const d = decision.toUpperCase()
-  if (d === 'BUY') return themeColors.success
-  if (d === 'SELL') return themeColors.error
-  return themeColors.warning
-}
-
-export const getPnLColor = (value: number | null | undefined): string => {
-  if (value === null || value === undefined || value === 0) return themeColors.muted
-  return value > 0 ? themeColors.success : themeColors.error
-}
+// Utility functions - now imported from theme
+export const getDecisionColor = themeDecisionColor
+export const getPnLColor = themePnLColor

@@ -5,6 +5,7 @@ import { ASCIIBox } from '../components/ui/ASCIIBox'
 import { Input } from '../components/ui/Input'
 import { Button } from '../components/ui/Button'
 import { KeyValueRow } from '../components/common/KeyValueRow'
+import { Heading } from '../design-system'
 import toast from 'react-hot-toast'
 
 export const Settings: React.FC = () => {
@@ -60,18 +61,10 @@ export const Settings: React.FC = () => {
   }
 
   return (
-    <div style={{ maxWidth: '900px' }}>
-      <h1
-        style={{
-          fontSize: '1.5rem',
-          fontWeight: 'bold',
-          color: '#4da6ff',
-          fontFamily: 'JetBrains Mono, monospace',
-          marginBottom: '2rem',
-        }}
-      >
+    <div className="max-w-4xl">
+      <Heading level={1} className="mb-xl">
         SETTINGS
-      </h1>
+      </Heading>
 
       {/* Current Authentication Status */}
       <div style={{ marginBottom: '2rem' }}>

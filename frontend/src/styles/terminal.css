@@ -4,6 +4,7 @@
 @import 'tailwindcss';
 
 @theme {
+  /* Base Colors */
   --color-terminal-bg: #0a0e14;
   --color-terminal-fg: #4da6ff;
   --color-terminal-accent: #00d4ff;
@@ -13,6 +14,42 @@
   --color-terminal-highlight: #1a2a3a;
   --color-terminal-border: #4da6ff50;
 
+  /* Semantic Colors */
+  --color-primary: #4da6ff;
+  --color-accent: #00d4ff;
+  --color-success: #00ff00;
+  --color-danger: #ff4444;
+  --color-warning: #ffaa00;
+  --color-dim: #2a3e4a;
+  --color-subdued: #5a6e7a;
+  --color-bg-primary: #0a0e14;
+  --color-bg-secondary: #1a2a3a;
+  --color-bg-hover: rgba(77, 166, 255, 0.1);
+  --color-bg-highlight: rgba(77, 166, 255, 0.05);
+  --color-border: rgba(77, 166, 255, 0.3);
+  --color-border-bright: #4da6ff;
+
+  /* Spacing Scale */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 0.75rem;
+  --spacing-base: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 2.5rem;
+  --spacing-3xl: 3rem;
+
+  /* Typography Sizes */
+  --text-xs: 0.7rem;
+  --text-sm: 0.75rem;
+  --text-base: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
+
+  /* Font Family */
   --font-family-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
 }
 
