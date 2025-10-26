@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
+import { toast } from 'sonner'
 import { ArrowLeft, Play, XCircle } from 'lucide-react'
 import { api } from '../services/api'
 import { Button } from '@/components/ui/button'

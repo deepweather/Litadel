@@ -1,7 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
-import toast from 'react-hot-toast'
+import { toast } from 'sonner'
 import { LogOut, Settings } from 'lucide-react'
 import {
   DropdownMenu,

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import toast from 'react-hot-toast'
+import { toast } from 'sonner'
 import { ArrowLeft, Loader2, Send, Sparkles } from 'lucide-react'
 import { api } from '../services/api'
 import { Button } from '@/components/ui/button'

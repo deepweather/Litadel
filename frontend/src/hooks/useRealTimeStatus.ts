@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useWebSocket } from './useWebSocket';
 import { useAnalysisStore } from '../stores/analysisStore';
 import type { WebSocketMessage } from '../types/api';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 export const useRealTimeStatus = (analysisId: string | null, initialStatus?: string) => {
   const queryClient = useQueryClient();
@@ -46,12 +46,6 @@ export const useRealTimeStatus = (analysisId: string | null, initialStatus?: str
         const currentAnalysis = getAnalysis(message.analysis_id);
         const previousStatus = previousStatusRef.current || currentAnalysis?.status;
 
-        // On first message, initialize previousStatusRef if it's null
-        if (!isInitializedRef.current && message.status) {
-          previousStatusRef.current = message.status;
-          isInitializedRef.current = true;
-        }
-
         // Update the analysis in the store
         if (message.status || message.progress_percentage !== undefined || message.current_agent || message.selected_analysts) {
           updateAnalysis(message.analysis_id, {
@@ -73,33 +67,25 @@ export const useRealTimeStatus = (analysisId: string | null, initialStatus?: str
           }
         }
 
-        // Only show toast if status actually changed AND we're not on the initial sync
+        // Only show toast if status actually changed AND we're past initialization
         if (isInitializedRef.current && message.status && message.status !== previousStatus) {
           if (message.status === 'completed') {
-            toast.success(`Analysis completed!`, {
+            toast.success('Analysis completed!', {
               duration: 5000,
-              style: {
-                background: '#1a2a3a',
-                color: '#4da6ff',
-                border: '1px solid #4da6ff',
-                fontFamily: 'JetBrains Mono, monospace',
-              },
             });
           } else if (message.status === 'failed') {
-            toast.error(`Analysis failed!`, {
+            toast.error('Analysis failed!', {
               duration: 5000,
-              style: {
-                background: '#1a2a3a',
-                color: '#ff4444',
-                border: '1px solid #ff4444',
-                fontFamily: 'JetBrains Mono, monospace',
-              },
             });
           }
         }
 
-        // Update previous status (after initial check)
-        if (message.status && isInitializedRef.current) {
+        // Initialize tracking on first message (AFTER checking for toasts)
+        if (!isInitializedRef.current && message.status) {
+          previousStatusRef.current = message.status;
+          isInitializedRef.current = true;
+        } else if (message.status && isInitializedRef.current) {
+          // Update previous status for subsequent messages
           previousStatusRef.current = message.status;
         }
         break;
@@ -127,12 +113,6 @@ export const useRealTimeStatus = (analysisId: string | null, initialStatus?: str
               .replace(/\b\w/g, (l) => l.toUpperCase());
             toast.success(`New report ready: ${reportName}`, {
               duration: 4000,
-              style: {
-                background: '#1a2a3a',
-                color: '#00ff00',
-                border: '1px solid #00ff00',
-                fontFamily: 'JetBrains Mono, monospace',
-              },
             });
           }
         }
@@ -141,12 +121,6 @@ export const useRealTimeStatus = (analysisId: string | null, initialStatus?: str
       case 'error':
         toast.error(message.error || 'An error occurred', {
           duration: 5000,
-          style: {
-            background: '#1a2a3a',
-            color: '#ff4444',
-            border: '1px solid #ff4444',
-            fontFamily: 'JetBrains Mono, monospace',
-          },
         });
         break;
     }

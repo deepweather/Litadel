@@ -6,7 +6,7 @@ import { FormInput as Input } from '@/components/ui/form-input'
 import { Button } from '@/components/ui/button'
 import { KeyValueRow } from '../components/common/KeyValueRow'
 import { Heading } from '../design-system'
-import toast from 'react-hot-toast'
+import { toast } from 'sonner'
 
 export const Settings: React.FC = () => {
   const navigate = useNavigate()

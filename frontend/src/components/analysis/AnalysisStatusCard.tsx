@@ -2,6 +2,12 @@ import React, { useEffect, useState } from 'react'
 import type { Analysis } from '../../types/api'
 import { formatDateTime, formatDuration } from '../../utils/formatters'
 import { AGENT_NAMES } from '../../types/analysis'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
+import { Separator } from '@/components/ui/separator'
+import { Clock, Cpu } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface AnalysisStatusCardProps {
   analysis: Analysis
@@ -18,18 +24,18 @@ export const AnalysisStatusCard: React.FC<AnalysisStatusCardProps> = ({ analysis
     }
   }, [analysis.status])
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
     switch (status) {
       case 'completed':
-        return 'hsl(var(--success))'
+        return 'default'
       case 'running':
-        return 'hsl(var(--accent))'
+        return 'secondary'
       case 'failed':
-        return 'hsl(var(--destructive))'
+        return 'destructive'
       case 'pending':
-        return 'hsl(var(--warning))'
+        return 'outline'
       default:
-        return 'hsl(var(--primary))'
+        return 'outline'
     }
   }
 
@@ -40,13 +46,11 @@ export const AnalysisStatusCard: React.FC<AnalysisStatusCardProps> = ({ analysis
       : null
 
   // Derive a sane progress based on the current agent position in the pipeline.
-  // This avoids cases where the backend sends an out-of-sync percentage.
   const totalAgents = AGENT_NAMES.length
   let derivedProgress: number | null = null
   if (analysis.status === 'running' && analysis.current_agent) {
     const idx = AGENT_NAMES.indexOf(analysis.current_agent as any)
     if (idx >= 0) {
-      // Progress reflects how many agents are completed before the current one
       derivedProgress = Math.floor((idx / totalAgents) * 100)
     }
   }
@@ -59,118 +63,81 @@ export const AnalysisStatusCard: React.FC<AnalysisStatusCardProps> = ({ analysis
         : null
 
   return (
-    <div
-      style={{
-        border: '1px solid hsl(var(--border))',
-        padding: '1rem',
-        fontFamily: 'JetBrains Mono, monospace',
-        fontSize: '0.75rem',
-      }}
-    >
-      {/* Status */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '0.75rem',
-        }}
-      >
-        <span style={{ color: 'hsl(var(--muted-foreground))' }}>STATUS</span>
-        <span
-          style={{
-            color: getStatusColor(analysis.status),
-            fontWeight: 'bold',
-          }}
-        >
-          {analysis.status.toUpperCase()}
-        </span>
-      </div>
+    <Card className="py-3 gap-3">
+      <CardHeader className="pb-0 px-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-mono">Status</CardTitle>
+          <Badge
+            variant={getStatusVariant(analysis.status)}
+            className={cn(
+              'font-mono text-xs',
+              analysis.status === 'running' && 'animate-pulse'
+            )}
+            role="status"
+            aria-live="polite"
+            aria-label={`Analysis status: ${analysis.status}`}
+          >
+            {analysis.status.toUpperCase()}
+          </Badge>
+        </div>
+      </CardHeader>
 
-      {/* Progress */}
-      {analysis.status === 'running' && progressToShow !== null && (
-        <div style={{ marginBottom: '0.75rem' }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              marginBottom: '0.25rem',
-            }}
-          >
-            <span style={{ color: '#5a6e7a' }}>PROGRESS</span>
-            <span style={{ color: '#00d4ff' }}>{progressToShow}%</span>
-          </div>
-          <div
-            style={{
-              height: '4px',
-              backgroundColor: 'hsl(var(--primary) / 0.2)',
-              position: 'relative',
-            }}
-          >
-            <div
-              style={{
-                position: 'absolute',
-                left: 0,
-                top: 0,
-                height: '100%',
-                width: `${progressToShow}%`,
-                backgroundColor: '#00d4ff',
-                transition: 'width 0.3s ease',
-              }}
+      <CardContent className="space-y-3 px-4 py-0">
+        {/* Progress */}
+        {analysis.status === 'running' && progressToShow !== null && (
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-muted-foreground">Progress</span>
+              <span className="text-primary font-semibold">{progressToShow}%</span>
+            </div>
+            <Progress
+              value={progressToShow}
+              className="h-1"
+              aria-label={`Analysis progress: ${progressToShow}%`}
             />
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Current Agent */}
-      {analysis.current_agent && (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            marginBottom: '0.75rem',
-          }}
-        >
-          <span style={{ color: '#5a6e7a' }}>AGENT</span>
-          <span
-            style={{
-              color: '#4da6ff',
-              fontSize: '0.7rem',
-            }}
-          >
-            {analysis.current_agent}
-          </span>
-        </div>
-      )}
+        {/* Current Agent */}
+        {analysis.current_agent && (
+          <div className="flex items-start justify-between gap-1.5">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Cpu className="h-3.5 w-3.5 shrink-0" />
+              <span className="text-xs font-mono">Agent</span>
+            </div>
+            <span className="text-xs font-mono text-primary text-right">
+              {analysis.current_agent}
+            </span>
+          </div>
+        )}
 
-      {/* Duration */}
-      {duration && (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            marginBottom: '0.75rem',
-          }}
-        >
-          <span style={{ color: '#5a6e7a' }}>DURATION</span>
-          <span style={{ color: '#4da6ff' }}>{duration}</span>
-        </div>
-      )}
+        {/* Duration */}
+        {duration && (
+          <div className="flex items-center justify-between gap-1.5">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Clock className="h-3.5 w-3.5 shrink-0" />
+              <span className="text-xs font-mono">Duration</span>
+            </div>
+            <span className="text-xs font-mono text-primary">{duration}</span>
+          </div>
+        )}
 
-      {/* Timestamps */}
-      <div
-        style={{
-          paddingTop: '0.75rem',
-          borderTop: '1px solid hsl(var(--primary) / 0.2)',
-          fontSize: '0.65rem',
-          color: '#5a6e7a',
-        }}
-      >
-        <div style={{ marginBottom: '0.25rem' }}>
-          Started: {formatDateTime(analysis.created_at)}
+        <Separator />
+
+        {/* Timestamps */}
+        <div className="space-y-1 text-xs font-mono text-muted-foreground">
+          <div className="flex justify-between gap-2">
+            <span>Started:</span>
+            <span className="text-right">{formatDateTime(analysis.created_at)}</span>
+          </div>
+          {analysis.completed_at && (
+            <div className="flex justify-between gap-2">
+              <span>Completed:</span>
+              <span className="text-right">{formatDateTime(analysis.completed_at)}</span>
+            </div>
+          )}
         </div>
-        {analysis.completed_at && <div>Completed: {formatDateTime(analysis.completed_at)}</div>}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

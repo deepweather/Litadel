@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
+import { toast } from 'sonner'
 import { Briefcase } from 'lucide-react'
 import { api } from '../services/api'
 import { FormInput as Input } from '@/components/ui/form-input'

@@ -2,6 +2,11 @@ import React, { useEffect, useRef, useState } from 'react'
 import type { AnalysisLog } from '../../types/api'
 import { formatTime } from '../../utils/formatters'
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 
 interface LogViewerProps {
   logs: AnalysisLog[]
@@ -14,7 +19,6 @@ export const LogViewer: React.FC<LogViewerProps> = ({
   autoScroll = true,
   analysisStartTime,
 }) => {
-  const [filter, setFilter] = useState<string>('all')
   const [expandedLogs, setExpandedLogs] = useState<Set<string>>(new Set())
   const logsEndRef = useRef<HTMLDivElement>(null)
 
@@ -48,11 +52,6 @@ export const LogViewer: React.FC<LogViewerProps> = ({
 
   const transitions = getAgentTransitions()
 
-  const filteredLogs = logs.filter((log) => {
-    if (filter === 'all') return true
-    return log.log_type === filter
-  })
-
   const toggleExpanded = (logId: string) => {
     setExpandedLogs((prev) => {
       const newSet = new Set(prev)
@@ -65,131 +64,152 @@ export const LogViewer: React.FC<LogViewerProps> = ({
     })
   }
 
-  const getLogTypeColor = (logType: string) => {
+  const getLogTypeVariant = (logType: string): 'default' | 'secondary' | 'outline' | 'destructive' => {
     switch (logType) {
       case 'Tool Call':
-        return 'text-terminal-accent'
+        return 'default'
       case 'Reasoning':
-        return 'text-terminal-fg'
+        return 'secondary'
       case 'System':
-        return 'text-terminal-warning'
+        return 'outline'
       default:
-        return 'text-terminal-dim'
+        return 'outline'
     }
   }
 
-  if (logs.length === 0) {
-    return <div className="text-terminal-dim text-center py-8">No logs available yet</div>
+  // Categorize logs by type
+  const logsByType = {
+    all: logs,
+    toolCall: logs.filter(log => log.log_type === 'Tool Call'),
+    reasoning: logs.filter(log => log.log_type === 'Reasoning'),
+    system: logs.filter(log => log.log_type === 'System'),
   }
 
-  return (
-    <div className="space-y-3">
-      {/* Filter buttons - sticky at top */}
-      <div
-        className="flex gap-2 bg-[#0a0f1a] pb-2"
-        style={{ position: 'sticky', top: 0, zIndex: 10 }}
-      >
-        {['all', 'Tool Call', 'Reasoning', 'System'].map((filterType) => (
-          <button
-            key={filterType}
-            onClick={() => setFilter(filterType)}
-            className={`
-              px-3 py-1 border font-mono text-xs
-              transition-all
-              ${
-                filter === filterType
-                  ? 'border-terminal-fg text-terminal-fg bg-terminal-highlight'
-                  : 'border-terminal-border text-terminal-dim hover:text-terminal-fg'
-              }
-            `}
-          >
-            {filterType === 'all' ? 'ALL' : filterType.toUpperCase().replace(' ', '_')}
-          </button>
-        ))}
-      </div>
+  if (logs.length === 0) {
+    return <div className="text-center py-8 text-muted-foreground font-mono">No logs available yet</div>
+  }
 
-      {/* Logs list */}
-      <div className="space-y-1.5" style={{ minWidth: 0 }}>
-        {filteredLogs.map((log) => {
-          const isExpanded = expandedLogs.has(log.id)
-          const isLongContent = log.content.length > 150
-          const displayContent =
-            isExpanded || !isLongContent ? log.content : log.content.slice(0, 150) + '...'
+  const renderLogsList = (logsToRender: AnalysisLog[]) => (
+    <div className="space-y-2">
+      {logsToRender.map((log) => {
+        const isExpanded = expandedLogs.has(log.id)
+        const isLongContent = log.content.length > 150
+        const displayContent =
+          isExpanded || !isLongContent ? log.content : log.content.slice(0, 150) + '...'
 
-          // Check if there's an agent transition before this log
-          const transition = transitions.find((t) => {
-            const originalIndex = logs.findIndex((l) => l.id === log.id)
-            return t.index === originalIndex
-          })
+        // Check if there's an agent transition before this log
+        const transition = transitions.find((t) => {
+          const originalIndex = logs.findIndex((l) => l.id === log.id)
+          return t.index === originalIndex
+        })
 
-          return (
-            <React.Fragment key={log.id}>
-              {/* Agent Transition Separator */}
-              {transition && (
-                <div
-                  style={{
-                    borderTop: '1px solid hsl(var(--border))',
-                    padding: '0.25rem',
-                    textAlign: 'center',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    fontSize: '0.65rem',
-                    color: 'hsl(var(--accent))',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  ── {transition.from} → {transition.to} ──
-                </div>
-              )}
-
-              <div
-                className="border border-terminal-border p-2 hover:border-terminal-fg transition-colors"
-                style={{
-                  overflowWrap: 'break-word',
-                  wordBreak: 'break-word',
-                  fontSize: '0.75rem',
-                }}
-              >
-                <div className="flex items-start justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs font-mono ${getLogTypeColor(log.log_type)}`}>
-                      [{log.log_type.toUpperCase()}]
-                    </span>
-                    <span className="text-terminal-accent text-xs font-mono">{log.agent_name}</span>
-                  </div>
-                  <span className="text-terminal-dim text-xs font-mono">
-                    {getRelativeTime(log.timestamp)}
-                  </span>
-                </div>
-                <pre
-                  className="text-terminal-fg text-xs whitespace-pre-wrap font-mono"
-                  style={{ overflowWrap: 'break-word', wordBreak: 'break-word', maxWidth: '100%' }}
-                >
-                  {displayContent}
-                </pre>
-                {isLongContent && (
-                  <button
-                    onClick={() => toggleExpanded(log.id)}
-                    className="mt-1 text-terminal-accent text-xs flex items-center gap-1 hover:text-terminal-fg"
-                  >
-                    {isExpanded ? (
-                      <>
-                        <ChevronUp size={12} />
-                        Show less
-                      </>
-                    ) : (
-                      <>
-                        <ChevronDown size={12} />
-                        Show more
-                      </>
-                    )}
-                  </button>
-                )}
+        return (
+          <React.Fragment key={log.id}>
+            {/* Agent Transition Separator */}
+            {transition && (
+              <Separator className="my-3" />
+            )}
+            {transition && (
+              <div className="text-center text-xs font-mono text-muted-foreground py-1">
+                ── {transition.from} → {transition.to} ──
               </div>
-            </React.Fragment>
-          )
-        })}
-        <div ref={logsEndRef} />
-      </div>
+            )}
+
+            <Card className="p-3">
+              <div className="flex items-start justify-between mb-2 gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant={getLogTypeVariant(log.log_type)} className="font-mono text-xs">
+                    {log.log_type.toUpperCase()}
+                  </Badge>
+                  <span className="text-xs font-mono text-primary">{log.agent_name}</span>
+                </div>
+                <span className="text-xs font-mono text-muted-foreground shrink-0">
+                  {getRelativeTime(log.timestamp)}
+                </span>
+              </div>
+              <pre className="text-xs whitespace-pre-wrap font-mono text-foreground break-words">
+                {displayContent}
+              </pre>
+              {isLongContent && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleExpanded(log.id)}
+                  className="mt-2 h-auto py-1 px-2 text-xs"
+                >
+                  {isExpanded ? (
+                    <>
+                      <ChevronUp className="h-3 w-3 mr-1" />
+                      Show less
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-3 w-3 mr-1" />
+                      Show more
+                    </>
+                  )}
+                </Button>
+              )}
+            </Card>
+          </React.Fragment>
+        )
+      })}
+      <div ref={logsEndRef} />
     </div>
+  )
+
+  return (
+    <Tabs defaultValue="all" className="w-full">
+      <div className="sticky top-0 z-10 bg-background pb-4">
+        <TabsList className="w-full justify-start">
+          <TabsTrigger value="all" className="font-mono text-xs">
+            All ({logs.length})
+          </TabsTrigger>
+          <TabsTrigger value="toolCall" className="font-mono text-xs">
+            Tool Calls ({logsByType.toolCall.length})
+          </TabsTrigger>
+          <TabsTrigger value="reasoning" className="font-mono text-xs">
+            Reasoning ({logsByType.reasoning.length})
+          </TabsTrigger>
+          <TabsTrigger value="system" className="font-mono text-xs">
+            System ({logsByType.system.length})
+          </TabsTrigger>
+        </TabsList>
+      </div>
+
+      <TabsContent value="all">
+        {renderLogsList(logsByType.all)}
+      </TabsContent>
+
+      <TabsContent value="toolCall">
+        {logsByType.toolCall.length > 0 ? (
+          renderLogsList(logsByType.toolCall)
+        ) : (
+          <div className="text-center py-8 text-muted-foreground font-mono text-sm">
+            No tool call logs
+          </div>
+        )}
+      </TabsContent>
+
+      <TabsContent value="reasoning">
+        {logsByType.reasoning.length > 0 ? (
+          renderLogsList(logsByType.reasoning)
+        ) : (
+          <div className="text-center py-8 text-muted-foreground font-mono text-sm">
+            No reasoning logs
+          </div>
+        )}
+      </TabsContent>
+
+      <TabsContent value="system">
+        {logsByType.system.length > 0 ? (
+          renderLogsList(logsByType.system)
+        ) : (
+          <div className="text-center py-8 text-muted-foreground font-mono text-sm">
+            No system logs
+          </div>
+        )}
+      </TabsContent>
+    </Tabs>
   )
 }

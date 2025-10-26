@@ -7,7 +7,7 @@ import { FormInput as Input } from '@/components/ui/form-input'
 import { FormCheckbox as Checkbox } from '@/components/ui/form-checkbox'
 import { ASCIIBox } from '../ui/ASCIIBox'
 import { Clock, Search, Zap } from 'lucide-react'
-import toast from 'react-hot-toast'
+import { toast } from 'sonner'
 
 type Preset = 'quick' | 'standard' | 'deep'
 

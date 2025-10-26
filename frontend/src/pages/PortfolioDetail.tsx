@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
+import { toast } from 'sonner'
 import { ArrowLeft, Edit2, Plus, Trash2, Upload } from 'lucide-react'
 import { api } from '../services/api'
 import { PositionTable } from '../components/portfolio/PositionTable'

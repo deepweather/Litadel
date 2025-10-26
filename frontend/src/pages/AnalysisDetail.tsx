@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   useAnalysis,
@@ -15,17 +15,26 @@ import { useMarketData } from '../hooks/useMarketData'
 import { LogViewer } from '../components/analysis/LogViewer'
 import { TradingDecisionCard } from '../components/trading/TradingDecisionCard'
 import { Button } from '@/components/ui/button'
-import { IconButton } from '../components/ui/IconButton'
 import { Collapsible } from '../components/interactive/Collapsible'
 import { InfoBanner } from '../components/ui/InfoBanner'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { categorizeReportsByType } from '@/config/reportTypes'
 import {
   ArrowLeft,
+  BarChart3,
+  Briefcase,
   Copy,
   Download,
+  Eye,
+  ListTree,
+  MessageSquare,
   RefreshCw,
+  Target,
   Trash2,
 } from 'lucide-react'
-import toast from 'react-hot-toast'
+import { toast } from 'sonner'
 
 export const AnalysisDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -155,144 +164,358 @@ export const AnalysisDetail: React.FC = () => {
   // Get trading decision from API
   const tradeDecision = analysis?.trading_decision
 
+  // Categorize reports by type for tabs
+  const categorizedReports = useMemo(() => {
+    return {
+      decision: reports.filter(r => categorizeReportsByType(r.report_type) === 'decision'),
+      market: reports.filter(r => categorizeReportsByType(r.report_type) === 'market'),
+      sentiment: reports.filter(r => categorizeReportsByType(r.report_type) === 'sentiment'),
+      investment: reports.filter(r => categorizeReportsByType(r.report_type) === 'investment'),
+      risk: reports.filter(r => categorizeReportsByType(r.report_type) === 'risk'),
+    }
+  }, [reports])
+
   if (isLoading) {
-    return <div className="text-center py-12 text-muted-foreground">Loading analysis...</div>
+    return (
+      <div className="flex flex-col h-full">
+        <div className="flex items-center gap-4 pb-4 mb-4 border-b">
+          <Skeleton className="h-9 w-9" />
+          <Skeleton className="h-6 w-48" />
+        </div>
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+          <div className="space-y-4">
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-48 w-full" />
+          </div>
+          <div className="space-y-4">
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (!analysis) {
-    return <div className="text-center py-12 text-destructive">Analysis not found</div>
+    return <div className="text-center py-12 text-destructive font-mono">Analysis not found</div>
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header - Minimal */}
-      <div className="flex items-center justify-between pb-4 mb-4 border-b">
-        <div className="flex items-center gap-4">
-          <Button onClick={() => navigate('/analyses')}>
-            <ArrowLeft size={16} />
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold text-primary font-mono">
-              {analysis.ticker} • {analysis.analysis_date}
-            </h1>
+    <TooltipProvider>
+      <div className="flex flex-col h-full relative">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-4 mb-4 border-b">
+          <div className="flex items-center gap-4">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate('/analyses')}
+                  aria-label="Back to analyses list"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>Back to Analyses (Esc)</p>
+              </TooltipContent>
+            </Tooltip>
+            <div>
+              <h1 className="text-xl font-bold text-foreground font-mono">
+                {analysis.ticker} • {analysis.analysis_date}
+              </h1>
+              <p className="text-xs text-muted-foreground font-mono">
+                ID: {analysisId?.substring(0, 8)}...
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleCopyId}
+                  aria-label="Copy analysis ID"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>Copy ID (C)</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleExportAll}
+                  aria-label="Export analysis data"
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>Export All Data</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => refetch()}
+                  aria-label="Refresh analysis"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>Refresh (R)</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={handleDelete}
+                  disabled={deleteMutation.isPending}
+                  aria-label="Delete analysis"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>Delete Analysis (D)</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
-        <div className="flex gap-2">
-          <IconButton
-            icon={<Copy size={16} />}
-            onClick={handleCopyId}
-            variant="primary"
-            title="Copy Analysis ID"
-          />
-          <IconButton
-            icon={<Download size={16} />}
-            onClick={handleExportAll}
-            variant="primary"
-            title="Export All Data"
-          />
-          <IconButton
-            icon={<RefreshCw size={16} />}
-            onClick={() => refetch()}
-            variant="primary"
-            title="Refresh"
-          />
-          <IconButton
-            icon={<Trash2 size={16} />}
-            onClick={handleDelete}
-            variant="danger"
-            disabled={deleteMutation.isPending}
-            title="Delete Analysis"
-          />
-        </div>
-      </div>
+        {/* Error Banner */}
+        {analysis.status === 'failed' && analysis.error_message && (
+          <div className="mb-4">
+            <InfoBanner variant="error" title="✗ ANALYSIS FAILED">
+              {analysis.error_message}
+            </InfoBanner>
+          </div>
+        )}
 
-      {/* Error Banner */}
-      {analysis.status === 'failed' && analysis.error_message && (
-        <InfoBanner variant="error" title="✗ ANALYSIS FAILED">
-          {analysis.error_message}
-        </InfoBanner>
-      )}
-
-      {/* Main Content Area */}
-      <div className="flex-1 min-h-0 flex gap-6">
-        {/* Left: Reports (Primary Content) */}
-        <div className="flex-1 min-w-0 overflow-auto pr-4">
-          {/* Trading Decision Card */}
-          {tradeDecision && analysis.status === 'completed' && marketMetrics && (
-            <TradingDecisionCard
-              decision={tradeDecision}
-              ticker={analysis.ticker}
-              analysisDate={analysis.analysis_date}
-              marketMetrics={marketMetrics}
-            />
-          )}
-
-          {/* Price Chart - Now smaller and below decision */}
-          {marketData?.data && marketData.data.length > 0 && (
-            <div className="mb-6">
-              <div className="text-sm text-muted-foreground font-mono mb-2">
-                PRICE ACTION (60 DAYS)
+        {/* Main Content Area - Two Column with Sticky Sidebar */}
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+          {/* Left: Main Content with Tabs */}
+          <div className="min-w-0 overflow-auto pb-20">
+            <Tabs defaultValue="overview" className="w-full">
+              <div className="overflow-x-auto pb-2 mb-4 -mx-1 px-1">
+                <TabsList className="w-max min-w-full justify-start inline-flex" aria-label="Analysis report categories">
+                  <TabsTrigger value="overview" className="gap-2" aria-label="Overview of analysis">
+                    <Eye className="h-4 w-4" aria-hidden="true" />
+                    Overview
+                  </TabsTrigger>
+                  <TabsTrigger value="decision" className="gap-2" aria-label={`Trade decision reports${categorizedReports.decision.length > 0 ? `, ${categorizedReports.decision.length} available` : ''}`}>
+                    <Target className="h-4 w-4" aria-hidden="true" />
+                    Decision
+                    {categorizedReports.decision.length > 0 && (
+                      <span className="ml-1 text-xs" aria-hidden="true">({categorizedReports.decision.length})</span>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger value="market" className="gap-2" aria-label={`Market analysis reports${categorizedReports.market.length > 0 ? `, ${categorizedReports.market.length} available` : ''}`}>
+                    <BarChart3 className="h-4 w-4" aria-hidden="true" />
+                    Market
+                    {categorizedReports.market.length > 0 && (
+                      <span className="ml-1 text-xs" aria-hidden="true">({categorizedReports.market.length})</span>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger value="sentiment" className="gap-2" aria-label={`Sentiment analysis reports${categorizedReports.sentiment.length > 0 ? `, ${categorizedReports.sentiment.length} available` : ''}`}>
+                    <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                    Sentiment
+                    {categorizedReports.sentiment.length > 0 && (
+                      <span className="ml-1 text-xs" aria-hidden="true">({categorizedReports.sentiment.length})</span>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger value="investment" className="gap-2" aria-label={`Investment plan reports${categorizedReports.investment.length > 0 ? `, ${categorizedReports.investment.length} available` : ''}`}>
+                    <Briefcase className="h-4 w-4" aria-hidden="true" />
+                    Investment
+                    {categorizedReports.investment.length > 0 && (
+                      <span className="ml-1 text-xs" aria-hidden="true">({categorizedReports.investment.length})</span>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger value="all" className="gap-2" aria-label={`All analysis reports${reports.length > 0 ? `, ${reports.length} available` : ''}`}>
+                    <ListTree className="h-4 w-4" aria-hidden="true" />
+                    All Reports
+                    {reports.length > 0 && (
+                      <span className="ml-1 text-xs" aria-hidden="true">({reports.length})</span>
+                    )}
+                  </TabsTrigger>
+                </TabsList>
               </div>
-              <PriceChart
-                data={marketData.data as any}
-                height={200}
-                analysisDate={analysis.analysis_date}
-                mode={
-                  [
-                    'BRENT',
-                    'WTI',
-                    'NATURAL_GAS',
-                    'COPPER',
-                    'ALUMINUM',
-                    'WHEAT',
-                    'CORN',
-                    'SUGAR',
-                    'COTTON',
-                    'COFFEE',
-                  ].includes((analysis.ticker || '').toUpperCase())
-                    ? 'line'
-                    : 'candles'
-                }
+
+              {/* Overview Tab */}
+              <TabsContent value="overview" className="space-y-6 mt-0">
+                {/* Trading Decision Card */}
+                {tradeDecision && analysis.status === 'completed' && marketMetrics && (
+                  <TradingDecisionCard
+                    decision={tradeDecision}
+                    ticker={analysis.ticker}
+                    analysisDate={analysis.analysis_date}
+                    marketMetrics={marketMetrics}
+                  />
+                )}
+
+                {/* Price Chart */}
+                {marketData?.data && marketData.data.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold font-mono text-foreground mb-3">
+                      Price Action (60 Days)
+                    </h3>
+                    <PriceChart
+                      data={marketData.data as any}
+                      height={240}
+                      analysisDate={analysis.analysis_date}
+                      mode={
+                        [
+                          'BRENT',
+                          'WTI',
+                          'NATURAL_GAS',
+                          'COPPER',
+                          'ALUMINUM',
+                          'WHEAT',
+                          'CORN',
+                          'SUGAR',
+                          'COTTON',
+                          'COFFEE',
+                        ].includes((analysis.ticker || '').toUpperCase())
+                          ? 'line'
+                          : 'candles'
+                      }
+                    />
+                  </div>
+                )}
+
+                {/* Summary of key reports */}
+                {reports.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold font-mono text-foreground mb-3">
+                      Key Reports Summary
+                    </h3>
+                    <ReportViewer reports={reports.slice(0, 3)} defaultExpandFirst={true} />
+                  </div>
+                )}
+
+                {reports.length === 0 && analysis.status !== 'running' && (
+                  <div className="text-center py-12 text-muted-foreground font-mono">
+                    No reports available
+                  </div>
+                )}
+
+                {analysis.status === 'running' && (
+                  <div className="text-center py-12 text-muted-foreground font-mono">
+                    Analysis in progress...
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Decision Tab */}
+              <TabsContent value="decision" className="mt-0">
+                {categorizedReports.decision.length > 0 ? (
+                  <ReportViewer reports={categorizedReports.decision} />
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground font-mono">
+                    No trade decision reports
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Market Analysis Tab */}
+              <TabsContent value="market" className="mt-0">
+                {categorizedReports.market.length > 0 ? (
+                  <ReportViewer reports={categorizedReports.market} />
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground font-mono">
+                    No market analysis reports
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Sentiment Tab */}
+              <TabsContent value="sentiment" className="mt-0">
+                {categorizedReports.sentiment.length > 0 ? (
+                  <ReportViewer reports={categorizedReports.sentiment} />
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground font-mono">
+                    No sentiment reports
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Investment Tab */}
+              <TabsContent value="investment" className="mt-0">
+                {categorizedReports.investment.length > 0 ? (
+                  <ReportViewer reports={categorizedReports.investment} />
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground font-mono">
+                    No investment reports
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* All Reports Tab */}
+              <TabsContent value="all" className="mt-0">
+                {reports.length > 0 ? (
+                  <ReportViewer reports={reports} />
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground font-mono">
+                    No reports available
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Right: Status + Pipeline (Sticky Sidebar) */}
+          <div className="hidden lg:block">
+            <div className="sticky top-4 space-y-4">
+              <AnalysisStatusCard analysis={analysis} />
+              <AgentPipeline
+                currentAgent={analysis.current_agent ?? null}
+                status={analysis.status}
+                logs={logs}
+                selectedAnalysts={analysis.selected_analysts}
               />
             </div>
-          )}
-
-          <div className="text-base font-bold text-primary font-mono mb-4 pb-2 border-b">
-            ANALYSIS REPORTS
           </div>
-          {reports.length > 0 ? (
-            <ReportViewer reports={reports} />
-          ) : (
-            <div className="border p-8 text-center text-muted-foreground font-mono">
-              {analysis.status === 'running' ? 'Analysis in progress...' : 'No reports available'}
-            </div>
-          )}
+
+          {/* Mobile: Status below on small screens */}
+          <div className="lg:hidden space-y-4 mt-6">
+            <AnalysisStatusCard analysis={analysis} />
+            <AgentPipeline
+              currentAgent={analysis.current_agent ?? null}
+              status={analysis.status}
+              logs={logs}
+              selectedAnalysts={analysis.selected_analysts}
+            />
+          </div>
         </div>
 
-        {/* Right: Status + Pipeline (Secondary) */}
-        <div className="flex-none w-[300px] flex flex-col gap-4 overflow-auto">
-          <div className="text-base font-bold text-primary font-mono mb-2 pb-2 border-b">
-            ANALYSIS STATUS
+        {/* Sticky Logs Section at Bottom */}
+        {logs.length > 0 && (
+          <div className="fixed bottom-0 left-0 right-0 md:left-[var(--sidebar-width)] z-20 bg-background border-t shadow-2xl">
+            <Collapsible title="EXECUTION LOGS" count={logs.length} defaultExpanded={false}>
+              <div className="max-h-[60vh] overflow-auto">
+                <LogViewer logs={logs} analysisStartTime={analysis.created_at || undefined} autoScroll={false} />
+              </div>
+            </Collapsible>
           </div>
-          <AnalysisStatusCard analysis={analysis} />
-          <AgentPipeline
-            currentAgent={analysis.current_agent ?? null}
-            status={analysis.status}
-            logs={logs}
-            selectedAnalysts={analysis.selected_analysts}
-          />
-        </div>
+        )}
       </div>
-
-      {/* Logs Section (Collapsible) */}
-      {logs.length > 0 && (
-        <div className="mt-6">
-          <Collapsible title="EXECUTION LOGS" count={logs.length} defaultExpanded={false}>
-            <LogViewer logs={logs} analysisStartTime={analysis.created_at || undefined} />
-          </Collapsible>
-        </div>
-      )}
-    </div>
+    </TooltipProvider>
   )
 }

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import { ColorType, createChart } from 'lightweight-charts'
 import type { IChartApi, Time } from 'lightweight-charts'
+import { Card } from '@/components/ui/card'
 
 type OHLCV = {
   Date: string
@@ -118,9 +119,9 @@ const PriceChart: React.FC<PriceChartProps> = ({
   }, [data, height, analysisDate, mode])
 
   return (
-    <div className="border mb-4">
+    <Card className="p-0 overflow-hidden">
       <div ref={containerRef} style={{ width: '100%', height }} />
-    </div>
+    </Card>
   )
 }
 

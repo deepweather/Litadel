@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { api } from '../services/api'
-import toast from 'react-hot-toast'
+import { toast } from 'sonner'
 
 export const Login: React.FC = () => {
   const navigate = useNavigate()
