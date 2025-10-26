@@ -4,6 +4,8 @@
 
 ---
 
+> **Copyright Notice:** Litadel is a successor of TradingAgents by TaurusResearch. This project builds upon and extends the original TradingAgents framework.
+
 # Litadel: AI-Native Hedge Fund Platform
 
 > *Citadel was built by quants. Litadel was built by vibes.* 🚀
@@ -44,10 +46,14 @@ Litadel is an AI-native hedge fund platform that delivers the complete trading w
 
 ### Your Trading Command Center
 
-The web dashboard provides a complete control center for managing your trading analyses with real-time monitoring, interactive visualizations, and comprehensive reporting.
+The web dashboard provides a complete control center for managing analyses, backtests, and portfolios with real-time monitoring, interactive visualizations, and comprehensive reporting.
 
 <p align="center">
   <img src="assets/dashboard.png" width="100%" style="display: inline-block;">
+</p>
+
+<p align="center">
+  <img src="assets/dasboard_rationale.png" width="100%" style="display: inline-block;">
 </p>
 
 ### Analysis Management
@@ -64,6 +70,12 @@ Watch your analysis unfold in real-time as AI agents collaborate to evaluate mar
 
 <p align="center">
   <img src="assets/btc_single_analysis.png" width="100%" style="display: inline-block;">
+</p>
+
+Monitor execution logs and agent reasoning in real-time:
+
+<p align="center">
+  <img src="assets/execution_logs.png" width="100%" style="display: inline-block;">
 </p>
 
 ### Comprehensive Analysis Reports
@@ -262,6 +274,10 @@ Test your trading strategies with historical data before risking real capital. L
 - Automatic validation in Docker sandbox (secure, isolated)
 - Self-healing: Auto-fixes common errors (missing imports, syntax issues)
 
+<p align="center">
+  <img src="assets/backtest_strategy.png" width="100%" style="display: inline-block;">
+</p>
+
 **Professional Backtesting:**
 - Historical data from 2010+ for stocks, 2015+ for crypto
 - Realistic commission and slippage modeling
@@ -280,14 +296,33 @@ Test your trading strategies with historical data before risking real capital. L
 - Cumulative P&L
 - Win/loss distribution
 
+### Example Output
+
+<p align="center">
+  <img src="assets/backtest_output.png" width="100%" style="display: inline-block;">
+</p>
+
 ### Quick Start
 
 **Web UI:**
+
+Create and execute backtests with an intuitive step-by-step interface:
+
+<p align="center">
+  <img src="assets/backtest_ui.png" width="100%" style="display: inline-block;">
+</p>
+
 1. Navigate to Strategies → Create Backtest
 2. Describe strategy: "Buy when RSI < 30, sell when RSI > 70"
 3. AI generates code → Auto-validates → Create
 4. Strategy validates in background (WebSocket updates)
 5. Click Execute → See results with charts
+
+View detailed results with professional charts and comprehensive metrics:
+
+<p align="center">
+  <img src="assets/backtest_detail.png" width="100%" style="display: inline-block;">
+</p>
 
 **CLI:**
 ```bash

@@ -50,7 +50,6 @@ def get_user_selections():
     title_centered = Align.center(
         Text("Litadel: Multi-Agents LLM Financial Trading Framework - CLI", style="bold green")
     )
-    subtitle_centered = Align.center(Text("Successor of TradingAgents by TaurusResearch", style="dim"))
     workflow_title = Align.center(Text("Workflow Steps:", style="bold"))
     workflow_content = Align.center(
         "I. Analyst Team → II. Research Team → III. Trader → IV. Risk Management → V. Portfolio Management"
@@ -59,9 +58,7 @@ def get_user_selections():
     # Create welcome box content
     from rich.console import Group
 
-    welcome_content = Group(
-        ascii_centered, Text(), title_centered, Text(), subtitle_centered, Text(), workflow_title, workflow_content
-    )
+    welcome_content = Group(ascii_centered, Text(), title_centered, Text(), workflow_title, workflow_content)
 
     # Create and center the welcome box
     welcome_box = Panel(
