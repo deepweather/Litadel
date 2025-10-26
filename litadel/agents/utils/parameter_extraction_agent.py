@@ -345,7 +345,7 @@ Generate specific questions for missing required fields:
                     questions.insert(
                         0,
                         {
-                            "question": f"You specified ${capital:,} (${capital/1000000:.1f} million). Is this correct? That's a very large amount for backtesting.",
+                            "question": f"You specified ${capital:,} (${capital / 1000000:.1f} million). Is this correct? That's a very large amount for backtesting.",
                             "field": "capital_confirmation",
                             "suggestions": [],
                             "field_type": "text",

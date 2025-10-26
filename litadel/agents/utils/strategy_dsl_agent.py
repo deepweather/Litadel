@@ -380,7 +380,7 @@ strategy:
                 else:
                     instruction = "\n\n**IMPORTANT**: The user has not explicitly provided a ticker list. You MUST extract ticker symbols from the strategy description. For example:\n- 'Tesla' or 'tesla' → TSLA\n- 'Apple' or 'apple' → AAPL\n- 'Bitcoin' or 'bitcoin' → BTC-USD\n- 'tech stocks' → [AAPL, MSFT, GOOGL, NVDA, TSLA]\n- If no specific stocks are mentioned, infer appropriate tickers based on the strategy type and sectors mentioned."
 
-            strategy_type_instruction = f"\n\n**CRITICAL**: This is a **{strategy_type.upper().replace('_', '-')}** strategy. Set `metadata.strategy_type: \"{strategy_type}\"` in your output."
+            strategy_type_instruction = f'\n\n**CRITICAL**: This is a **{strategy_type.upper().replace("_", "-")}** strategy. Set `metadata.strategy_type: "{strategy_type}"` in your output.'
 
             if strategy_type == "agent_managed":
                 strategy_type_instruction += "\n- Use FLEXIBLE entry/exit rules (type: 'flexible')\n- Focus on preferences and risk tolerance\n- Let AI agents make intelligent trading decisions\n- Use broad guidelines, not rigid thresholds"

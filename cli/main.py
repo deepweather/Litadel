@@ -448,7 +448,7 @@ def backtest():
             f"Ticker: {symbol} ({asset_class})\n"
             f"Period: {start_date} to {end_date}\n"
             f"Capital: ${capital:,.0f}\n"
-            f"Commission: {commission*100:.2f}%",
+            f"Commission: {commission * 100:.2f}%",
             border_style="blue",
         )
     )
