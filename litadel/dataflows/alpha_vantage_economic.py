@@ -21,6 +21,26 @@ DEFAULT_TTL = {
 }
 
 
+def _is_valid_value(value: str) -> bool:
+    """Check if an economic data value is valid (not missing)."""
+    return value not in (".", "", None) and value != "None"
+
+
+def _safe_float(value: str, default: float = 0.0) -> float:
+    """Safely convert a value to float, returning default if invalid."""
+    if not _is_valid_value(value):
+        return default
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
+
+def _filter_valid_entries(data: list[dict]) -> list[dict]:
+    """Filter out entries with missing/invalid values."""
+    return [entry for entry in data if _is_valid_value(entry.get("value", ""))]
+
+
 def get_real_gdp(max_date: str | None = None) -> str:
     """
     Retrieve Real GDP data from Alpha Vantage with smart caching.
@@ -62,6 +82,8 @@ def get_real_gdp(max_date: str | None = None) -> str:
                 max_dt = datetime.strptime(max_date, "%Y-%m-%d")
                 all_data = [entry for entry in all_data if datetime.strptime(entry["date"], "%Y-%m-%d") <= max_dt]
 
+            # Filter out entries with missing values
+            all_data = _filter_valid_entries(all_data)
             recent_data = all_data[:8]  # Last 2 years (8 quarters)
 
             formatted = "Real GDP (Quarterly, Billions of Dollars):\n\n"
@@ -70,10 +92,11 @@ def get_real_gdp(max_date: str | None = None) -> str:
 
             # Calculate growth trend
             if len(recent_data) >= 2:
-                latest = float(recent_data[0]["value"])
-                previous = float(recent_data[1]["value"])
-                growth = ((latest - previous) / previous) * 100
-                formatted += f"\nLatest Quarter-over-Quarter Growth: {growth:.2f}%\n"
+                latest = _safe_float(recent_data[0]["value"])
+                previous = _safe_float(recent_data[1]["value"])
+                if previous != 0:
+                    growth = ((latest - previous) / previous) * 100
+                    formatted += f"\nLatest Quarter-over-Quarter Growth: {growth:.2f}%\n"
 
             return formatted
         return f"GDP data structure unexpected: {response[:500]}"
@@ -122,6 +145,8 @@ def get_cpi(max_date: str | None = None) -> str:
                 max_dt = datetime.strptime(max_date, "%Y-%m-%d")
                 all_data = [entry for entry in all_data if datetime.strptime(entry["date"], "%Y-%m-%d") <= max_dt]
 
+            # Filter out entries with missing values
+            all_data = _filter_valid_entries(all_data)
             recent_data = all_data[:12]  # Last 12 months
 
             formatted = "Consumer Price Index (Monthly):\n\n"
@@ -130,10 +155,11 @@ def get_cpi(max_date: str | None = None) -> str:
 
             # Calculate year-over-year inflation
             if len(recent_data) >= 12:
-                latest = float(recent_data[0]["value"])
-                year_ago = float(recent_data[11]["value"])
-                inflation = ((latest - year_ago) / year_ago) * 100
-                formatted += f"\nYear-over-Year Inflation Rate: {inflation:.2f}%\n"
+                latest = _safe_float(recent_data[0]["value"])
+                year_ago = _safe_float(recent_data[11]["value"])
+                if year_ago != 0:
+                    inflation = ((latest - year_ago) / year_ago) * 100
+                    formatted += f"\nYear-over-Year Inflation Rate: {inflation:.2f}%\n"
 
             return formatted
         return f"CPI data structure unexpected: {response[:500]}"
@@ -182,6 +208,8 @@ def get_unemployment_rate(max_date: str | None = None) -> str:
                 max_dt = datetime.strptime(max_date, "%Y-%m-%d")
                 all_data = [entry for entry in all_data if datetime.strptime(entry["date"], "%Y-%m-%d") <= max_dt]
 
+            # Filter out entries with missing values
+            all_data = _filter_valid_entries(all_data)
             recent_data = all_data[:12]  # Last 12 months
 
             formatted = "Unemployment Rate (Monthly, %):\n\n"
@@ -190,8 +218,8 @@ def get_unemployment_rate(max_date: str | None = None) -> str:
 
             # Calculate trend
             if len(recent_data) >= 6:
-                recent_avg = sum(float(d["value"]) for d in recent_data[:3]) / 3
-                older_avg = sum(float(d["value"]) for d in recent_data[3:6]) / 3
+                recent_avg = sum(_safe_float(d["value"]) for d in recent_data[:3]) / 3
+                older_avg = sum(_safe_float(d["value"]) for d in recent_data[3:6]) / 3
                 trend = "improving" if recent_avg < older_avg else "worsening"
                 formatted += f"\nRecent Trend: {trend} (3-month avg: {recent_avg:.2f}%)\n"
 
@@ -242,6 +270,8 @@ def get_federal_funds_rate(max_date: str | None = None) -> str:
                 max_dt = datetime.strptime(max_date, "%Y-%m-%d")
                 all_data = [entry for entry in all_data if datetime.strptime(entry["date"], "%Y-%m-%d") <= max_dt]
 
+            # Filter out entries with missing values
+            all_data = _filter_valid_entries(all_data)
             recent_data = all_data[:12]  # Last 12 months
 
             formatted = "Federal Funds Rate (Monthly, %):\n\n"
@@ -250,8 +280,8 @@ def get_federal_funds_rate(max_date: str | None = None) -> str:
 
             # Analyze rate changes
             if len(recent_data) >= 2:
-                latest = float(recent_data[0]["value"])
-                previous = float(recent_data[1]["value"])
+                latest = _safe_float(recent_data[0]["value"])
+                previous = _safe_float(recent_data[1]["value"])
                 change = latest - previous
 
                 if abs(change) > 0.01:
@@ -308,6 +338,8 @@ def get_treasury_yield(maturity: str = "10year", max_date: str | None = None) ->
                 max_dt = datetime.strptime(max_date, "%Y-%m-%d")
                 all_data = [entry for entry in all_data if datetime.strptime(entry["date"], "%Y-%m-%d") <= max_dt]
 
+            # Filter out entries with missing values
+            all_data = _filter_valid_entries(all_data)
             recent_data = all_data[:6]  # Last 6 months
 
             formatted = f"Treasury Yield - {maturity.upper()} (Monthly, %):\n\n"
@@ -316,8 +348,8 @@ def get_treasury_yield(maturity: str = "10year", max_date: str | None = None) ->
 
             # Calculate trend
             if len(recent_data) >= 2:
-                latest = float(recent_data[0]["value"])
-                month_ago = float(recent_data[1]["value"])
+                latest = _safe_float(recent_data[0]["value"])
+                month_ago = _safe_float(recent_data[1]["value"])
                 change = latest - month_ago
                 direction = "up" if change > 0 else "down"
                 formatted += f"\nMonthly Change: {abs(change):.2f}% {direction}\n"
@@ -369,6 +401,8 @@ def get_retail_sales(max_date: str | None = None) -> str:
                 max_dt = datetime.strptime(max_date, "%Y-%m-%d")
                 all_data = [entry for entry in all_data if datetime.strptime(entry["date"], "%Y-%m-%d") <= max_dt]
 
+            # Filter out entries with missing values
+            all_data = _filter_valid_entries(all_data)
             recent_data = all_data[:12]  # Last 12 months
 
             formatted = "Retail Sales (Monthly, Millions of Dollars):\n\n"
@@ -377,10 +411,11 @@ def get_retail_sales(max_date: str | None = None) -> str:
 
             # Calculate year-over-year growth
             if len(recent_data) >= 12:
-                latest = float(recent_data[0]["value"])
-                year_ago = float(recent_data[11]["value"])
-                growth = ((latest - year_ago) / year_ago) * 100
-                formatted += f"\nYear-over-Year Growth: {growth:.2f}%\n"
+                latest = _safe_float(recent_data[0]["value"])
+                year_ago = _safe_float(recent_data[11]["value"])
+                if year_ago != 0:
+                    growth = ((latest - year_ago) / year_ago) * 100
+                    formatted += f"\nYear-over-Year Growth: {growth:.2f}%\n"
 
             return formatted
         return f"Retail sales data structure unexpected: {response[:500]}"
